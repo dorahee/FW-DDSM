@@ -5,14 +5,16 @@ no_intervals_periods = int(no_intervals / no_periods)
 
 # household related parameters
 # new_households = True
-new_households = False
-no_households = 100
-no_tasks_min = 5
-no_tasks_max = 8
+create_new_households = False
+no_households = 10
+no_full_flex_tasks_min = 5
+no_full_flex_tasks_max = 8
+no_semi_flex_tasks_min = 3
+no_fixed_tasks_min = 0
 no_tasks_dependent = 2
-maxium_demand_multiplier = no_tasks_min
+maxium_demand_multiplier = no_full_flex_tasks_min + no_semi_flex_tasks_min + no_fixed_tasks_min
 care_f_max = 10
-care_f_weight = 0
+care_f_weight = 1
 
 # pricing related parameters
 pricing_table_weight = 1
@@ -45,12 +47,14 @@ k0_cost_type = "cost_function_type"
 k0_iteration_no = "no_iterations"
 
 # househole dictionary keys
+h_key = "key"
 h_psts = "preferred_starts"
 h_ests = "earliest_starts"
 h_lfs = "latest_finishes"
 h_durs = "durations"
 h_powers = "powers"
 h_cfs = "care_factors"
+h_max_cf = "maximum_care_factor"
 h_no_precs = "no_precedences"
 h_precs = "precedents"
 h_succ_delay = "succeeding_delays"
@@ -90,8 +94,9 @@ k1_time_average = "average_run_time"
 # k1_interval = "interval"
 # k1_period = "period"
 k0_algorithm = "algorithm"
-k1_optimal = "optimal"
-k1_heuristic = "heuristic"
-k2_scheduling = "scheduling"
-k2_pricing = "pricing"
+k1_minizinc = "minizinc"
+k1_ogsa = "ogsa"
+k2_before_fw = "scheduling"
+k2_after_fw = "pricing"
+
 

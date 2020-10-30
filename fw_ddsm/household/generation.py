@@ -1,45 +1,19 @@
 import random as r
 import numpy as np
 from numpy import sqrt, pi, random
-from pandas import read_csv
-from json import dumps, loads, load
+from json import dumps, load
 from pathlib import Path
 from numpy import genfromtxt
 from more_itertools import grouper
 import pickle
-from fw_ddsm.parameter import *
 from fw_ddsm.cfunctions import average
-
-
-def new_pricing_table(normalised_pricing_table_csv, demand_level_scalar, num_periods=48):
-
-    # normalised_pricing_table_csv:
-    #       the path of the CSV file of the normalised pricing table
-    # demand_level_scalar:
-    #       the scalar for rescaling the normalised demand levels
-
-    csv_table = read_csv(normalised_pricing_table_csv, header=None)
-    num_levels = len(csv_table.index)
-    csv_table.loc[num_levels + 1] = [csv_table[0].values[-1] * 10] + [demand_level_scalar for _ in range(num_periods)]
-
-    zero_digit = 2
-    pricing_table = dict()
-    pricing_table[k0_price_levels] = list(csv_table[0].values)
-    pricing_table[k0_demand_table] = dict()
-    pricing_table[k0_demand_table] = \
-        {period:
-            {level:
-                round(csv_table[period + 1].values[level] * demand_level_scalar, -zero_digit)
-             for level in range(len(csv_table[period + 1]))}
-         for period in range(num_periods)}
-
-    return pricing_table
+from fw_ddsm.parameter import *
 
 
 def new_task(mode_value, list_of_devices_power,
              pst_probabilities, max_care_factor, scheduling_window_width,
              num_intervals=no_intervals, num_periods=no_periods, num_intervals_periods=no_intervals_periods):
-
+    # ---------------------------------------------------------------------- #
     # mode_value:
     #       a parameter for generation the duration using the Rayleigh distribution
     # list_of_device_power:
@@ -51,6 +25,7 @@ def new_task(mode_value, list_of_devices_power,
     # scheduling_window_width:
     #       "full", can be rescheduled to any time intervals;
     #       "fixed", cannot be moved;
+    # ---------------------------------------------------------------------- #
 
     # task power
     power = r.choice(list_of_devices_power)
@@ -82,14 +57,15 @@ def new_task(mode_value, list_of_devices_power,
 
 
 def new_household(preferred_demand_profile, list_of_devices_power,
-                  max_demand_multiplier=maxium_demand_multiplier, num_tasks_dependent=no_tasks_dependent,
-                  full_flex_task_min=no_tasks_min, full_flex_task_max=no_tasks_max,
-                  semi_flex_task_min=0, semi_flex_task_max=0,
-                  fixed_task_min=0, fixed_task_max=0,
+                  max_demand_multiplier=maxium_demand_multiplier,
+                  num_tasks_dependent=no_tasks_dependent,
+                  full_flex_task_min=no_full_flex_tasks_min, full_flex_task_max=0,
+                  semi_flex_task_min=no_semi_flex_tasks_min, semi_flex_task_max=0,
+                  fixed_task_min=no_fixed_tasks_min, fixed_task_max=0,
                   inconvenience_cost_weight=care_f_weight, max_care_factor=care_f_max,
                   num_intervals=no_intervals, num_periods=no_periods, num_intervals_periods=no_intervals_periods,
-                  write_to_file_path=None, id=0):
-
+                  write_to_file_path=None, id=None):
+    # ---------------------------------------------------------------------- #
     # preferred_demand_profile:
     #       the demand profile used for computing the probability distribution for sampling the preferred start times
     # list_of_devices_power:
@@ -97,11 +73,15 @@ def new_household(preferred_demand_profile, list_of_devices_power,
     # max_demand_multiplier:
     # num_tasks_dependent:
     # full_flex_task_min and full_flex_task_max:
+    #       the minimum and the maximum number of fully flexible tasks
     # semi_flex_task_min and semi_flex_task_max:
+    #       the minimum and the maximum number of semi-flexible tasks
     # fixed_task_min and care_f_weight:
     # inconvenience_cost_weight and max_care_factor:
     # num_intervals, num_periods and num_intervals_periods:
-    # write_to_file: whether to write the created household data to a file
+    # write_to_file:
+    #       whether to write the created household data to a file
+    # ---------------------------------------------------------------------- #
 
     pst_probabilities = [int(p) for p in preferred_demand_profile]
     sum_pst_probabilities = sum(pst_probabilities)
@@ -209,12 +189,15 @@ def new_household(preferred_demand_profile, list_of_devices_power,
                             break
 
     household = dict()
+    if id is not None:
+        household[h_key] = id
     household[h_psts] = preferred_starts
     household[h_ests] = earliest_starts
     household[h_lfs] = latest_ends
     household[h_durs] = durations
     household[h_powers] = powers
     household[h_cfs] = care_factors
+    household[h_max_cf] = max_care_factor
     household[h_no_precs] = no_precedences
     household[h_precs] = precedors
     household[h_succ_delay] = succ_delays
@@ -231,12 +214,15 @@ def new_household(preferred_demand_profile, list_of_devices_power,
         with open(f"{write_to_file_path}household{id}.txt", "w") as f:
             f.write(dumps(household, indent=1))
         f.close()
-        print(f"{write_to_file_path}household{id}.json written.")
+        print(f"{write_to_file_path}household{id}.txt written.")
 
     return household
 
 
 def existing_household(household_json_file):
+    # ---------------------------------------------------------------------- #
+    # ---------------------------------------------------------------------- #
+
     with open(household_json_file, 'r') as f:
         household = load(f)
     f.close()
@@ -244,23 +230,34 @@ def existing_household(household_json_file):
     return household
 
 
-def new_community(num_households, algorithms_choices, file_probability, file_demand_list,
-                  num_intervals=no_intervals, num_periods=no_periods, num_intervals_periods=no_intervals_periods,
-                  write_to_file_path=None):
+def new_households(num_households, algorithms_options,
+                   file_probability_path, file_demand_list_path,
+                   full_flex_task_min=no_full_flex_tasks_min, full_flex_task_max=0,
+                   semi_flex_task_min=no_semi_flex_tasks_min, semi_flex_task_max=0,
+                   fixed_task_min=no_fixed_tasks_min, fixed_task_max=0,
+                   num_tasks_dependent=no_tasks_dependent,
+                   num_intervals=no_intervals, num_periods=no_periods,
+                   num_intervals_periods=no_intervals_periods,
+                   write_to_file_path=None):
+    # ---------------------------------------------------------------------- #
 
-    preferred_demand_profile = genfromtxt(file_probability, delimiter=',', dtype="float")
-    list_of_devices_power = genfromtxt(file_demand_list, delimiter=',', dtype="float")
+    # ---------------------------------------------------------------------- #
+
+    preferred_demand_profile = genfromtxt(file_probability_path, delimiter=',', dtype="float")
+    list_of_devices_power = genfromtxt(file_demand_list_path, delimiter=',', dtype="float")
 
     households = dict()
-    community_demand_profile = [0] * num_intervals
+    aggregate_demand_profile = [0] * num_intervals
     for h in range(num_households):
         household = new_household(preferred_demand_profile, list_of_devices_power,
                                   num_intervals=num_intervals, num_periods=num_periods,
                                   num_intervals_periods=num_intervals_periods,
-                                  full_flex_task_min=3, semi_flex_task_min=3, fixed_task_min=5,
-                                  num_tasks_dependent=3)
+                                  full_flex_task_min=full_flex_task_min,
+                                  semi_flex_task_min=semi_flex_task_min,
+                                  fixed_task_min=fixed_task_min,
+                                  num_tasks_dependent=num_tasks_dependent,
+                                  id=h)
         household_profile = household[h_demand_profile]
-        household["key"] = h
         household[k0_starts] = dict()
         household[k0_demand] = dict()
         household[k0_cost] = dict()
@@ -268,7 +265,7 @@ def new_community(num_households, algorithms_choices, file_probability, file_dem
         household[k0_obj] = dict()
         household[k0_final] = dict()
 
-        for k in algorithms_choices.keys():
+        for k in algorithms_options.keys():
             household[k0_starts][k] = dict()
             household[k0_penalty][k] = dict()
             household[k0_final][k] = dict()
@@ -279,29 +276,9 @@ def new_community(num_households, algorithms_choices, file_probability, file_dem
             household[k0_demand][k][0] = household_profile
 
         households[h] = household.copy()
-        community_demand_profile = [x + y for x, y in zip(household_profile, community_demand_profile)]
+        aggregate_demand_profile = [x + y for x, y in zip(household_profile, aggregate_demand_profile)]
 
-    community_demand_profile2 = [sum(x) for x in grouper(num_intervals_periods, community_demand_profile)]
-    max_demand = max(community_demand_profile2)
-    total_demand = sum(community_demand_profile2)
-    par = round(max_demand / average(community_demand_profile2), 2)
-
-    community_tracks = dict()
-    for k1, v1 in algorithms_choices.items():
-        for v2 in v1.values():
-            community_tracks[v2] = dict()
-            community_tracks[v2][k0_demand] = dict()
-            community_tracks[v2][k0_demand_max] = dict()
-            community_tracks[v2][k0_demand_total] = dict()
-            community_tracks[v2][k0_par] = dict()
-            community_tracks[v2][k0_penalty] = dict()
-            community_tracks[v2][k0_final] = dict()
-
-            community_tracks[v2][k0_demand][0] = community_demand_profile2
-            community_tracks[v2][k0_demand_max][0] = max_demand
-            community_tracks[v2][k0_demand_total][0] = total_demand
-            community_tracks[v2][k0_par][0] = par
-            community_tracks[v2][k0_penalty][0] = 0
+    aggregate_demand_profile = [sum(x) for x in grouper(num_intervals_periods, aggregate_demand_profile)]
 
     # write household data and area data into files
     if write_to_file_path is not None:
@@ -315,14 +292,13 @@ def new_community(num_households, algorithms_choices, file_probability, file_dem
             pickle.dump(households, f, pickle.HIGHEST_PROTOCOL)
         f.close()
 
-        with open(f"{write_to_file_path}community_track.pkl", 'wb+') as f:
-            pickle.dump(community_tracks, f, pickle.HIGHEST_PROTOCOL)
-        f.close()
-
-    return households, community_tracks
+    return households, aggregate_demand_profile
 
 
-def existing_community(file_path, inconvenience_cost_weight=None):
+def existing_households(file_path, inconvenience_cost_weight=None):
+    # ---------------------------------------------------------------------- #
+    # ---------------------------------------------------------------------- #
+
     file_path = file_path if file_path.endswith("/") else file_path + "/"
 
     with open(file_path + "households" + '.pkl', 'rb') as f:
@@ -333,8 +309,7 @@ def existing_community(file_path, inconvenience_cost_weight=None):
         for household in households.values():
             household["care_factor_weight"] = inconvenience_cost_weight
 
-    with open(file_path + "community_track" + '.pkl', 'rb') as f:
-        community_tracks = pickle.load(f)
-    f.close()
+    return households
 
-    return households, community_tracks
+
+
