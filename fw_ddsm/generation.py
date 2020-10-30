@@ -6,7 +6,7 @@ from fw_ddsm.parameter import *
 from pandas import read_csv
 
 
-def new_pricing_table(num_periods, normalised_pricing_table_csv, demand_level_scalar):
+def new_pricing_table(normalised_pricing_table_csv, demand_level_scalar, num_periods=48):
 
     # normalised_pricing_table_csv:
     #       the path of the CSV file of the normalised pricing table
@@ -31,8 +31,9 @@ def new_pricing_table(num_periods, normalised_pricing_table_csv, demand_level_sc
     return pricing_table
 
 
-def new_task(num_intervals, num_periods, num_intervals_periods, mode_value, list_of_devices_power,
-             pst_probabilities, max_care_factor, scheduling_window_width):
+def new_task(mode_value, list_of_devices_power,
+             pst_probabilities, max_care_factor, scheduling_window_width,
+             num_intervals=no_intervals, num_periods=no_periods, num_intervals_periods=no_intervals_periods):
 
     # mode_value:
     #       a parameter for generation the duration using the Rayleigh distribution
@@ -75,8 +76,14 @@ def new_task(num_intervals, num_periods, num_intervals_periods, mode_value, list
     return power, duration, preferred_start_time, earliest_start_time, latest_finish_time, care_factor
 
 
-def new_household(num_intervals, num_periods, num_intervals_periods, num_tasks_min, num_tasks_max, num_tasks_dependent,
-                  pst_probabilities, max_demand_mul, max_care_factor, devices_power_file, inconvenience_cost_weight):
+def new_household(pst_probabilities, devices_power_file,
+                  max_demand_multiplier=maxium_demand_multiplier, num_tasks_dependent=no_tasks_dependent,
+                  full_flex_task_min=no_tasks_min, full_flex_task_max=no_tasks_max,
+                  semi_flex_task_min=0, semi_flex_task_max=0,
+                  fixed_task_min=0, fixed_task_max=0,
+                  inconvenience_cost_weight=care_f_weight, max_care_factor=care_f_max,
+                  num_intervals=no_intervals, num_periods=no_periods, num_intervals_periods=no_intervals_periods):
+
     pst_probabilities_short = [int(p) for p in pst_probabilities[0]]
     sum_t = sum(pst_probabilities_short)
     pst_probabilities_short = [p / sum_t for p in pst_probabilities_short]
@@ -92,27 +99,37 @@ def new_household(num_intervals, num_periods, num_intervals_periods, num_tasks_m
     earliest_starts = []
     latest_ends = []
     durations = []
-    demands = []
+    powers = []
     care_factors = []
-    aggregated_loads = [0] * num_intervals
+    household_demand_profile = [0] * num_intervals
 
     # tasks in the household
-    num_tasks = r.randint(num_tasks_min, num_tasks_max)
-    for counter_j in range(num_tasks):
-        demand, duration, p_start, e_start, l_finish, care_f \
-            = new_task(num_intervals, num_periods, num_intervals_periods, mode_value, list_of_devices_power,
-                       pst_probabilities_short, max_care_factor, "full")
-        demands.append(demand)
-        durations.append(duration)
-        preferred_starts.append(p_start)
-        earliest_starts.append(e_start)
-        latest_ends.append(l_finish)
-        care_factors.append(care_f)
-        # add this task demand to the household demand
-        for d in range(duration):
-            aggregated_loads[(p_start + d) % num_intervals] += demand
+    def get_new_tasks(num_tasks, scheduling_window_width):
+        for counter_j in range(num_tasks):
+            demand, duration, p_start, e_start, l_finish, care_f \
+                = new_task(mode_value, list_of_devices_power,
+                           pst_probabilities, max_care_factor, scheduling_window_width,
+                           num_intervals, num_periods, num_intervals_periods)
+
+            powers.append(demand)
+            durations.append(duration)
+            preferred_starts.append(p_start)
+            earliest_starts.append(e_start)
+            latest_ends.append(l_finish)
+            care_factors.append(care_f)
+            # add this task demand to the household demand
+            for d in range(duration):
+                household_demand_profile[(p_start + d) % num_intervals] += demand
+
+    num_full_flex_tasks = r.randint(full_flex_task_min, full_flex_task_max)
+    num_semi_flex_tasks = r.randint(semi_flex_task_min, semi_flex_task_max)
+    num_fixed_tasks = r.randint(fixed_task_min, fixed_task_max)
+    get_new_tasks(num_full_flex_tasks, "full")
+    get_new_tasks(num_semi_flex_tasks, "semi")
+    get_new_tasks(num_fixed_tasks, "fixed")
+
     # set the household demand limit
-    maximum_demand = max(demands) * max_demand_mul
+    maximum_demand = max(powers) * max_demand_multiplier
 
     # precedence among tasks
     precedors = dict()
@@ -138,7 +155,8 @@ def new_household(num_intervals, num_periods, num_intervals_periods, num_tasks_m
             precedors[task].append(previous)
             succ_delays[task].append(delay)
 
-    for t in range(num_tasks - num_tasks_dependent, num_tasks):
+    num_total_tasks = num_full_flex_tasks + num_semi_flex_tasks + num_fixed_tasks
+    for t in range(num_total_tasks - num_tasks_dependent, num_total_tasks):
         if r.choice([True, False]):
             previous_tasks = list(range(t))
             r.shuffle(previous_tasks)
@@ -173,13 +191,13 @@ def new_household(num_intervals, num_periods, num_intervals_periods, num_tasks_m
     household[h_ests] = earliest_starts
     household[h_lfs] = latest_ends
     household[h_durs] = durations
-    household[h_powers] = demands
+    household[h_powers] = powers
     household[h_cfs] = care_factors
     household[h_no_precs] = no_precedences
     household[h_precs] = precedors
     household[h_succ_delay] = succ_delays
     household[h_max_demand] = maximum_demand
-    household[h_demand_profile] = aggregated_loads
+    household[h_demand_profile] = household_demand_profile
     household[h_incon_weight] = inconvenience_cost_weight
 
     # todo - write a test script

@@ -8,7 +8,9 @@ no_intervals_periods = int(no_intervals / no_periods)
 new_households = False
 no_households = 100
 no_tasks_min = 5
-max_demand_multiplier = no_tasks_min
+no_tasks_max = 8
+no_tasks_dependent = 2
+maxium_demand_multiplier = no_tasks_min
 care_f_max = 10
 care_f_weight = 0
 
