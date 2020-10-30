@@ -1,16 +1,69 @@
 from multiprocessing import Pool
-from fw_ddsm.parameter import *
 import timeit
 import random as r
+from datetime import timedelta
+from fw_ddsm.parameter import *
+from minizinc import *
 
 
+def minizinc_model(model_file, solver_choice, search,
+                   objective_values, powers, max_demand, durations,
+                   earliest_starts, preferred_starts, latest_ends,
+                   successors, precedents, no_precedents, succ_delays,
+                   care_factors, prices, inconvenience_cost_weight,
+                   num_intervals=no_intervals):
+    # problem model
+    model = Model(model_file)
+    gecode = Solver.lookup(solver_choice)
+    model.add_string("solve ")
+    if "gecode" in solver_choice:
+        model.add_string(":: {} ".format(search))
+    model.add_string("minimize obj;")
 
-def minizinc_model(objective_values):
-    return 0
+    ins = Instance(gecode, model)
+    num_tasks = len(powers)
+    ins["num_intervals"] = num_intervals
+    ins["num_tasks"] = num_tasks
+    ins["durations"] = durations
+    ins["demands"] = powers
+    ins["num_precedences"] = no_precedents
+    ins["predecessors"] = [p + 1 for p in precedents]
+    ins["successors"] = [s + 1 for s in successors]
+    ins["prec_delays"] = succ_delays
+    ins["max_demand"] = max_demand
+
+    if "ini" in model_type.lower():
+        ins["prices"] = prices
+        ins["preferred_starts"] = [ps + 1 for ps in preferred_starts]
+        ins["earliest_starts"] = [es + 1 for es in earliest_starts]
+        ins["latest_ends"] = [le + 1 for le in latest_ends]
+        ins["care_factors"] = [cf * inconvenience_cost_weight for cf in care_factors]
+    else:
+        ins["run_costs"] = objective_values
+
+    # solve problem model
+    result = ins.solve(timeout=timedelta(seconds=2))
+    # result = ins.solve()
+
+    # process problem solution
+    # obj = result.objective
+    solution = result.solution.actual_starts
+    if "cp" in solver_type:
+        actual_starts = [int(a) - 1 for a in solution]
+    else:  # "mip" in solver_type:
+        actual_starts = [sum([i * int(v) for i, v in enumerate(row)]) for row in solution]
+    time = result.statistics["time"].total_seconds()
+
+    optimal_demand_profile = [0] * num_intervals
+    for power, duration, a_start, i in zip(powers, durations, actual_starts, range(num_tasks)):
+        for t in range(a_start, a_start + duration):
+            optimal_demand_profile[t % num_intervals] += power
+
+    return actual_starts, optimal_demand_profile, time
 
 
 def ogsa(objective_values, big_value, powers, durations, preferred_starts, latest_ends, max_demand,
-         successors, precedents, succ_delays, num_intervals=no_intervals):
+         successors, precedents, succ_delays, num_intervals=no_intervals, randomness=True):
     start_time = timeit.default_timer()
 
     def retrieve_successors_or_precedents(list0, prec_or_succ_list1, succ_prec_list2):
@@ -76,7 +129,7 @@ def ogsa(objective_values, big_value, powers, durations, preferred_starts, lates
         try:
             feasible_min_cost = min([task_costs[f] for f in feasible_intervals])
             cheapest_intervals = [f for f in feasible_intervals if task_costs[f] == feasible_min_cost]
-            a_start = r.choice(cheapest_intervals)
+            a_start = r.choice(cheapest_intervals) if randomness else cheapest_intervals[0]
 
             # check max demand constraint
             max_demand_starts = dict()
@@ -93,7 +146,8 @@ def ogsa(objective_values, big_value, powers, durations, preferred_starts, lates
                 feasible_intervals.remove(a_start)
 
                 feasible_min_cost = min([objective_values[task_id][f] for f in feasible_intervals])
-                feasible_min_cost_indices = [k for k, x in enumerate(objective_values[task_id]) if x == feasible_min_cost]
+                feasible_min_cost_indices = [k for k, x in enumerate(objective_values[task_id]) if
+                                             x == feasible_min_cost]
                 # a_start = r.choice(feasible_min_cost_indices)
                 a_start = feasible_min_cost_indices[0]
 
@@ -123,12 +177,11 @@ def ogsa(objective_values, big_value, powers, durations, preferred_starts, lates
 
 
 def schedule_household(household, prices, scheduling_method):
-
     def preprocessing():
         max_duration = max(durations)
         # this big cost and big cost * number_tasks need to be smaller than the largest number that the solver can handle
         big_value = max_demand * max_duration * max(prices) + \
-                   inconvenience_cost_weight * max_care_factor * num_intervals
+                    inconvenience_cost_weight * max_care_factor * num_intervals
         objective_value_matrix = []
         for power, pst, est, lft, dur, cf in zip(powers, preferred_starts, earliest_starts,
                                                  latest_ends, durations, care_factors):
@@ -146,6 +199,7 @@ def schedule_household(household, prices, scheduling_method):
             objective_value_matrix.append(objective_value_task)
         return objective_value_matrix, big_value
 
+    # read tasks
     key = household[h_key]
     powers = household[h_powers]
     durations = household[h_durs]
@@ -160,31 +214,41 @@ def schedule_household(household, prices, scheduling_method):
     no_precedents = household[h_no_precs]
     max_demand = household[h_max_demand]
     inconvenience_cost_weight = household[h_incon_weight]
+
+    # read prices
     num_intervals = len(household[h_demand_profile])
     num_periods = len(prices)
-    num_intervals_period = int(num_intervals/num_periods)
+    num_intervals_period = int(num_intervals / num_periods)
     if num_periods != num_intervals:
         prices = [int(p) for p in prices for _ in range(num_intervals_period)]
     else:
         prices = [int(p) for p in prices]
 
+    # begin scheduling
     objective_values, big_value = preprocessing()
     if "minizinc" in scheduling_method:
-        minizinc_model(objective_values)
-    elif "ogsa" in scheduling_method:
         actual_starts, household_demand_profile, time_scheduling \
-            = ogsa(objective_values, big_value, powers, durations, preferred_starts, latest_ends, max_demand,
-         successors, precedents, succ_delays, num_intervals)
+            = minizinc_model(model_file, solver_choice, search,
+                             objective_values, powers, max_demand, durations,
+                             earliest_starts, preferred_starts, latest_ends,
+                             successors, precedents, no_precedents, succ_delays,
+                             care_factors, prices, inconvenience_cost_weight,
+                             num_intervals)
     else:
         actual_starts, household_demand_profile, time_scheduling \
-            = ogsa(objective_values, big_value, powers, durations, preferred_starts, latest_ends, max_demand,
-         successors, precedents, succ_delays, num_intervals)
+            = ogsa(objective_values=objective_values, big_value=big_value,
+                   powers=powers, durations=durations, preferred_starts=preferred_starts,
+                   latest_ends=latest_ends, max_demand=max_demand,
+                   successors=successors, precedents=precedents, succ_delays=succ_delays,
+                   num_intervals=num_intervals, randomness=False)
 
+    # return results
     penalty_household = sum([abs(pst - ast) * cf for pst, ast, cf
                              in zip(preferred_starts, actual_starts, care_factors)]) * inconvenience_cost_weight
 
-    return {h_key:key, k0_demand:household_demand_profile, k0_penalty:penalty_household,
-            k0_starts:actual_starts, k0_time:time_scheduling}
+    return {h_key: key, k0_demand: household_demand_profile, k0_starts: actual_starts,
+            k0_penalty: penalty_household, k0_time: time_scheduling}
+
 
 def schedule_households(households, prices, num_iteration, scheduling_method):
     print("Start scheduling households...")
