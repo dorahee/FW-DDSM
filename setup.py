@@ -4,9 +4,9 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="fw_ddsm", # Replace with your own username
-    version="0.0.2",
-    author="Dora He",
+    name="fw_ddsm",
+    version="0.0.3",
+    author="Shan Dora He",
     author_email="dora.shan.he@gmail.com",
     description="Frank-Wolfe-based distributed demand scheduling method package",
     long_description=long_description,
