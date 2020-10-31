@@ -50,7 +50,7 @@ class Household:
                                          write_to_file_path=write_to_file_path, id=id)
         # print(f"Household{self.data[h_key]} is created.")
 
-    def schedule(self, household, prices, scheduling_method, model=None, solver=None, search=None):
+    def schedule(self, prices, scheduling_method, household=None, model=None, solver=None, search=None):
 
         def preprocessing():
             max_duration = max(durations)
@@ -75,6 +75,8 @@ class Household:
             return objective_value_matrix, big_value
 
         # read tasks
+        if household is None:
+            household = self.data
         key = household[h_key]
         powers = household[h_powers]
         durations = household[h_durs]
@@ -130,15 +132,16 @@ class Household:
         return {h_key: key, k0_demand: household_demand_profile, k0_starts: actual_starts,
                 k0_penalty: penalty_household, k0_time: time_scheduling}
 
+
     def update(self, num_iteration, scheduling_method, starts=None, demands=None, penalty=None, time=None):
         if starts is not None:
-            self.data[k0_starts][scheduling_method][num_iteration] = starts
+            self.data[scheduling_method][k0_starts][num_iteration] = starts
         if demands is not None:
-            self.data[k0_demand][scheduling_method][num_iteration] = demands
+            self.data[scheduling_method][k0_demand][num_iteration] = demands
         if penalty is not None:
-            self.data[k0_penalty][scheduling_method][num_iteration] = penalty
+            self.data[scheduling_method][k0_penalty][num_iteration] = penalty
         if time is not None:
-            self.data[k0_time][scheduling_method][num_iteration] = time
+            self.data[scheduling_method][k0_time][num_iteration] = time
 
     def __new_task(self, mode_value, list_of_devices_power, pst_probabilities, max_care_factor,
                    scheduling_window_width, ):
@@ -337,22 +340,18 @@ class Household:
         household[h_demand_profile] = household_demand_profile
         household[h_incon_weight] = inconvenience_cost_weight
 
-        household[k0_starts] = dict()
-        household[k0_demand] = dict()
-        household[k0_cost] = dict()
-        household[k0_penalty] = dict()
-        household[k0_obj] = dict()
-        household[k0_final] = dict()
-
         for k in algorithms_options.keys():
-            household[k0_starts][k] = dict()
-            household[k0_penalty][k] = dict()
-            household[k0_final][k] = dict()
-            household[k0_demand][k] = dict()
+            household[k] = dict()
+            household[k][k0_starts] = dict()
+            household[k][k0_penalty] = dict()
+            household[k][k0_final] = dict()
+            household[k][k0_demand] = dict()
+            household[k][k0_demand_max] = dict()
 
-            household[k0_starts][k][0] = household[h_psts]
-            household[k0_penalty][k][0] = 0
-            household[k0_demand][k][0] = household_demand_profile
+            household[k][k0_starts][0] = household[h_psts]
+            household[k][k0_penalty][0] = 0
+            household[k][k0_demand][0] = household_demand_profile
+            household[k][k0_demand_max][0] = max(household_demand_profile)
 
         if write_to_file_path is not None:
             write_to_file_path = write_to_file_path if write_to_file_path.endswith("/") \

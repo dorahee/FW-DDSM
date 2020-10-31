@@ -59,9 +59,9 @@ class Experiment:
             aggregate_demand_profile_new, total_inconvenience, time_scheduling_iteration \
                 = self.community.schedule_all(num_iteration=num_iteration, prices=prices,
                                               scheduling_method=scheduling_method)
-            self.community.update(num_iteration=num_iteration, demands=aggregate_demand_profile_new,
-                                  penalty=total_inconvenience, time=time_scheduling_iteration,
-                                  scheduling_method=scheduling_method)
+            self.community.update_aggregate_data(num_iteration=num_iteration, demands=aggregate_demand_profile_new,
+                                                 penalty=total_inconvenience, time=time_scheduling_iteration,
+                                                 scheduling_method=scheduling_method)
 
             # aggregator, k > 0
             aggregate_demand_profile_fw, step, prices, total_consumption_cost_fw, total_inconvenience_fw \

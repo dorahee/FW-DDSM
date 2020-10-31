@@ -13,9 +13,9 @@ class Community:
     def read(self, read_from_file, inconvenience_cost_weight=None):
         read_from_file = read_from_file if read_from_file.endswith("/") \
             else read_from_file + "/"
-        self.data, self.aggregate_data = self.__existing_households(file_path=read_from_file,
-                                                                    inconvenience_cost_weight=inconvenience_cost_weight)
-        self.num_households = len(self.data)
+        self.households, self.aggregate_data = self.__existing_households(file_path=read_from_file,
+                                                                          inconvenience_cost_weight=inconvenience_cost_weight)
+        self.num_households = len(self.households)
 
     def new(self, file_probability_path, file_demand_list_path, algorithms_options,
             num_households=no_households,
@@ -29,7 +29,7 @@ class Community:
 
         self.num_households = num_households
 
-        self.data, self.aggregate_data, self.preferred_demand_profile \
+        self.households, self.aggregate_data, self.preferred_demand_profile \
             = self.__new_households(file_probability_path,
                                     file_demand_list_path,
                                     algorithms_options,
@@ -45,7 +45,21 @@ class Community:
                                     max_care_factor=max_care_factor,
                                     write_to_file_path=write_to_file_path)
 
-    def update(self, num_iteration, scheduling_method, demands=None, prices=None, penalty=None, time=None):
+    def update_household(self, key, num_iteration, scheduling_method, demands=None, starts=None, penalty=None):
+
+        if demands is not None:
+            self.households[key][scheduling_method][k0_demand][num_iteration] = demands
+            self.households[key][scheduling_method][k0_demand_max][num_iteration] = max(demands)
+            # self.households[key][scheduling_method][k0_demand_total][num_iteration] = sum(demands)
+            # self.households[key][scheduling_method][k0_par][num_iteration] = max(demands) / average(demands)
+        if penalty is not None:
+            self.households[key][scheduling_method][k0_penalty][num_iteration] = penalty
+        # if time is not None:
+        #     self.households[key][scheduling_method][k0_time][num_iteration] = time
+        if starts is not None:
+            self.households[key][scheduling_method][k0_starts][num_iteration] = starts
+
+    def update_aggregate_data(self, num_iteration, scheduling_method, demands=None, prices=None, penalty=None, time=None):
 
         if demands is not None:
             self.aggregate_data[scheduling_method][k0_demand][num_iteration] = demands
@@ -66,9 +80,9 @@ class Community:
             prices = [p for p in prices for _ in range(num_intervals_period)]
         else:
             prices = [p for p in prices]
-        self.update(num_iteration=num_iteration, scheduling_method=scheduling_method, prices=prices)
+        self.update_aggregate_data(num_iteration=num_iteration, scheduling_method=scheduling_method, prices=prices)
 
-        households = self.data
+        households = self.households
         print(f"Start scheduling households at iteration {num_iteration} using {scheduling_method}...")
         pool = Pool(cpu_count())
         results = pool.starmap_async(self.schedule_household,
@@ -83,20 +97,22 @@ class Community:
         time_scheduling_iteration = 0
         for res in results:
             key = res[h_key]
-            self.data[key][k0_starts][scheduling_method][num_iteration] = res[k0_starts]
-            self.data[key][k0_penalty][scheduling_method][num_iteration] = res[k0_penalty]
-            self.data[key][k0_demand][scheduling_method][num_iteration] = res[k0_demand]
-
-            aggregate_demand_profile = [x + y for x, y in zip(res[k0_demand], aggregate_demand_profile)]
-            total_inconvenience += res[k0_penalty]
-            time_scheduling_iteration += res[k0_time]
+            demands_household = res[k0_demand]
+            penalty_household = res[k0_penalty]
+            time_household = res[k0_time]
+            self.update_household(key=key, num_iteration=num_iteration, starts=res[k0_starts],
+                                  penalty=penalty_household, demands=demands_household,
+                                  scheduling_method=scheduling_method)
+            aggregate_demand_profile = [x + y for x, y in zip(demands_household, aggregate_demand_profile)]
+            total_inconvenience += penalty_household
+            time_scheduling_iteration += time_household
 
         return aggregate_demand_profile, total_inconvenience, time_scheduling_iteration
 
     def schedule_household(self, household, prices, scheduling_method, model, solver, search):
         existing_household = Household()
-        result = existing_household.schedule(household, prices, scheduling_method,
-                                             model=model, solver=solver, search=search)
+        result = existing_household.schedule(prices=prices, scheduling_method=scheduling_method,
+                                             household=household, model=model, solver=solver, search=search)
         return result
 
     def __new_households(self, file_probability_path, file_demand_list_path, algorithms_options,

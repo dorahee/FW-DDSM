@@ -16,4 +16,4 @@ new_experiment.new_data()
 for alg in algorithms.values():
     new_experiment.iteration(alg)
     print("------------------------------")
-print()
+print("Experiment is finished. ")
