@@ -11,10 +11,10 @@ from datetime import timedelta
 from minizinc import *
 from fw_ddsm.parameter import *
 
+
 class Household:
 
     def __init__(self, num_intervals=no_intervals, num_periods=no_periods):
-        self.data = dict()
         self.num_intervals = num_intervals
         self.num_periods = num_periods
         self.num_intervals_periods = int(num_intervals / num_periods)
@@ -22,16 +22,17 @@ class Household:
     def read(self, read_from_file=None, existing_household=None):
         self.data = self.__existing_household(household_file=read_from_file,
                                               existing_household=existing_household)
-        print(f"Household{self.data[h_key]} is read.")
+        if existing_household is None:
+            print(f"Household{self.data[h_key]} is read.")
 
     def new(self, preferred_demand_profile, list_of_devices_power, algorithms_options,
-                  max_demand_multiplier=maxium_demand_multiplier,
-                  num_tasks_dependent=no_tasks_dependent,
-                  full_flex_task_min=no_full_flex_tasks_min, full_flex_task_max=0,
-                  semi_flex_task_min=no_semi_flex_tasks_min, semi_flex_task_max=0,
-                  fixed_task_min=no_fixed_tasks_min, fixed_task_max=0,
-                  inconvenience_cost_weight=care_f_weight, max_care_factor=care_f_max,
-                  write_to_file_path=None, id=0):
+            max_demand_multiplier=maxium_demand_multiplier,
+            num_tasks_dependent=no_tasks_dependent,
+            full_flex_task_min=no_full_flex_tasks_min, full_flex_task_max=0,
+            semi_flex_task_min=no_semi_flex_tasks_min, semi_flex_task_max=0,
+            fixed_task_min=no_fixed_tasks_min, fixed_task_max=0,
+            inconvenience_cost_weight=care_f_weight, max_care_factor=care_f_max,
+            write_to_file_path=None, id=0):
 
         self.data = self.__new_household(preferred_demand_profile,
                                          list_of_devices_power,
@@ -47,9 +48,9 @@ class Household:
                                          inconvenience_cost_weight=inconvenience_cost_weight,
                                          max_care_factor=max_care_factor,
                                          write_to_file_path=write_to_file_path, id=id)
-        print(f"Household{self.data[h_key]} is created.")
+        # print(f"Household{self.data[h_key]} is created.")
 
-    def schedule(self, prices, scheduling_method, model=None, solver=None, search=None):
+    def schedule(self, household, prices, scheduling_method, model=None, solver=None, search=None):
 
         def preprocessing():
             max_duration = max(durations)
@@ -74,7 +75,6 @@ class Household:
             return objective_value_matrix, big_value
 
         # read tasks
-        household = self.data
         key = household[h_key]
         powers = household[h_powers]
         durations = household[h_durs]
@@ -85,7 +85,7 @@ class Household:
         max_care_factor = household[h_max_cf]
         precedents = [x[0] for x in list(household[h_precs].values())]
         successors = list(household[h_precs].keys())
-        succ_delays = household[h_succ_delay]  # need to change this format when sending it to the solver
+        succ_delays = household[h_succ_delay]   # need to change this format when sending it to the solver
         no_precedents = household[h_no_precs]
         max_demand = household[h_max_demand]
         inconvenience_cost_weight = household[h_incon_weight]
@@ -95,9 +95,9 @@ class Household:
         num_periods = len(prices)
         num_intervals_period = int(num_intervals / num_periods)
         if num_periods != num_intervals:
-            prices = [int(p) for p in prices for _ in range(num_intervals_period)]
+            prices = [int(p * 10) for p in prices for _ in range(num_intervals_period)]
         else:
-            prices = [int(p) for p in prices]
+            prices = [int(p * 10) for p in prices]
 
         # begin scheduling
         objective_values, big_value = preprocessing()
@@ -106,27 +106,26 @@ class Household:
             solver = solver_name if solver is None else solver
             search = f"int_search(actual_starts, {variable_selection}, {value_choice}, complete)" \
                 if search is None else search
+            succ_delays = [x[0] for x in list(household[h_succ_delay].values())]
             actual_starts, household_demand_profile, time_scheduling \
                 = self.__minizinc_model(model_file=model, solver=solver, search=search,
-                                 objective_values=objective_values, powers=powers, max_demand=max_demand,
-                                 durations=durations, earliest_starts=earliest_starts,
-                                 preferred_starts=preferred_starts,
-                                 latest_ends=latest_ends, successors=successors, precedents=precedents,
-                                 no_precedents=no_precedents, succ_delays=succ_delays, care_factors=care_factors,
-                                 prices=prices, inconvenience_cost_weight=inconvenience_cost_weight,
-                                 num_intervals=num_intervals)
+                                        objective_values=objective_values, powers=powers, max_demand=max_demand,
+                                        durations=durations, earliest_starts=earliest_starts,
+                                        preferred_starts=preferred_starts,
+                                        latest_ends=latest_ends, successors=successors, precedents=precedents,
+                                        no_precedents=no_precedents, succ_delays=succ_delays, care_factors=care_factors,
+                                        prices=prices, inconvenience_cost_weight=inconvenience_cost_weight)
         else:
             actual_starts, household_demand_profile, time_scheduling \
                 = self.__ogsa(objective_values=objective_values, big_value=big_value,
-                       powers=powers, durations=durations, preferred_starts=preferred_starts,
-                       latest_ends=latest_ends, max_demand=max_demand,
-                       successors=successors, precedents=precedents, succ_delays=succ_delays,
-                       num_intervals=num_intervals, randomness=False)
+                              powers=powers, durations=durations, preferred_starts=preferred_starts,
+                              latest_ends=latest_ends, max_demand=max_demand,
+                              successors=successors, precedents=precedents, succ_delays=succ_delays,
+                              randomness=False)
 
         # return results
         penalty_household = sum([abs(pst - ast) * cf for pst, ast, cf
                                  in zip(preferred_starts, actual_starts, care_factors)]) * inconvenience_cost_weight
-
 
         return {h_key: key, k0_demand: household_demand_profile, k0_starts: actual_starts,
                 k0_penalty: penalty_household, k0_time: time_scheduling}
@@ -142,7 +141,7 @@ class Household:
             self.data[k0_time][scheduling_method][num_iteration] = time
 
     def __new_task(self, mode_value, list_of_devices_power, pst_probabilities, max_care_factor,
-                   scheduling_window_width,):
+                   scheduling_window_width, ):
         # ---------------------------------------------------------------------- #
         # mode_value:
         #       a parameter for generation the duration using the Rayleigh distribution
@@ -191,13 +190,13 @@ class Household:
         return power, duration, preferred_start_time, earliest_start_time, latest_finish_time, care_factor
 
     def __new_household(self, preferred_demand_profile, list_of_devices_power, algorithms_options,
-                      max_demand_multiplier=maxium_demand_multiplier,
-                      num_tasks_dependent=no_tasks_dependent,
-                      full_flex_task_min=no_full_flex_tasks_min, full_flex_task_max=0,
-                      semi_flex_task_min=no_semi_flex_tasks_min, semi_flex_task_max=0,
-                      fixed_task_min=no_fixed_tasks_min, fixed_task_max=0,
-                      inconvenience_cost_weight=care_f_weight, max_care_factor=care_f_max,
-                      write_to_file_path=None, id=None):
+                        max_demand_multiplier=maxium_demand_multiplier,
+                        num_tasks_dependent=no_tasks_dependent,
+                        full_flex_task_min=no_full_flex_tasks_min, full_flex_task_max=0,
+                        semi_flex_task_min=no_semi_flex_tasks_min, semi_flex_task_max=0,
+                        fixed_task_min=no_fixed_tasks_min, fixed_task_max=0,
+                        inconvenience_cost_weight=care_f_weight, max_care_factor=care_f_max,
+                        write_to_file_path=None, id=None):
         # ---------------------------------------------------------------------- #
         # preferred_demand_profile:
         #       the demand profile used for computing the probability distribution for sampling the preferred start times
@@ -239,7 +238,7 @@ class Household:
             for counter_j in range(num_tasks):
                 demand, duration, p_start, e_start, l_finish, care_f \
                     = self.__new_task(mode_value, list_of_devices_power,
-                               pst_probabilities, max_care_factor, scheduling_window_width)
+                                      pst_probabilities, max_care_factor, scheduling_window_width)
 
                 powers.append(demand)
                 durations.append(duration)
@@ -366,10 +365,7 @@ class Household:
             f.close()
             print(f"{write_to_file_path}household{id}.txt written.")
 
-
-
         return household
-
 
     def __existing_household(self, household_file=None, existing_household=None):
         # ---------------------------------------------------------------------- #
@@ -383,13 +379,13 @@ class Household:
 
         return household
 
-
     def __minizinc_model(self, model_file, solver, search,
-                       objective_values, powers, max_demand, durations,
-                       earliest_starts, preferred_starts, latest_ends,
-                       successors, precedents, no_precedents, succ_delays,
-                       care_factors, prices, inconvenience_cost_weight,
-                       num_intervals=no_intervals):
+                         objective_values, powers, max_demand, durations,
+                         earliest_starts, preferred_starts, latest_ends,
+                         successors, precedents, no_precedents, succ_delays,
+                         care_factors, prices, inconvenience_cost_weight):
+        num_intervals = self.num_intervals
+
         # problem model
         model = Model(model_file)
         gecode = Solver.lookup(solver)
@@ -440,8 +436,9 @@ class Household:
         return actual_starts, optimal_demand_profile, time
 
     def __ogsa(self, objective_values, big_value, powers, durations, preferred_starts, latest_ends, max_demand,
-             successors, precedents, succ_delays, num_intervals=no_intervals, randomness=True):
+               successors, precedents, succ_delays, randomness=True):
         start_time = timeit.default_timer()
+        num_intervals = self.num_intervals
 
         def retrieve_successors_or_precedents(list0, prec_or_succ_list1, succ_prec_list2):
             list_r = []
@@ -552,5 +549,3 @@ class Household:
         # obj = round(obj, 2)
 
         return actual_starts, household_profile, time_scheduling_ogsa
-
-

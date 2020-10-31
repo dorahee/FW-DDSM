@@ -9,7 +9,7 @@ create_new_households = False
 no_households = 10
 no_full_flex_tasks_min = 5
 no_full_flex_tasks_max = 8
-no_semi_flex_tasks_min = 3
+no_semi_flex_tasks_min = 0
 no_fixed_tasks_min = 0
 no_tasks_dependent = 2
 maxium_demand_multiplier = no_full_flex_tasks_min + no_semi_flex_tasks_min + no_fixed_tasks_min
@@ -38,6 +38,10 @@ file_household_area_folder = parent_folder + 'data/'
 file_probability = parent_folder + 'data/probability.csv'
 file_demand_list = parent_folder + 'data/demands_list.csv'
 result_folder = parent_folder + "results/"
+file_community_pkl = "community.pkl"
+file_community_meta_pkl = "community_meta.pkl"
+file_aggregator_pkl = "aggregator.pkl"
+file_pricing_table_pkl = "pricing_table.pkl"
 
 # summary related parameters
 k0_area = "area"
