@@ -6,7 +6,7 @@ from fw_ddsm.parameter import *
 from minizinc import *
 
 
-def minizinc_model(model_file, solver_choice, search,
+def minizinc_model(model_file, solver, search,
                    objective_values, powers, max_demand, durations,
                    earliest_starts, preferred_starts, latest_ends,
                    successors, precedents, no_precedents, succ_delays,
@@ -14,9 +14,9 @@ def minizinc_model(model_file, solver_choice, search,
                    num_intervals=no_intervals):
     # problem model
     model = Model(model_file)
-    gecode = Solver.lookup(solver_choice)
+    gecode = Solver.lookup(solver)
     model.add_string("solve ")
-    if "gecode" in solver_choice:
+    if "gecode" in solver:
         model.add_string(":: {} ".format(search))
     model.add_string("minimize obj;")
 
@@ -176,7 +176,9 @@ def ogsa(objective_values, big_value, powers, durations, preferred_starts, lates
     return actual_starts, household_profile, time_scheduling_ogsa
 
 
-def schedule_household(household, prices, scheduling_method):
+# use this for distributed implementation
+def schedule_household(household, prices, scheduling_method, model=None, solver=None, search=None):
+
     def preprocessing():
         max_duration = max(durations)
         # this big cost and big cost * number_tasks need to be smaller than the largest number that the solver can handle
@@ -227,13 +229,18 @@ def schedule_household(household, prices, scheduling_method):
     # begin scheduling
     objective_values, big_value = preprocessing()
     if "minizinc" in scheduling_method:
+        model = file_cp_pre if model is None else model
+        solver = solver_name if solver is None else solver
+        search = f"int_search(actual_starts, {variable_selection}, {value_choice}, complete)" \
+            if search is None else search
         actual_starts, household_demand_profile, time_scheduling \
-            = minizinc_model(model_file, solver_choice, search,
-                             objective_values, powers, max_demand, durations,
-                             earliest_starts, preferred_starts, latest_ends,
-                             successors, precedents, no_precedents, succ_delays,
-                             care_factors, prices, inconvenience_cost_weight,
-                             num_intervals)
+            = minizinc_model(model_file=model, solver=solver, search=search,
+                             objective_values=objective_values, powers=powers, max_demand=max_demand,
+                             durations=durations,earliest_starts=earliest_starts, preferred_starts=preferred_starts,
+                             latest_ends=latest_ends, successors=successors, precedents=precedents,
+                             no_precedents=no_precedents, succ_delays=succ_delays, care_factors=care_factors,
+                             prices=prices, inconvenience_cost_weight=inconvenience_cost_weight,
+                             num_intervals=num_intervals)
     else:
         actual_starts, household_demand_profile, time_scheduling \
             = ogsa(objective_values=objective_values, big_value=big_value,
@@ -250,11 +257,12 @@ def schedule_household(household, prices, scheduling_method):
             k0_penalty: penalty_household, k0_time: time_scheduling}
 
 
-def schedule_households(households, prices, num_iteration, scheduling_method):
+## only needed for iterations on a single machine
+def schedule_households(households, prices, num_iteration, scheduling_method, model=None, solver=None, search=None):
     print("Start scheduling households...")
     pool = Pool()
     results = pool.starmap_async(schedule_household,
-                                 [(household, prices, scheduling_method)
+                                 [(household, prices, scheduling_method, model, solver, search)
                                   for household in households.values()]).get()
     pool.close()
     pool.join()

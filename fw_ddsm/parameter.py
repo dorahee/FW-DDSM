@@ -23,15 +23,16 @@ cost_function_type = "piece-wise"
 
 
 # solver related parameters
-var_selection = "smallest"
-val_choice = "indomain_min"
+variable_selection = "smallest"
+value_choice = "indomain_min"
 model_type = "pre"
 solver_type = "cp"
+solver_name = "gecode"
 
 # external file related parameters
 parent_folder = ""
-file_cp_pre = parent_folder + 'models/Household-cp-pre.mzn'
-file_cp_ini = parent_folder + 'models/Household-cp.mzn'
+file_cp_pre = parent_folder + 'data/Household-cp-pre.mzn'
+file_cp_ini = parent_folder + 'data/Household-cp.mzn'
 file_pricing_table = parent_folder + 'data/pricing_table_0.csv'
 file_household_area_folder = parent_folder + 'data/'
 file_probability = parent_folder + 'data/probability.csv'

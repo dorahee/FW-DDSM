@@ -1,5 +1,5 @@
-from household import generation
-from aggregator import build
+from deprecated import generation
+import aggregator
 from numpy import genfromtxt
 from fw_ddsm.parameter import *
 
@@ -27,6 +27,6 @@ households, demand_profile = generation.new_households(10, algorithms, file_prob
 
 print(households, demand_profile)
 
-pricing_table = build.new_pricing_table(file_pricing_table, 1)
+pricing_table = aggregator.new_pricing_table(file_pricing_table, 1)
 print(pricing_table)
 
