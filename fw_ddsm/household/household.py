@@ -3,9 +3,6 @@ import numpy as np
 from numpy import sqrt, pi, random
 from json import dumps, load
 from pathlib import Path
-from numpy import genfromtxt
-from more_itertools import grouper
-import pickle
 import timeit
 from datetime import timedelta
 from minizinc import *

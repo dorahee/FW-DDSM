@@ -1,6 +1,4 @@
-from fw_ddsm.parameter import *
 from fw_ddsm.aggregator.aggregator import *
-from fw_ddsm.household.household import *
 from fw_ddsm.community.community import *
 
 
