@@ -2,9 +2,9 @@ from pandas import read_csv
 import pickle
 from math import ceil
 from pathlib import Path
+from more_itertools import grouper
 from fw_ddsm.cfunctions import *
 from fw_ddsm.parameter import *
-from more_itertools import grouper
 
 
 class Aggregator:

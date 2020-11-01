@@ -27,6 +27,7 @@ class Household:
 
     def new(self, preferred_demand_profile, list_of_devices_power, algorithms_options,
             preferred_demand_profile_csv=None,
+            list_of_devices_power_csv=None,
             max_demand_multiplier=maxium_demand_multiplier,
             num_tasks_dependent=no_tasks_dependent,
             full_flex_task_min=no_full_flex_tasks_min, full_flex_task_max=0,
@@ -37,6 +38,9 @@ class Household:
 
         if preferred_demand_profile_csv is not None:
             preferred_demand_profile = genfromtxt(preferred_demand_profile_csv, delimiter=',', dtype="float")
+
+        if list_of_devices_power_csv is not None:
+            list_of_devices_power = genfromtxt(list_of_devices_power_csv, delimiter=',', dtype="float")
 
         self.tasks = self.__new_household(preferred_demand_profile,
                                           list_of_devices_power,
