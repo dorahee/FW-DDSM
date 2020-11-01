@@ -7,6 +7,7 @@ from pathlib import Path
 import timeit
 from datetime import timedelta
 from minizinc import *
+from numpy import genfromtxt
 from fw_ddsm.parameter import *
 
 
@@ -25,6 +26,7 @@ class Household:
             print(f"Household{self.tasks[h_key]} is read.")
 
     def new(self, preferred_demand_profile, list_of_devices_power, algorithms_options,
+            preferred_demand_profile_csv=None,
             max_demand_multiplier=maxium_demand_multiplier,
             num_tasks_dependent=no_tasks_dependent,
             full_flex_task_min=no_full_flex_tasks_min, full_flex_task_max=0,
@@ -32,6 +34,9 @@ class Household:
             fixed_task_min=no_fixed_tasks_min, fixed_task_max=0,
             inconvenience_cost_weight=care_f_weight, max_care_factor=care_f_max,
             write_to_file_path=None, id=0):
+
+        if preferred_demand_profile_csv is not None:
+            preferred_demand_profile = genfromtxt(preferred_demand_profile_csv, delimiter=',', dtype="float")
 
         self.tasks = self.__new_household(preferred_demand_profile,
                                           list_of_devices_power,
