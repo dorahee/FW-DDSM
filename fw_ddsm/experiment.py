@@ -1,6 +1,5 @@
-from fw_ddsm.aggregator.aggregator import *
-from fw_ddsm.community.community import *
-
+from community import *
+from aggregator import *
 
 class Experiment:
 
