@@ -3,6 +3,7 @@ import pickle
 from math import ceil
 from pathlib import Path
 from more_itertools import grouper
+from time import time
 from fw_ddsm.cfunctions import *
 from fw_ddsm.parameter import *
 
@@ -23,7 +24,6 @@ class Aggregator:
         self.pricing_table = self.__existing_pricing_table(f"{read_from_file}{file_pricing_table_pkl}")
         print("Aggregator is read. ")
 
-
     def new(self, normalised_pricing_table_csv, aggregate_preferred_demand_profile, algorithms_options,
             weight=pricing_table_weight, write_to_file_path=None):
         aggregate_preferred_demand_profile = self.__convert_demand_profile(aggregate_preferred_demand_profile)
@@ -31,28 +31,19 @@ class Aggregator:
         self.pricing_table = self.__new_pricing_table(normalised_pricing_table_csv, maximum_demand_level,
                                                       weight, write_to_file_path)
         print("Pricing table is created. ")
-        self.aggregator = self.__new_aggregator(aggregate_preferred_demand_profile, algorithms_options, write_to_file_path)
+        self.aggregator = self.__new_aggregator(aggregate_preferred_demand_profile, algorithms_options,
+                                                write_to_file_path)
         print("Aggregator is created. ")
 
+        if write_to_file_path is not None:
+            write_to_file_path = write_to_file_path if write_to_file_path.endswith("/") \
+                else write_to_file_path + "/"
+            path = Path(write_to_file_path)
+            if not path.exists():
+                path.mkdir(mode=0o777, parents=True, exist_ok=False)
 
     def update(self, num_iteration, pricing_method, step=None, prices=None, consumption_cost=None,
                demands=None, inconvenience_cost=None, runtime=None, final=None):
-        if step is not None:
-            self.aggregator[pricing_method][k0_step][num_iteration] = step
-        if prices is not None:
-            self.aggregator[pricing_method][k0_prices][num_iteration] = prices
-        if consumption_cost is not None:
-            self.aggregator[pricing_method][k0_cost][num_iteration] = consumption_cost
-        if demands is not None:
-            demands = self.__convert_demand_profile(demands)
-            self.aggregator[pricing_method][k0_demand][num_iteration] = demands
-            self.aggregator[pricing_method][k0_demand_max][num_iteration] = max(demands)
-            self.aggregator[pricing_method][k0_demand_total][num_iteration] = sum(demands)
-            self.aggregator[pricing_method][k0_par][num_iteration] = max(demands) / average(demands)
-        if inconvenience_cost is not None:
-            self.aggregator[pricing_method][k0_penalty][num_iteration] = inconvenience_cost
-        if runtime is not None:
-            self.aggregator[pricing_method][k0_time][num_iteration] = runtime
         if final is not None:
             demands = self.__convert_demand_profile(demands)
             self.aggregator[pricing_method][k0_final][k0_demand] = demands
@@ -60,7 +51,23 @@ class Aggregator:
             self.aggregator[pricing_method][k0_final][k0_par] = max(demands) / average(demands)
             self.aggregator[pricing_method][k0_final][k0_prices] = prices
             self.aggregator[pricing_method][k0_final][k0_cost] = consumption_cost
-
+        else:
+            if step is not None:
+                self.aggregator[pricing_method][k0_step][num_iteration] = step
+            if prices is not None:
+                self.aggregator[pricing_method][k0_prices][num_iteration] = prices
+            if consumption_cost is not None:
+                self.aggregator[pricing_method][k0_cost][num_iteration] = consumption_cost
+            if demands is not None:
+                demands = self.__convert_demand_profile(demands)
+                self.aggregator[pricing_method][k0_demand][num_iteration] = demands
+                self.aggregator[pricing_method][k0_demand_max][num_iteration] = max(demands)
+                self.aggregator[pricing_method][k0_demand_total][num_iteration] = sum(demands)
+                self.aggregator[pricing_method][k0_par][num_iteration] = max(demands) / average(demands)
+            if inconvenience_cost is not None:
+                self.aggregator[pricing_method][k0_penalty][num_iteration] = inconvenience_cost
+            if runtime is not None:
+                self.aggregator[pricing_method][k0_time][num_iteration] = runtime
 
     def prices_and_cost(self, aggregate_demand_profile):
         prices = []
@@ -90,8 +97,8 @@ class Aggregator:
 
         return prices, consumption_cost
 
-
     def find_step_size(self, num_iteration, demand_profile, inconvenience, pricing_method):
+        time_begin = time()
         demand_profile = self.__convert_demand_profile(demand_profile)
         demand_profile_fw_pre = self.aggregator[pricing_method][k0_demand][num_iteration - 1][:]
         inconvenience_fw_pre = self.aggregator[pricing_method][k0_penalty][num_iteration - 1]
@@ -146,9 +153,9 @@ class Aggregator:
                 # print("cost", cost)
                 num_itrs += 1
 
-        print(f"Found the best step size {step_size_final} in {num_itrs} iterations at the cost of {cost_fw}")
-        return demand_profile_fw, step_size_final, price_fw, cost_fw, inconvenience_fw
-
+        print(f"   Found the best step size {step_size_final} in {num_itrs} iterations at the cost of {cost_fw}")
+        time_fw = time() - time_begin
+        return demand_profile_fw, step_size_final, price_fw, cost_fw, inconvenience_fw, time_fw
 
     def compute_start_time_probabilities(self, pricing_method):
         prob_dist = []
@@ -166,32 +173,31 @@ class Aggregator:
 
         return prob_dist
 
-
     def __convert_demand_profile(self, aggregate_demand_profile_interval):
         num_intervals = len(aggregate_demand_profile_interval)
         num_intervals_periods = int(num_intervals / self.num_periods)
         aggregate_demand_profile_period = aggregate_demand_profile_interval
         if num_intervals != self.num_periods:
             aggregate_demand_profile_period = [sum(x) for x in
-                                                  grouper(num_intervals_periods, aggregate_demand_profile_interval)]
+                                               grouper(num_intervals_periods, aggregate_demand_profile_interval)]
 
         return aggregate_demand_profile_period
 
-
-    def  __new_pricing_table(self, normalised_pricing_table_csv, maximum_demand_level, weight=pricing_table_weight,
-                             write_to_file_path=None):
-    # ---------------------------------------------------------------------- #
-    # normalised_pricing_table_csv:
-    #       the path of the CSV file of the normalised pricing table
-    # demand_level_scalar:
-    #       the scalar for rescaling the normalised demand levels
-    # ---------------------------------------------------------------------- #
+    def __new_pricing_table(self, normalised_pricing_table_csv, maximum_demand_level, weight=pricing_table_weight,
+                            write_to_file_path=None):
+        # ---------------------------------------------------------------------- #
+        # normalised_pricing_table_csv:
+        #       the path of the CSV file of the normalised pricing table
+        # demand_level_scalar:
+        #       the scalar for rescaling the normalised demand levels
+        # ---------------------------------------------------------------------- #
 
         num_periods = self.num_periods
         csv_table = read_csv(normalised_pricing_table_csv, header=None)
         num_levels = len(csv_table.index)
         demand_level_scalar = maximum_demand_level * weight
-        csv_table.loc[num_levels + 1] = [csv_table[0].values[-1] * 10] + [demand_level_scalar * 1.2 for _ in range(num_periods)]
+        csv_table.loc[num_levels + 1] = [csv_table[0].values[-1] * 10] + [demand_level_scalar * 1.2 for _ in
+                                                                          range(num_periods)]
 
         zero_digit = 100
         pricing_table = dict()
@@ -199,35 +205,26 @@ class Aggregator:
         pricing_table[k0_demand_table] = dict()
         pricing_table[k0_demand_table] = \
             {period:
-                 {level:
-                     ceil(csv_table[period + 1].values[level] * demand_level_scalar / zero_digit) * zero_digit
-                  for level in range(len(csv_table[period + 1]))}
+                {level:
+                    ceil(csv_table[period + 1].values[level] * demand_level_scalar / zero_digit) * zero_digit
+                 for level in range(len(csv_table[period + 1]))}
              for period in range(num_periods)}
 
         if write_to_file_path is not None:
-            write_to_file_path = write_to_file_path if write_to_file_path.endswith("/") \
-                else write_to_file_path + "/"
-            path = Path(write_to_file_path)
-            if not path.exists():
-                path.mkdir(mode=0o777, parents=True, exist_ok=False)
-
             with open(f"{write_to_file_path}{file_pricing_table_pkl}", 'wb+') as f:
                 pickle.dump(pricing_table, f, pickle.HIGHEST_PROTOCOL)
             f.close()
 
         return pricing_table
 
-
     def __existing_pricing_table(self, file_path):
         # ---------------------------------------------------------------------- #
         # ---------------------------------------------------------------------- #
-
         with open(file_path, 'rb') as f:
             pricing_table = pickle.load(f)
         f.close()
 
         return pricing_table
-
 
     def __new_aggregator(self, aggregate_preferred_demand_profile, algorithms_options, write_to_file_path=None):
         max_demand = max(aggregate_preferred_demand_profile)
@@ -257,24 +254,17 @@ class Aggregator:
                     aggregator[alg][k0_demand_total][0] = total_demand
                     aggregator[alg][k0_par][0] = par
                     aggregator[alg][k0_par][0] = par
-                    aggregator[alg][k0_penalty][0] =0
+                    aggregator[alg][k0_penalty][0] = 0
                     aggregator[alg][k0_cost][0] = None
                     aggregator[alg][k0_step][0] = 1
                     aggregator[alg][k0_time][0] = 0
 
         if write_to_file_path is not None:
-            write_to_file_path = write_to_file_path if write_to_file_path.endswith("/") \
-                else write_to_file_path + "/"
-            path = Path(write_to_file_path)
-            if not path.exists():
-                path.mkdir(mode=0o777, parents=True, exist_ok=False)
-
             with open(f"{write_to_file_path}{file_aggregator_pkl}", 'wb+') as f:
                 pickle.dump(aggregator, f, pickle.HIGHEST_PROTOCOL)
             f.close()
 
         return aggregator
-
 
     def __existing_aggregator(self, file_path):
         # ---------------------------------------------------------------------- #
@@ -285,6 +275,3 @@ class Aggregator:
         f.close()
 
         return aggregator
-
-
-

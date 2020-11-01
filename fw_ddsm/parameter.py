@@ -39,7 +39,7 @@ file_probability = parent_folder + 'data/probability.csv'
 file_demand_list = parent_folder + 'data/demands_list.csv'
 result_folder = parent_folder + "results/"
 file_community_pkl = "community.pkl"
-file_community_meta_pkl = "community_meta.pkl"
+file_community_meta_pkl = "community_aggregate.pkl"
 file_aggregator_pkl = "aggregator.pkl"
 file_pricing_table_pkl = "pricing_table.pkl"
 

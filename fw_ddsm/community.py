@@ -1,4 +1,4 @@
-from multiprocessing import Pool, cpu_count
+from multiprocessing import Pool, cpu_count, freeze_support
 import pickle
 from fw_ddsm.cfunctions import average
 from fw_ddsm.household import *
@@ -10,12 +10,19 @@ class Community:
         self.num_intervals = num_intervals
         self.num_periods = num_periods
         self.num_intervals_periods = int(num_intervals / num_periods)
+        self.households = dict()
+        self.aggregate_data = dict()
+        self.num_households = 0
+
+        if __name__ == '__main__':
+            freeze_support()
 
     def read(self, read_from_file, inconvenience_cost_weight=None):
         read_from_file = read_from_file if read_from_file.endswith("/") \
             else read_from_file + "/"
-        self.households, self.aggregate_data = self.__existing_households(file_path=read_from_file,
-                                                                          inconvenience_cost_weight=inconvenience_cost_weight)
+        self.households, self.aggregate_data \
+            = self.__existing_households(file_path=read_from_file,
+                                         inconvenience_cost_weight=inconvenience_cost_weight)
         self.num_households = len(self.households)
 
     def new(self, file_probability_path, file_demand_list_path, algorithms_options,
@@ -237,3 +244,7 @@ class Community:
                 household["care_factor_weight"] = inconvenience_cost_weight
 
         return households, households_meta
+
+
+if __name__ == "__main__":
+    freeze_support()

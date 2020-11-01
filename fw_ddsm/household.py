@@ -95,7 +95,7 @@ class Household:
         max_care_factor = household[h_max_cf]
         precedents = [x[0] for x in list(household[h_precs].values())]
         successors = list(household[h_precs].keys())
-        succ_delays = household[h_succ_delay]   # need to change this format when sending it to the solver
+        succ_delays = household[h_succ_delay]  # need to change this format when sending it to the solver
         no_precedents = household[h_no_precs]
         max_demand = household[h_max_demand]
         inconvenience_cost_weight = household[h_incon_weight]
@@ -140,7 +140,6 @@ class Household:
         return {h_key: key, k0_demand: household_demand_profile, k0_starts: actual_starts,
                 k0_penalty: penalty_household, k0_time: time_scheduling}
 
-
     def update(self, num_iteration, scheduling_method, starts=None, demands=None, penalty=None, time=None):
         if starts is not None:
             self.tasks[scheduling_method][k0_starts][num_iteration] = starts
@@ -150,7 +149,6 @@ class Household:
             self.tasks[scheduling_method][k0_penalty][num_iteration] = penalty
         if time is not None:
             self.tasks[scheduling_method][k0_time][num_iteration] = time
-
 
     def decide_final_schedule(self, scheduling_method, probability_distribution, household=None):
 
@@ -163,7 +161,6 @@ class Household:
         if household is None:
             self.tasks[scheduling_method][k0_final][k0_demand] = chosen_demand_profile
             self.tasks[scheduling_method][k0_final][k0_penalty] = chosen_penalty
-
 
         return chosen_demand_profile, chosen_penalty
 
@@ -226,7 +223,7 @@ class Household:
                         write_to_file_path=None, id=None):
         # ---------------------------------------------------------------------- #
         # preferred_demand_profile:
-        #       the demand profile used for computing the probability distribution for sampling the preferred start times
+        #       the demand profile for computing the probability distribution for sampling the preferred start times
         # list_of_devices_power:
         #       the power of the tasks
         # max_demand_multiplier:
