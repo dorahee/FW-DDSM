@@ -54,7 +54,7 @@ class Household:
         def preprocessing():
             max_duration = max(durations)
             # this big cost and big cost * number_tasks need to be smaller than the largest number that the solver can handle
-            big_value = max_demand * max_duration * max(prices) + \
+            big_value = max_demand * max_duration * prices[-2] + \
                         inconvenience_cost_weight * max_care_factor * num_intervals
             objective_value_matrix = []
             for power, pst, est, lft, dur, cf in zip(powers, preferred_starts, earliest_starts,

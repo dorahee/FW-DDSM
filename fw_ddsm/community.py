@@ -2,6 +2,7 @@ from multiprocessing import Pool, cpu_count
 from numpy import genfromtxt
 import pickle
 from fw_ddsm.cfunctions import average
+from fw_ddsm.household import *
 
 
 class Community:
