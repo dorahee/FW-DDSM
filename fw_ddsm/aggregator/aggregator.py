@@ -10,59 +10,62 @@ from more_itertools import grouper
 class Aggregator:
 
     def __init__(self, num_periods=no_periods, cost_function="piece-wise"):
-
         self.num_periods = num_periods
         self.pricing_table = dict()
-        self.data = dict()
         self.cost_function_type = cost_function
-
+        self.aggregator = dict()
+        self.start_time_probability = None
 
     def read(self, read_from_file):
         read_from_file = read_from_file if read_from_file.endswith("/") \
             else read_from_file + "/"
-        self.data = self.__existing_aggregator(f"{read_from_file}{file_aggregator_pkl}")
+        self.aggregator = self.__existing_aggregator(f"{read_from_file}{file_aggregator_pkl}")
         self.pricing_table = self.__existing_pricing_table(f"{read_from_file}{file_pricing_table_pkl}")
         print("Aggregator is read. ")
 
+
     def new(self, normalised_pricing_table_csv, aggregate_preferred_demand_profile, algorithms_options,
             weight=pricing_table_weight, write_to_file_path=None):
-
-        num_intervals = len(aggregate_preferred_demand_profile)
-        num_intervals_periods = int(num_intervals / self.num_periods)
-        if num_intervals != self.num_periods:
-            aggregate_preferred_demand_profile = [sum(x) for x in
-                                                  grouper(num_intervals_periods, aggregate_preferred_demand_profile)]
-
+        aggregate_preferred_demand_profile = self.__convert_demand_profile(aggregate_preferred_demand_profile)
         maximum_demand_level = max(aggregate_preferred_demand_profile)
         self.pricing_table = self.__new_pricing_table(normalised_pricing_table_csv, maximum_demand_level,
                                                       weight, write_to_file_path)
         print("Pricing table is created. ")
-        self.data = self.__new_aggregator(aggregate_preferred_demand_profile, algorithms_options, write_to_file_path)
+        self.aggregator = self.__new_aggregator(aggregate_preferred_demand_profile, algorithms_options, write_to_file_path)
         print("Aggregator is created. ")
 
 
     def update(self, num_iteration, pricing_method, step=None, prices=None, consumption_cost=None,
-               demands=None, inconvenience_cost=None, runtime=None):
+               demands=None, inconvenience_cost=None, runtime=None, final=None):
         if step is not None:
-            self.data[pricing_method][k0_step][num_iteration] = step
+            self.aggregator[pricing_method][k0_step][num_iteration] = step
         if prices is not None:
-            self.data[pricing_method][k0_prices][num_iteration] = prices
+            self.aggregator[pricing_method][k0_prices][num_iteration] = prices
         if consumption_cost is not None:
-            self.data[pricing_method][k0_cost][num_iteration] = consumption_cost
+            self.aggregator[pricing_method][k0_cost][num_iteration] = consumption_cost
         if demands is not None:
-            self.data[pricing_method][k0_demand][num_iteration] = demands
-            self.data[pricing_method][k0_demand_max][num_iteration] = max(demands)
-            self.data[pricing_method][k0_demand_total][num_iteration] = sum(demands)
-            self.data[pricing_method][k0_par][num_iteration] = max(demands) / average(demands)
+            demands = self.__convert_demand_profile(demands)
+            self.aggregator[pricing_method][k0_demand][num_iteration] = demands
+            self.aggregator[pricing_method][k0_demand_max][num_iteration] = max(demands)
+            self.aggregator[pricing_method][k0_demand_total][num_iteration] = sum(demands)
+            self.aggregator[pricing_method][k0_par][num_iteration] = max(demands) / average(demands)
         if inconvenience_cost is not None:
-            self.data[pricing_method][k0_penalty][num_iteration] = inconvenience_cost
+            self.aggregator[pricing_method][k0_penalty][num_iteration] = inconvenience_cost
         if runtime is not None:
-            self.data[pricing_method][k0_time][num_iteration] = runtime
+            self.aggregator[pricing_method][k0_time][num_iteration] = runtime
+        if final is not None:
+            demands = self.__convert_demand_profile(demands)
+            self.aggregator[pricing_method][k0_final][k0_demand] = demands
+            self.aggregator[pricing_method][k0_final][k0_demand_max] = max(demands)
+            self.aggregator[pricing_method][k0_final][k0_par] = max(demands) / average(demands)
+            self.aggregator[pricing_method][k0_final][k0_prices] = prices
+            self.aggregator[pricing_method][k0_final][k0_cost] = consumption_cost
 
 
     def prices_and_cost(self, aggregate_demand_profile):
         prices = []
         consumption_cost = 0
+        aggregate_demand_profile = self.__convert_demand_profile(aggregate_demand_profile)
 
         price_levels = self.pricing_table[k0_price_levels]
         for demand_period, demand_level_period in \
@@ -89,25 +92,15 @@ class Aggregator:
 
 
     def find_step_size(self, num_iteration, demand_profile, inconvenience, pricing_method):
-
-        num_intervals = len(demand_profile)
-        if num_intervals != self.num_periods:
-            num_intervals_period = int(num_intervals / self.num_periods)
-            demand_profile = [sum(x) for x in grouper(num_intervals_period, demand_profile)]
-
-
-        print("Start finding the step size. ")
-
-        demand_profile_fw_pre = self.data[pricing_method][k0_demand][num_iteration - 1][:]
-        inconvenience_fw_pre = self.data[pricing_method][k0_penalty][num_iteration - 1]
-        price_fw = self.data[pricing_method][k0_prices][num_iteration - 1][:]
-        cost_fw = self.data[pricing_method][k0_cost][num_iteration - 1]
+        demand_profile = self.__convert_demand_profile(demand_profile)
+        demand_profile_fw_pre = self.aggregator[pricing_method][k0_demand][num_iteration - 1][:]
+        inconvenience_fw_pre = self.aggregator[pricing_method][k0_penalty][num_iteration - 1]
+        price_fw = self.aggregator[pricing_method][k0_prices][num_iteration - 1][:]
+        cost_fw = self.aggregator[pricing_method][k0_cost][num_iteration - 1]
 
         demand_profile_fw = demand_profile_fw_pre[:]
         inconvenience_fw = inconvenience_fw_pre
         change_of_inconvenience = inconvenience - inconvenience_fw_pre
-        # print("change of inconvenience", change_of_inconvenience)
-
         demand_profile_changed = [d_n - d_p for d_n, d_p in zip(demand_profile, demand_profile_fw_pre)]
         step_size_final = 0
         min_step_size = 0.001
@@ -117,7 +110,7 @@ class Aggregator:
             step_profile = []
             for dp, dn, demand_levels_period in \
                     zip(demand_profile_fw_pre, demand_profile, self.pricing_table[k0_demand_table].values()):
-                d_levels = list(demand_levels_period.values())
+                d_levels = list(demand_levels_period.values())[:-1]
                 min_demand_level = min(d_levels)
                 max_demand_level = d_levels[-1]
                 second_max_demand_level = d_levels[-2]
@@ -131,25 +124,17 @@ class Aggregator:
                     step = ceil(step * 1000) / 1000
                     step = step if step > min_step_size else 1
                     # step = max(step, min_step_size)
-
                 step_profile.append(step)
-
-            # print("step profile", step_profile)
             step_size_incr = min(step_profile)
-            # print(counter, temp_step_size)
+
             demand_profile_fw_temp = [d_p + (d_n - d_p) * step_size_incr for d_p, d_n in
                                       zip(demand_profile_fw_pre, demand_profile)]
             price_fw_temp, cost_fw_temp = self.prices_and_cost(demand_profile_fw_temp)
-            # print("cost fw temp", cost_fw_temp)
-
             gradient = sum([d_c * p_fw for d_c, p_fw in
                             zip(demand_profile_changed, price_fw_temp)]) + change_of_inconvenience
-            # print("gradient", gradient)
 
             demand_profile_fw_pre = demand_profile_fw_temp[:]
             step_size_final_temp = step_size_final + step_size_incr
-            # print(step_size_final_temp)
-
             if gradient < 0 and step_size_final_temp < 1:
                 step_size_final = step_size_final_temp
                 demand_profile_fw = demand_profile_fw_temp[:]
@@ -161,9 +146,36 @@ class Aggregator:
                 # print("cost", cost)
                 num_itrs += 1
 
-        print(f"best step size {step_size_final} found in {num_itrs} iterations at the cost of {cost_fw}")
-
+        print(f"Found the best step size {step_size_final} in {num_itrs} iterations at the cost of {cost_fw}")
         return demand_profile_fw, step_size_final, price_fw, cost_fw, inconvenience_fw
+
+
+    def compute_start_time_probabilities(self, pricing_method):
+        prob_dist = []
+        history_steps = list(self.aggregator[pricing_method][k0_step].values())
+        del history_steps[0]
+
+        for alpha in history_steps:
+            if not prob_dist:
+                prob_dist.append(1 - alpha)
+                prob_dist.append(alpha)
+            else:
+                prob_dist = [p_d * (1 - alpha) for p_d in prob_dist]
+                prob_dist.append(alpha)
+        self.start_time_probability = prob_dist.copy()
+
+        return prob_dist
+
+
+    def __convert_demand_profile(self, aggregate_demand_profile_interval):
+        num_intervals = len(aggregate_demand_profile_interval)
+        num_intervals_periods = int(num_intervals / self.num_periods)
+        aggregate_demand_profile_period = aggregate_demand_profile_interval
+        if num_intervals != self.num_periods:
+            aggregate_demand_profile_period = [sum(x) for x in
+                                                  grouper(num_intervals_periods, aggregate_demand_profile_interval)]
+
+        return aggregate_demand_profile_period
 
 
     def  __new_pricing_table(self, normalised_pricing_table_csv, maximum_demand_level, weight=pricing_table_weight,

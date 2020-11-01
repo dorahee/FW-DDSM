@@ -1,6 +1,7 @@
 import random as r
 import numpy as np
 from numpy import sqrt, pi, random
+from numpy.random import choice
 from json import dumps, load
 from pathlib import Path
 import timeit
@@ -15,12 +16,13 @@ class Household:
         self.num_intervals = num_intervals
         self.num_periods = num_periods
         self.num_intervals_periods = int(num_intervals / num_periods)
+        self.tasks = dict()
 
     def read(self, read_from_file=None, existing_household=None):
-        self.data = self.__existing_household(household_file=read_from_file,
-                                              existing_household=existing_household)
+        self.tasks = self.__existing_household(household_file=read_from_file,
+                                               existing_household=existing_household)
         if existing_household is None:
-            print(f"Household{self.data[h_key]} is read.")
+            print(f"Household{self.tasks[h_key]} is read.")
 
     def new(self, preferred_demand_profile, list_of_devices_power, algorithms_options,
             max_demand_multiplier=maxium_demand_multiplier,
@@ -31,20 +33,20 @@ class Household:
             inconvenience_cost_weight=care_f_weight, max_care_factor=care_f_max,
             write_to_file_path=None, id=0):
 
-        self.data = self.__new_household(preferred_demand_profile,
-                                         list_of_devices_power,
-                                         algorithms_options,
-                                         max_demand_multiplier=max_demand_multiplier,
-                                         num_tasks_dependent=num_tasks_dependent,
-                                         full_flex_task_min=full_flex_task_min,
-                                         full_flex_task_max=full_flex_task_max,
-                                         semi_flex_task_min=semi_flex_task_min,
-                                         semi_flex_task_max=semi_flex_task_max,
-                                         fixed_task_min=fixed_task_min,
-                                         fixed_task_max=fixed_task_max,
-                                         inconvenience_cost_weight=inconvenience_cost_weight,
-                                         max_care_factor=max_care_factor,
-                                         write_to_file_path=write_to_file_path, id=id)
+        self.tasks = self.__new_household(preferred_demand_profile,
+                                          list_of_devices_power,
+                                          algorithms_options,
+                                          max_demand_multiplier=max_demand_multiplier,
+                                          num_tasks_dependent=num_tasks_dependent,
+                                          full_flex_task_min=full_flex_task_min,
+                                          full_flex_task_max=full_flex_task_max,
+                                          semi_flex_task_min=semi_flex_task_min,
+                                          semi_flex_task_max=semi_flex_task_max,
+                                          fixed_task_min=fixed_task_min,
+                                          fixed_task_max=fixed_task_max,
+                                          inconvenience_cost_weight=inconvenience_cost_weight,
+                                          max_care_factor=max_care_factor,
+                                          write_to_file_path=write_to_file_path, id=id)
         # print(f"Household{self.data[h_key]} is created.")
 
     def schedule(self, prices, scheduling_method, household=None, model=None, solver=None, search=None):
@@ -73,7 +75,7 @@ class Household:
 
         # read tasks
         if household is None:
-            household = self.data
+            household = self.tasks
         key = household[h_key]
         powers = household[h_powers]
         durations = household[h_durs]
@@ -132,13 +134,29 @@ class Household:
 
     def update(self, num_iteration, scheduling_method, starts=None, demands=None, penalty=None, time=None):
         if starts is not None:
-            self.data[scheduling_method][k0_starts][num_iteration] = starts
+            self.tasks[scheduling_method][k0_starts][num_iteration] = starts
         if demands is not None:
-            self.data[scheduling_method][k0_demand][num_iteration] = demands
+            self.tasks[scheduling_method][k0_demand][num_iteration] = demands
         if penalty is not None:
-            self.data[scheduling_method][k0_penalty][num_iteration] = penalty
+            self.tasks[scheduling_method][k0_penalty][num_iteration] = penalty
         if time is not None:
-            self.data[scheduling_method][k0_time][num_iteration] = time
+            self.tasks[scheduling_method][k0_time][num_iteration] = time
+
+
+    def decide_final_schedule(self, scheduling_method, probability_distribution, household=None):
+
+        if household is None:
+            household = self.tasks
+        chosen_iter = choice(len(probability_distribution), size=1, p=probability_distribution)[0]
+        chosen_demand_profile = household[scheduling_method][k0_demand][chosen_iter]
+        chosen_penalty = household[scheduling_method][k0_penalty][chosen_iter] * household[h_incon_weight]
+
+        if household is None:
+            self.tasks[scheduling_method][k0_final][k0_demand] = chosen_demand_profile
+            self.tasks[scheduling_method][k0_final][k0_penalty] = chosen_penalty
+
+
+        return chosen_demand_profile, chosen_penalty
 
     def __new_task(self, mode_value, list_of_devices_power, pst_probabilities, max_care_factor,
                    scheduling_window_width, ):

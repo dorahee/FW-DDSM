@@ -31,7 +31,7 @@ class Community:
 
         self.num_households = num_households
 
-        self.households, self.aggregate_data, self.preferred_demand_profile \
+        self.households, self.aggregate_data \
             = self.__new_households(file_probability_path,
                                     file_demand_list_path,
                                     algorithms_options,
@@ -61,7 +61,8 @@ class Community:
         if starts is not None:
             self.households[key][scheduling_method][k0_starts][num_iteration] = starts
 
-    def update_aggregate_data(self, num_iteration, scheduling_method, demands=None, prices=None, penalty=None, time=None):
+    def update_aggregate_data(self, num_iteration, scheduling_method, demands=None, prices=None, penalty=None,
+                              time=None):
 
         if demands is not None:
             self.aggregate_data[scheduling_method][k0_demand][num_iteration] = demands
@@ -85,7 +86,7 @@ class Community:
         self.update_aggregate_data(num_iteration=num_iteration, scheduling_method=scheduling_method, prices=prices)
 
         households = self.households
-        print(f"Start scheduling households at iteration {num_iteration} using {scheduling_method}...")
+        print(f"{num_iteration}. Start scheduling households using {scheduling_method}...")
         pool = Pool(cpu_count())
         results = pool.starmap_async(self.schedule_household,
                                      [(household, prices, scheduling_method, model, solver, search)
@@ -116,6 +117,23 @@ class Community:
         result = existing_household.schedule(prices=prices, scheduling_method=scheduling_method,
                                              household=household, model=model, solver=solver, search=search)
         return result
+
+    def decide_final_schedules(self, scheduling_method, probability_distribution):
+        existing_household = Household()
+        final_aggregate_demand_profile = [0] * self.num_intervals
+        final_total_inconvenience = 0
+        for household in self.households.values():
+            chosen_demand_profile, chosen_penalty \
+                = existing_household.decide_final_schedule(household=household, scheduling_method=scheduling_method,
+                                                           probability_distribution=probability_distribution)
+            final_aggregate_demand_profile = [x + y for x, y in
+                                              zip(chosen_demand_profile, final_aggregate_demand_profile)]
+            final_total_inconvenience += chosen_penalty
+
+        self.aggregate_data[scheduling_method][k0_final][k0_demand] = final_aggregate_demand_profile
+        self.aggregate_data[scheduling_method][k0_final][k0_penalty] = final_total_inconvenience
+
+        return final_aggregate_demand_profile, final_total_inconvenience
 
     def __new_households(self, file_probability_path, file_demand_list_path, algorithms_options,
                          max_demand_multiplier=maxium_demand_multiplier,
@@ -152,15 +170,16 @@ class Community:
                               fixed_task_max=fixed_task_max,
                               inconvenience_cost_weight=inconvenience_cost_weight,
                               max_care_factor=max_care_factor, id=h)
-            household_profile = new_household.data[h_demand_profile]
+            household_profile = new_household.tasks[h_demand_profile]
             aggregate_demand_profile = [x + y for x, y in zip(household_profile, aggregate_demand_profile)]
-            households[h] = new_household.data.copy()
+            households[h] = new_household.tasks.copy()
 
         # create aggregate trackers
         max_demand = max(aggregate_demand_profile)
         total_demand = sum(aggregate_demand_profile)
         par = max_demand / average(aggregate_demand_profile)
         aggregate_data = dict()
+        aggregate_data[k0_demand] = aggregate_demand_profile
         for algorithm in algorithms_options.values():
             for alg in algorithm.values():
                 if "fw" not in alg:
@@ -181,7 +200,7 @@ class Community:
                     aggregate_data[alg][k0_par][0] = par
                     aggregate_data[alg][k0_par][0] = par
                     aggregate_data[alg][k0_penalty][0] = 0
-                    aggregate_data[alg][k0_cost][0] = None
+                    aggregate_data[alg][k0_cost][0] = 0
                     aggregate_data[alg][k0_time][0] = 0
 
         # write household data and area data into files
@@ -200,7 +219,7 @@ class Community:
                 pickle.dump(aggregate_data, f, pickle.HIGHEST_PROTOCOL)
             f.close()
 
-        return households, aggregate_data, aggregate_demand_profile
+        return households, aggregate_data
 
     def __existing_households(self, file_path, inconvenience_cost_weight=None):
         # ---------------------------------------------------------------------- #
