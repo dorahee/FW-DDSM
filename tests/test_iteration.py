@@ -16,7 +16,7 @@ def main():
 
     for alg in algorithms.values():
         new_iteration = Iteration()
-        new_iteration.new(algorithm=alg, num_households=10,
+        new_iteration.new(algorithm=alg, num_households=20,
                           max_demand_multiplier=maxium_demand_multiplier,
                           num_tasks_dependent=3,
                           full_flex_task_min=5, full_flex_task_max=0,
@@ -37,5 +37,3 @@ def main():
 if __name__ == '__main__':
     freeze_support()
     main()
-
-# main()

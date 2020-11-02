@@ -74,13 +74,13 @@ class Iteration:
 
         num_iteration = 1
         while step > 0:
-            aggregate_demand_profile, total_inconvenience, time_scheduling_iteration \
+            aggregate_demand_profile, weigthed_total_inconvenience, time_scheduling_iteration \
                 = self.community.schedule(num_iteration=num_iteration, prices=prices,
                                           scheduling_method=scheduling_method)
             prices, consumption_cost, inconvenience, step, new_aggregate_demand_profile, time_pricing \
                 = self.aggregator.pricing(num_iteration=num_iteration,
                                           aggregate_demand_profile=aggregate_demand_profile,
-                                          aggregate_inconvenience=total_inconvenience)
+                                          aggregate_inconvenience=weigthed_total_inconvenience)
             num_iteration += 1
 
         print(f"Converged in {num_iteration - 1}")

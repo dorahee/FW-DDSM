@@ -100,10 +100,10 @@ class Community:
                                                       scheduling_method=scheduling_method,
                                                       model=model, solver=solver, search=search)
 
-        aggregate_demand_profile, total_inconvenience, time_scheduling_iteration \
+        aggregate_demand_profile, weighted_total_inconvenience, time_scheduling_iteration \
             = self.__retrieve_scheduling_results(results=results, num_iteration=num_iteration)
 
-        return aggregate_demand_profile, total_inconvenience, time_scheduling_iteration
+        return aggregate_demand_profile, weighted_total_inconvenience, time_scheduling_iteration
 
     def decide_final_schedules(self, probability_distribution, num_sample=0):
         existing_household = Household()
@@ -210,21 +210,22 @@ class Community:
 
     def __retrieve_scheduling_results(self, results, num_iteration):
         aggregate_demand_profile = [0] * self.num_intervals
-        total_inconvenience = 0
+        total_weighted_inconvenience = 0
         time_scheduling_iteration = 0
         tasks_tracker = Tracker()
         for res in results:
             key = res[h_key]
             demands_household = res[k0_demand]
-            penalty_household = res[k0_penalty]
+            weighted_penalty_household = res[k0_penalty]
             time_household = res[k0_time]
 
             aggregate_demand_profile = [x + y for x, y in zip(demands_household, aggregate_demand_profile)]
-            total_inconvenience += penalty_household
+            total_weighted_inconvenience += weighted_penalty_household
             time_scheduling_iteration += time_household
 
             # update each household's tracker
             tasks_tracker.update(num_record=num_iteration, tracker=self.households[key][k0_tracker],
-                                 method=self.scheduling_method, demands=demands_household, penalty=penalty_household)
+                                 method=self.scheduling_method, demands=demands_household,
+                                 penalty=weighted_penalty_household)
 
-        return aggregate_demand_profile, total_inconvenience, time_scheduling_iteration
+        return aggregate_demand_profile, total_weighted_inconvenience, time_scheduling_iteration

@@ -156,11 +156,11 @@ class Household:
                               randomness=False, num_intervals=num_intervals)
 
         # return results
-        penalty_household = sum([abs(pst - ast) * cf for pst, ast, cf
+        weighted_penalty_household = sum([abs(pst - ast) * cf for pst, ast, cf
                                  in zip(preferred_starts, actual_starts, care_factors)]) * inconvenience_cost_weight
 
         return {h_key: key, k0_demand: household_demand_profile, k0_starts: actual_starts,
-                k0_penalty: penalty_household, k0_time: time_scheduling}
+                k0_penalty: weighted_penalty_household, k0_time: time_scheduling}
 
     def write_to_file(self, write_to_file_path, household_id=0):
         write_to_file_path = write_to_file_path if write_to_file_path.endswith("/") \
@@ -173,20 +173,17 @@ class Household:
         f.close()
         print(f"{write_to_file_path}household{household_id}.txt written.")
 
-    def decide_final_schedule(self, probability_distribution, tasks=None,
-                              household_tracker=None, scheduling_method=None,
-                              num_schedule=0):
+    def decide_final_schedule(self, probability_distribution,
+                              household_tracker=None, scheduling_method=None, num_schedule=0):
 
         if scheduling_method is None:
             scheduling_method = self.scheduling_method
-        if tasks is None:
-            tasks = self.tasks
         if household_tracker is None:
             household_tracker = self.household_tracker
 
         chosen_iter = choice(len(probability_distribution), size=1, p=probability_distribution)[0]
         chosen_demand_profile = household_tracker[scheduling_method][k0_demand][chosen_iter]
-        chosen_penalty = household_tracker[scheduling_method][k0_penalty][chosen_iter] * tasks[h_incon_weight]
+        chosen_penalty = household_tracker[scheduling_method][k0_penalty][chosen_iter]
 
         if household_tracker is None:
             self.household_final.new(method=scheduling_method)
