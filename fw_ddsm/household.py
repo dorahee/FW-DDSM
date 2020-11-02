@@ -8,7 +8,7 @@ import timeit
 from datetime import timedelta
 from minizinc import *
 from numpy import genfromtxt
-from fw_ddsm.parameter import *
+from fw_ddsm.tracker import *
 
 
 class Household:
@@ -17,24 +17,39 @@ class Household:
         self.num_intervals = num_intervals
         self.num_periods = num_periods
         self.num_intervals_periods = int(num_intervals / num_periods)
+        self.scheduling_method = ""
         self.tasks = dict()
+        self.household_tracker = Tracker()
+        self.household_final = Tracker()
 
-    def read(self, read_from_file=None, existing_household=None):
-        self.tasks = self.__existing_household(household_file=read_from_file,
-                                               existing_household=existing_household)
-        if existing_household is None:
-            print(f"Household{self.tasks[h_key]} is read.")
+    def read(self, scheduling_method, read_from_file=None):
+        self.tasks = dict()
+        self.household_tracker = Tracker()
 
-    def new(self, preferred_demand_profile, list_of_devices_power, algorithms_options,
-            preferred_demand_profile_csv=None,
-            list_of_devices_power_csv=None,
+        self.tasks = self.__existing_household(household_file=read_from_file)
+        self.household_tracker.new(method=scheduling_method)
+        self.household_tracker.update(num_record=0, demands=self.tasks[k0_demand], penalty=0)
+        print(f"Household{self.tasks[h_key]} is read.")
+
+    def new(self, scheduling_method,
+            preferred_demand_profile=None, list_of_devices_power=None,
+            preferred_demand_profile_csv=None, list_of_devices_power_csv=None,
             max_demand_multiplier=maxium_demand_multiplier,
             num_tasks_dependent=no_tasks_dependent,
             full_flex_task_min=no_full_flex_tasks_min, full_flex_task_max=0,
             semi_flex_task_min=no_semi_flex_tasks_min, semi_flex_task_max=0,
             fixed_task_min=no_fixed_tasks_min, fixed_task_max=0,
             inconvenience_cost_weight=care_f_weight, max_care_factor=care_f_max,
-            write_to_file_path=None, id=0):
+            write_to_file_path=None, household_id=0):
+
+        self.scheduling_method = scheduling_method
+        self.tasks = dict()
+        self.household_tracker = Tracker()
+
+        if preferred_demand_profile is None and preferred_demand_profile_csv is None:
+            print("Please provide a preferred demand profile or the csv. ")
+        if list_of_devices_power is None and list_of_devices_power_csv is None:
+            print("Please provide the power rates of the tasks. ")
 
         if preferred_demand_profile_csv is not None:
             preferred_demand_profile = genfromtxt(preferred_demand_profile_csv, delimiter=',', dtype="float")
@@ -42,27 +57,44 @@ class Household:
         if list_of_devices_power_csv is not None:
             list_of_devices_power = genfromtxt(list_of_devices_power_csv, delimiter=',', dtype="float")
 
-        self.tasks = self.__new_household(preferred_demand_profile,
-                                          list_of_devices_power,
-                                          algorithms_options,
-                                          max_demand_multiplier=max_demand_multiplier,
-                                          num_tasks_dependent=num_tasks_dependent,
-                                          full_flex_task_min=full_flex_task_min,
-                                          full_flex_task_max=full_flex_task_max,
-                                          semi_flex_task_min=semi_flex_task_min,
-                                          semi_flex_task_max=semi_flex_task_max,
-                                          fixed_task_min=fixed_task_min,
-                                          fixed_task_max=fixed_task_max,
-                                          inconvenience_cost_weight=inconvenience_cost_weight,
-                                          max_care_factor=max_care_factor,
-                                          write_to_file_path=write_to_file_path, id=id)
-        # print(f"Household{self.data[h_key]} is created.")
+        self.tasks, household_demand_profile \
+            = self.__new_tasks(preferred_demand_profile,
+                               list_of_devices_power,
+                               max_demand_multiplier=max_demand_multiplier,
+                               num_tasks_dependent=num_tasks_dependent,
+                               full_flex_task_min=full_flex_task_min,
+                               full_flex_task_max=full_flex_task_max,
+                               semi_flex_task_min=semi_flex_task_min,
+                               semi_flex_task_max=semi_flex_task_max,
+                               fixed_task_min=fixed_task_min,
+                               fixed_task_max=fixed_task_max,
+                               inconvenience_cost_weight=inconvenience_cost_weight,
+                               max_care_factor=max_care_factor,
+                               household_id=household_id)
+        self.household_tracker.new(method=scheduling_method)
+        self.household_tracker.update(num_record=0, demands=household_demand_profile, penalty=0)
 
-    def schedule(self, prices, scheduling_method, household=None, model=None, solver=None, search=None):
+        if write_to_file_path is not None:
+            self.write_to_file(write_to_file_path=write_to_file_path, household_id=household_id)
+
+        # print(f"Household{household_id} is created.")
+
+    def schedule(self, prices, scheduling_method, num_intervals=None, existing_household=None,
+                 model=None, solver=None, search=None):
+
+        prices = self.__convert_price(prices)
+        if num_intervals is None:
+            num_intervals = self.num_intervals
+
+        if existing_household is None:
+            household = self.tasks
+        else:
+            household = existing_household.copy()
 
         def preprocessing():
             max_duration = max(durations)
-            # this big cost and big cost * number_tasks need to be smaller than the largest number that the solver can handle
+            # this big cost and big cost * number_tasks need to be
+            # smaller than the largest number that the solver can handle
             big_value = max_demand * max_duration * prices[-2] + \
                         inconvenience_cost_weight * max_care_factor * num_intervals
             objective_value_matrix = []
@@ -83,8 +115,6 @@ class Household:
             return objective_value_matrix, big_value
 
         # read tasks
-        if household is None:
-            household = self.tasks
         key = household[h_key]
         powers = household[h_powers]
         durations = household[h_durs]
@@ -97,17 +127,8 @@ class Household:
         successors = list(household[h_precs].keys())
         succ_delays = household[h_succ_delay]  # need to change this format when sending it to the solver
         no_precedents = household[h_no_precs]
-        max_demand = household[h_max_demand]
+        max_demand = household[h_demand_limit]
         inconvenience_cost_weight = household[h_incon_weight]
-
-        # read prices
-        num_intervals = len(household[h_demand_profile])
-        num_periods = len(prices)
-        num_intervals_period = int(num_intervals / num_periods)
-        if num_periods != num_intervals:
-            prices = [int(p * 10) for p in prices for _ in range(num_intervals_period)]
-        else:
-            prices = [int(p * 10) for p in prices]
 
         # begin scheduling
         objective_values, big_value = preprocessing()
@@ -124,14 +145,15 @@ class Household:
                                         preferred_starts=preferred_starts,
                                         latest_ends=latest_ends, successors=successors, precedents=precedents,
                                         no_precedents=no_precedents, succ_delays=succ_delays, care_factors=care_factors,
-                                        prices=prices, inconvenience_cost_weight=inconvenience_cost_weight)
+                                        prices=prices, inconvenience_cost_weight=inconvenience_cost_weight,
+                                        num_intervals=num_intervals)
         else:
             actual_starts, household_demand_profile, time_scheduling \
                 = self.__ogsa(objective_values=objective_values, big_value=big_value,
                               powers=powers, durations=durations, preferred_starts=preferred_starts,
                               latest_ends=latest_ends, max_demand=max_demand,
                               successors=successors, precedents=precedents, succ_delays=succ_delays,
-                              randomness=False)
+                              randomness=False, num_intervals=num_intervals)
 
         # return results
         penalty_household = sum([abs(pst - ast) * cf for pst, ast, cf
@@ -140,29 +162,47 @@ class Household:
         return {h_key: key, k0_demand: household_demand_profile, k0_starts: actual_starts,
                 k0_penalty: penalty_household, k0_time: time_scheduling}
 
-    def update(self, num_iteration, scheduling_method, starts=None, demands=None, penalty=None, time=None):
-        if starts is not None:
-            self.tasks[scheduling_method][k0_starts][num_iteration] = starts
-        if demands is not None:
-            self.tasks[scheduling_method][k0_demand][num_iteration] = demands
-        if penalty is not None:
-            self.tasks[scheduling_method][k0_penalty][num_iteration] = penalty
-        if time is not None:
-            self.tasks[scheduling_method][k0_time][num_iteration] = time
+    def write_to_file(self, write_to_file_path, household_id=0):
+        write_to_file_path = write_to_file_path if write_to_file_path.endswith("/") \
+            else write_to_file_path + "/"
+        path = Path(write_to_file_path)
+        if not path.exists():
+            path.mkdir(mode=0o777, parents=True, exist_ok=False)
+        with open(f"{write_to_file_path}household{household_id}.txt", "w") as f:
+            f.write(dumps(self.tasks, indent=1))
+        f.close()
+        print(f"{write_to_file_path}household{household_id}.txt written.")
 
-    def decide_final_schedule(self, scheduling_method, probability_distribution, household=None):
+    def decide_final_schedule(self, probability_distribution, tasks=None,
+                              household_tracker=None, scheduling_method=None,
+                              num_schedule=0):
 
-        if household is None:
-            household = self.tasks
+        if scheduling_method is None:
+            scheduling_method = self.scheduling_method
+        if tasks is None:
+            tasks = self.tasks
+        if household_tracker is None:
+            household_tracker = self.household_tracker
+
         chosen_iter = choice(len(probability_distribution), size=1, p=probability_distribution)[0]
-        chosen_demand_profile = household[scheduling_method][k0_demand][chosen_iter]
-        chosen_penalty = household[scheduling_method][k0_penalty][chosen_iter] * household[h_incon_weight]
+        chosen_demand_profile = household_tracker[scheduling_method][k0_demand][chosen_iter]
+        chosen_penalty = household_tracker[scheduling_method][k0_penalty][chosen_iter] * tasks[h_incon_weight]
 
-        if household is None:
-            self.tasks[scheduling_method][k0_final][k0_demand] = chosen_demand_profile
-            self.tasks[scheduling_method][k0_final][k0_penalty] = chosen_penalty
+        if household_tracker is None:
+            self.household_final.new(method=scheduling_method)
+            self.household_final.update(num_record=num_schedule, demands=chosen_demand_profile, penalty=chosen_penalty)
 
         return chosen_demand_profile, chosen_penalty
+
+    def __convert_price(self, prices):
+        num_periods = len(prices)
+        num_intervals_period = int(self.num_intervals / num_periods)
+        if num_periods != self.num_intervals:
+            prices = [p for p in prices for _ in range(num_intervals_period)]
+        else:
+            prices = [p for p in prices]
+
+        return prices
 
     def __new_task(self, mode_value, list_of_devices_power, pst_probabilities, max_care_factor,
                    scheduling_window_width, ):
@@ -213,14 +253,14 @@ class Household:
 
         return power, duration, preferred_start_time, earliest_start_time, latest_finish_time, care_factor
 
-    def __new_household(self, preferred_demand_profile, list_of_devices_power, algorithms_options,
-                        max_demand_multiplier=maxium_demand_multiplier,
-                        num_tasks_dependent=no_tasks_dependent,
-                        full_flex_task_min=no_full_flex_tasks_min, full_flex_task_max=0,
-                        semi_flex_task_min=no_semi_flex_tasks_min, semi_flex_task_max=0,
-                        fixed_task_min=no_fixed_tasks_min, fixed_task_max=0,
-                        inconvenience_cost_weight=care_f_weight, max_care_factor=care_f_max,
-                        write_to_file_path=None, id=None):
+    def __new_tasks(self, preferred_demand_profile, list_of_devices_power,
+                    max_demand_multiplier=maxium_demand_multiplier,
+                    num_tasks_dependent=no_tasks_dependent,
+                    full_flex_task_min=no_full_flex_tasks_min, full_flex_task_max=0,
+                    semi_flex_task_min=no_semi_flex_tasks_min, semi_flex_task_max=0,
+                    fixed_task_min=no_fixed_tasks_min, fixed_task_max=0,
+                    inconvenience_cost_weight=care_f_weight, max_care_factor=care_f_max,
+                    household_id=0):
         # ---------------------------------------------------------------------- #
         # preferred_demand_profile:
         #       the demand profile for computing the probability distribution for sampling the preferred start times
@@ -344,58 +384,31 @@ class Household:
                                 no_precedences += 1
                                 break
 
-        household = dict()
-        if id is not None:
-            household[h_key] = id
-        household[h_psts] = preferred_starts
-        household[h_ests] = earliest_starts
-        household[h_lfs] = latest_ends
-        household[h_durs] = durations
-        household[h_powers] = powers
-        household[h_cfs] = care_factors
-        household[h_max_cf] = max_care_factor
-        household[h_no_precs] = no_precedences
-        household[h_precs] = precedors
-        household[h_succ_delay] = succ_delays
-        household[h_max_demand] = maximum_demand
-        household[h_demand_profile] = household_demand_profile
-        household[h_incon_weight] = inconvenience_cost_weight
+        tasks = dict()
+        if household_id is not None:
+            tasks[h_key] = household_id
+        tasks[h_psts] = preferred_starts
+        tasks[h_ests] = earliest_starts
+        tasks[h_lfs] = latest_ends
+        tasks[h_durs] = durations
+        tasks[h_powers] = powers
+        tasks[h_cfs] = care_factors
+        tasks[h_max_cf] = max_care_factor
+        tasks[h_no_precs] = no_precedences
+        tasks[h_precs] = precedors
+        tasks[h_succ_delay] = succ_delays
+        tasks[h_demand_limit] = maximum_demand
+        tasks[h_incon_weight] = inconvenience_cost_weight
+        tasks[k0_demand] = household_demand_profile
 
-        for k in algorithms_options.keys():
-            household[k] = dict()
-            household[k][k0_starts] = dict()
-            household[k][k0_penalty] = dict()
-            household[k][k0_final] = dict()
-            household[k][k0_demand] = dict()
-            household[k][k0_demand_max] = dict()
+        return tasks, household_demand_profile
 
-            household[k][k0_starts][0] = household[h_psts]
-            household[k][k0_penalty][0] = 0
-            household[k][k0_demand][0] = household_demand_profile
-            household[k][k0_demand_max][0] = max(household_demand_profile)
-
-        if write_to_file_path is not None:
-            write_to_file_path = write_to_file_path if write_to_file_path.endswith("/") \
-                else write_to_file_path + "/"
-            path = Path(write_to_file_path)
-            if not path.exists():
-                path.mkdir(mode=0o777, parents=True, exist_ok=False)
-            with open(f"{write_to_file_path}household{id}.txt", "w") as f:
-                f.write(dumps(household, indent=1))
-            f.close()
-            print(f"{write_to_file_path}household{id}.txt written.")
-
-        return household
-
-    def __existing_household(self, household_file=None, existing_household=None):
+    def __existing_household(self, household_file):
         # ---------------------------------------------------------------------- #
         # ---------------------------------------------------------------------- #
-        if household_file is not None:
-            with open(household_file, 'r') as f:
-                household = load(f)
-            f.close()
-        else:
-            household = existing_household.copy()
+        with open(household_file, 'r') as f:
+            household = load(f)
+        f.close()
 
         return household
 
@@ -403,8 +416,9 @@ class Household:
                          objective_values, powers, max_demand, durations,
                          earliest_starts, preferred_starts, latest_ends,
                          successors, precedents, no_precedents, succ_delays,
-                         care_factors, prices, inconvenience_cost_weight):
-        num_intervals = self.num_intervals
+                         care_factors, prices, inconvenience_cost_weight, num_intervals=None):
+        if num_intervals is None:
+            num_intervals = self.num_intervals
 
         # problem model
         model = Model(model_file)
@@ -456,9 +470,10 @@ class Household:
         return actual_starts, optimal_demand_profile, time
 
     def __ogsa(self, objective_values, big_value, powers, durations, preferred_starts, latest_ends, max_demand,
-               successors, precedents, succ_delays, randomness=True):
+               successors, precedents, succ_delays, randomness=True, num_intervals=None):
         start_time = timeit.default_timer()
-        num_intervals = self.num_intervals
+        if num_intervals is None:
+            num_intervals = self.num_intervals
 
         def retrieve_successors_or_precedents(list0, prec_or_succ_list1, succ_prec_list2):
             list_r = []
@@ -480,7 +495,6 @@ class Household:
                 succs_or_precs = [succ_or_prec2[i2] for i2 in indices]
                 succs_succs_or_precs_precs = retrieve_successors_or_precedents(succs_or_precs, prec_or_succ1,
                                                                                succ_or_prec2)
-
             return succs_succs_or_precs_precs
 
         actual_starts = []

@@ -35,7 +35,7 @@ file_cp_pre = parent_folder + 'data/Household-cp-pre.mzn'
 file_cp_ini = parent_folder + 'data/Household-cp.mzn'
 file_pricing_table = parent_folder + 'data/pricing_table_0.csv'
 file_household_area_folder = parent_folder + 'data/'
-file_probability = parent_folder + 'data/probability.csv'
+file_pdp = parent_folder + 'data/probability.csv'
 file_demand_list = parent_folder + 'data/demands_list.csv'
 result_folder = parent_folder + "results/"
 file_community_pkl = "community.pkl"
@@ -63,8 +63,7 @@ h_max_cf = "maximum_care_factor"
 h_no_precs = "no_precedences"
 h_precs = "precedents"
 h_succ_delay = "succeeding_delays"
-h_max_demand = "maximum_demand"
-h_demand_profile = "demand_profile"
+h_demand_limit = "maximum_demand"
 h_incon_weight = "inconvenience_cost_weight"
 
 
@@ -104,6 +103,9 @@ k1_ogsa = "ogsa"
 k2_before_fw = "scheduling"
 k2_after_fw = "pricing"
 
+# tracking-related
+k0_tracker = "tracker"
+
 algorithms = dict()
 algorithms[k1_minizinc] = dict()
 algorithms[k1_minizinc][k2_before_fw] = k1_minizinc
@@ -111,5 +113,6 @@ algorithms[k1_minizinc][k2_after_fw] = f"{k1_minizinc}_fw"
 algorithms[k1_ogsa] = dict()
 algorithms[k1_ogsa][k2_before_fw] = k1_ogsa
 algorithms[k1_ogsa][k2_after_fw] = f"{k1_ogsa}_fw"
+
 
 
