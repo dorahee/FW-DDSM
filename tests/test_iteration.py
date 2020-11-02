@@ -25,7 +25,7 @@ def main():
                           inconvenience_cost_weight=1, max_care_factor=care_f_max,
                           data_folder=show.output_folder)
         new_iteration.begin_iteration(alg)
-        # new_iteration.finalise_schedules(alg)
+        new_iteration.finalise_schedules(alg)
         # show.set_data(aggregator_data=new_iteration.aggregator.aggregator,
         #               community_aggregate=new_iteration.community.aggregate_data,
         #               algorithm=alg)

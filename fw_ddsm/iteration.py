@@ -86,26 +86,22 @@ class Iteration:
         print(f"Converged in {num_iteration - 1}")
         self.aggregator.compute_start_time_probabilities(pricing_method)
 
-    def finalise_schedules(self, algorithm):
-        scheduling_method = algorithm[k2_before_fw]
-        pricing_method = algorithm[k2_after_fw]
+    def finalise_schedules(self, algorithm, num_samples=1):
+        scheduling_method = self.scheduling_method
+        pricing_method = self.pricing_method
 
-        start_time_probability_distribution = self.aggregator.start_time_probability
-        final_aggregate_demand_profile, final_total_inconvenience \
-            = self.community.decide_final_schedules(scheduling_method=scheduling_method,
-                                                    probability_distribution=start_time_probability_distribution)
+        for i in range(num_samples):
 
-        final_prices, final_consumption_cost = self.aggregator.__prices_and_cost(final_aggregate_demand_profile)
-        self.aggregator.update(num_iteration=None, final=True, pricing_method=pricing_method,
-                               demands=final_aggregate_demand_profile, prices=final_prices,
-                               consumption_cost=final_consumption_cost, inconvenience_cost=final_total_inconvenience)
+            start_time_probability_distribution = self.aggregator.start_time_probability
+            final_aggregate_demand_profile, final_total_inconvenience \
+                = self.community.decide_final_schedules(num_sample=i,
+                                                        probability_distribution=start_time_probability_distribution)
 
-        print(self.aggregator.aggregator[pricing_method][k0_final][k0_demand])
-        print(final_prices)
-        print(f"Preferred cost is {self.aggregator.aggregator[pricing_method][k0_cost][0]}, "
-              f"PAR is {self.aggregator.aggregator[pricing_method][k0_par][0]}")
-        print(f"Final cost is {final_consumption_cost}, "
-              f"PAR is {self.aggregator.aggregator[pricing_method][k0_final][k0_par]} and "
-              f"inconvenience is {final_total_inconvenience}.")
+            self.aggregator.pricing(num_iteration=i, aggregate_demand_profile=final_aggregate_demand_profile,
+                                    finalising=True)
 
-        return final_aggregate_demand_profile, final_total_inconvenience
+            # print(f"Preferred cost is {self.aggregator.aggregator[pricing_method][k0_cost][0]}, "
+            #       f"PAR is {self.aggregator.aggregator[pricing_method][k0_par][0]}")
+            # print(f"Final cost is {final_consumption_cost}, "
+            #       f"PAR is {self.aggregator.aggregator[pricing_method][k0_final][k0_par]} and "
+            #       f"inconvenience is {final_total_inconvenience}.")

@@ -16,6 +16,7 @@ class Aggregator:
         self.cost_function_type = cost_function
         self.pricing_table = dict()
         self.aggregator_tracker = Tracker()
+        self.aggregator_final = Tracker()
         self.start_time_probability = None
         self.pricing_method = ""
 
@@ -28,6 +29,7 @@ class Aggregator:
             else read_from_folder + "/"
         self.pricing_table, aggregator_tracker = self.__existing_aggregator(read_from_folder)
         self.aggregator_tracker.read(aggregator_tracker, method=pricing_method)
+        self.aggregator_final.new(method=pricing_method)
         print("Aggregator is read. ")
 
     def new(self, normalised_pricing_table_csv, aggregate_preferred_demand_profile, pricing_method,
@@ -41,6 +43,7 @@ class Aggregator:
         self.pricing_table = self.__new_pricing_table(normalised_pricing_table_csv, maximum_demand_level, weight)
         self.aggregator_tracker.new(method=pricing_method)
         self.aggregator_tracker.update(num_record=0, demands=aggregate_preferred_demand_profile)
+        self.aggregator_final.new(method=pricing_method)
 
         if write_to_file_path is not None:
             self.write_to_file(write_to_file_path=write_to_file_path)
@@ -62,7 +65,7 @@ class Aggregator:
                 pickle.dump(self.aggregator_tracker.data, f, pickle.HIGHEST_PROTOCOL)
             f.close()
 
-    def pricing(self, num_iteration, aggregate_demand_profile, aggregate_inconvenience=0):
+    def pricing(self, num_iteration, aggregate_demand_profile, aggregate_inconvenience=0, finalising=False):
 
         aggregate_demand_profile = self.__convert_demand_profile(aggregate_demand_profile)
         step = 1
@@ -77,9 +80,13 @@ class Aggregator:
                 = self.__find_step_size(num_iteration=num_iteration, aggregate_demand_profile=aggregate_demand_profile,
                                         aggregate_inconvenience=aggregate_inconvenience)
 
-        self.aggregator_tracker.update(num_record=num_iteration, demands=new_aggregate_demand_profile,
-                                       step=step, prices=prices, cost=consumption_cost, penalty=inconvenience,
-                                       run_time=time_pricing)
+        if not finalising:
+            self.aggregator_tracker.update(num_record=num_iteration, demands=new_aggregate_demand_profile,
+                                           step=step, prices=prices, cost=consumption_cost, penalty=inconvenience,
+                                           run_time=time_pricing)
+        else:
+            self.aggregator_final.update(num_record=num_iteration, demands=new_aggregate_demand_profile,
+                                         prices=prices, cost=consumption_cost, penalty=inconvenience)
 
         return prices, consumption_cost, inconvenience, step, new_aggregate_demand_profile, time_pricing
 

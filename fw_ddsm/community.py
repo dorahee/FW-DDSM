@@ -24,6 +24,7 @@ class Community:
 
         self.households = dict()
         self.community_tracker = Tracker()
+        self.community_final = Tracker()
         self.preferred_demand_profile = None
 
         self.households = self.__existing_households(file_path=read_from_folder,
@@ -32,6 +33,8 @@ class Community:
         self.num_households = len(self.households) - 1
         self.community_tracker.new(method=scheduling_method)
         self.community_tracker.update(num_record=0, demands=self.preferred_demand_profile, penalty=0)
+        self.community_final.new(method=scheduling_method)
+        print("The community is read. ")
 
     def new(self, file_preferred_demand_profile_path, file_demand_list_path, scheduling_method,
             num_households=no_households,
@@ -45,6 +48,7 @@ class Community:
 
         self.households = dict()
         self.community_tracker = Tracker()
+        self.community_final = Tracker()
         self.preferred_demand_profile = None
 
         self.scheduling_method = scheduling_method
@@ -64,6 +68,7 @@ class Community:
                                     max_care_factor=max_care_factor)
         self.community_tracker.new(method=scheduling_method)
         self.community_tracker.update(num_record=0, demands=self.preferred_demand_profile, penalty=0)
+        self.community_final.new(method=scheduling_method)
 
         if write_to_file_path is not None:
             self.write_to_file(write_to_file_path)
@@ -100,20 +105,21 @@ class Community:
 
         return aggregate_demand_profile, total_inconvenience, time_scheduling_iteration
 
-    def decide_final_schedules(self, probability_distribution):
+    def decide_final_schedules(self, probability_distribution, num_sample=0):
         existing_household = Household()
         final_aggregate_demand_profile = [0] * self.num_intervals
         final_total_inconvenience = 0
         for household in self.households.values():
             chosen_demand_profile, chosen_penalty \
-                = existing_household.decide_final_schedule(household_tracker=household,
+                = existing_household.decide_final_schedule(household_tracker=household[k0_tracker],
+                                                           scheduling_method=self.scheduling_method,
                                                            probability_distribution=probability_distribution)
             final_aggregate_demand_profile = [x + y for x, y in
                                               zip(chosen_demand_profile, final_aggregate_demand_profile)]
             final_total_inconvenience += chosen_penalty
 
-        self.aggregate_data[scheduling_method][k0_final][k0_demand] = final_aggregate_demand_profile
-        self.aggregate_data[scheduling_method][k0_final][k0_penalty] = final_total_inconvenience
+        self.community_final.update(num_record=num_sample, demands=final_aggregate_demand_profile,
+                                    penalty=final_total_inconvenience)
 
         return final_aggregate_demand_profile, final_total_inconvenience
 
