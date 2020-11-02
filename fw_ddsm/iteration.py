@@ -54,9 +54,7 @@ class Iteration:
     def read_data(self, algorithm, read_from_folder="test2"):
         self.scheduling_method = algorithm[k2_before_fw]
         self.pricing_method = algorithm[k2_after_fw]
-        self.community = Community()
         self.community.read(read_from_folder=read_from_folder, scheduling_method=self.scheduling_method)
-        self.aggregator = Aggregator()
         self.aggregator.read(read_from_folder=read_from_folder, pricing_method=self.pricing_method)
 
         print("Households and the aggregator are read. ")
@@ -66,7 +64,7 @@ class Iteration:
         pricing_method = self.pricing_method
 
         # aggregator, k = 0
-        aggregator_demand_profile = self.aggregator.aggregator_tracker.data[pricing_method][k0_demand][0]
+        aggregator_demand_profile = self.aggregator.tracker.data[pricing_method][k0_demand][0]
         prices, consumption_cost, inconvenience, step, new_aggregate_demand_profile, time_pricing \
             = self.aggregator.pricing(num_iteration=0,
                                       aggregate_demand_profile=aggregator_demand_profile,
@@ -86,9 +84,7 @@ class Iteration:
         print(f"Converged in {num_iteration - 1}")
         self.aggregator.compute_start_time_probabilities(pricing_method)
 
-    def finalise_schedules(self, algorithm, num_samples=1):
-        scheduling_method = self.scheduling_method
-        pricing_method = self.pricing_method
+    def finalise_schedules(self, num_samples=1):
 
         for i in range(num_samples):
 

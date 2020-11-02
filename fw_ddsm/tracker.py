@@ -1,36 +1,38 @@
-from fw_ddsm.parameter import *
+from pathlib import Path
+from pandas import DataFrame
 from fw_ddsm.cfunctions import *
+from fw_ddsm.parameter import *
 
 
 class Tracker:
 
-    def __init__(self, method=""):
+    def __init__(self):
         self.data = dict()
-        self.method = method
 
     def new(self, method):
-        self.method = method
+
+        def __new_record_type(key):
+            self.data[method][key] = dict()
+
         self.data[method] = dict()
-        self.__new_record_type(k0_demand)
-        self.__new_record_type(k0_demand_max)
-        self.__new_record_type(k0_demand_total)
-        self.__new_record_type(k0_par)
-        self.__new_record_type(k0_penalty)
-        self.__new_record_type(k0_final)
-        self.__new_record_type(k0_prices)
-        self.__new_record_type(k0_cost)
-        self.__new_record_type(k0_step)
-        self.__new_record_type(k0_time)
+        __new_record_type(k0_demand)
+        __new_record_type(k0_demand_max)
+        __new_record_type(k0_demand_total)
+        __new_record_type(k0_par)
+        __new_record_type(k0_penalty)
+        __new_record_type(k0_final)
+        __new_record_type(k0_prices)
+        __new_record_type(k0_cost)
+        __new_record_type(k0_step)
+        __new_record_type(k0_time)
 
-    def read(self, tracker_dict, method):
-        self.data = dict()
-        self.data = tracker_dict
-        self.method = method
+    def read(self, method_tracker, method):
+        self.data[method] = dict()
+        self.data[method] = method_tracker
 
-    def update(self, num_record, tracker=None, method=None, demands=None, prices=None, penalty=None,
+    def update(self, num_record, method, tracker=None, demands=None, prices=None, penalty=None,
                run_time=None, cost=None, final=None, step=None):
-        if method is None:
-            method = self.method
+
         if tracker is None:
             tracker = self.data
         if final is not None:
@@ -58,5 +60,27 @@ class Tracker:
                 tracker[method][k0_time][num_record] = run_time
         return tracker
 
-    def __new_record_type(self, key):
-        self.data[self.method][key] = dict()
+    def write_to_csv(self, write_to_folder, tracker_name):
+
+        write_to_folder = write_to_folder if write_to_folder.endswith("/") \
+            else write_to_folder + "/"
+        path = Path(write_to_folder)
+        if not path.exists():
+            path.mkdir(mode=0o777, parents=True, exist_ok=False)
+
+        data_to_print = self.data.copy()
+        for data_method in data_to_print:
+            if k0_demand in data_to_print[data_method]:
+                DataFrame.from_dict(data_to_print[data_method].pop(k0_demand))\
+                    .to_csv(rf"{write_to_folder}{data_method}_{tracker_name}_demands.csv")
+
+            if k0_prices in data_to_print[data_method]:
+                DataFrame.from_dict(data_to_print[data_method].pop(k0_prices)) \
+                    .to_csv(rf"{write_to_folder}{data_method}_{tracker_name}_prices.csv")
+
+            DataFrame.from_dict(data_to_print[data_method])\
+                .to_csv(rf"{write_to_folder}{data_method}_{tracker_name}_summary.csv")
+
+    def draw_graphs(self):
+        return 0
+

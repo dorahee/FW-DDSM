@@ -1,0 +1,9 @@
+,minizinc_fw,ogsa_fw
+max_demand,{0: 54000},{0: 11100}
+total_demand,{0: 225180},{0: 45000}
+PAR,{0: 11.510791366906474},{0: 11.84}
+inconvenient,{0: 0},{0: 0}
+final,{},{}
+cost,{0: 245090620.0},{0: 40815840.0}
+step_size,{},{}
+run_time,{},{}

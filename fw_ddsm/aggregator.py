@@ -15,34 +15,32 @@ class Aggregator:
         self.num_periods = num_periods
         self.cost_function_type = cost_function
         self.pricing_table = dict()
-        self.aggregator_tracker = Tracker()
+        self.tracker = Tracker()
         self.aggregator_final = Tracker()
         self.start_time_probability = None
         self.pricing_method = ""
 
     def read(self, read_from_folder, pricing_method):
         self.pricing_table = dict()
-        self.aggregator_tracker = Tracker()
         self.pricing_method = pricing_method
 
         read_from_folder = read_from_folder if read_from_folder.endswith("/") \
             else read_from_folder + "/"
         self.pricing_table, aggregator_tracker = self.__existing_aggregator(read_from_folder)
-        self.aggregator_tracker.read(aggregator_tracker, method=pricing_method)
+        self.tracker.read(aggregator_tracker[pricing_method], method=pricing_method)
         self.aggregator_final.new(method=pricing_method)
         print("Aggregator is read. ")
 
     def new(self, normalised_pricing_table_csv, aggregate_preferred_demand_profile, pricing_method,
             weight=pricing_table_weight, write_to_file_path=None):
         self.pricing_table = dict()
-        self.aggregator_tracker = Tracker()
         self.pricing_method = pricing_method
 
         aggregate_preferred_demand_profile = self.__convert_demand_profile(aggregate_preferred_demand_profile)
         maximum_demand_level = max(aggregate_preferred_demand_profile)
         self.pricing_table = self.__new_pricing_table(normalised_pricing_table_csv, maximum_demand_level, weight)
-        self.aggregator_tracker.new(method=pricing_method)
-        self.aggregator_tracker.update(num_record=0, demands=aggregate_preferred_demand_profile)
+        self.tracker.new(method=pricing_method)
+        self.tracker.update(num_record=0, method=pricing_method, demands=aggregate_preferred_demand_profile)
         self.aggregator_final.new(method=pricing_method)
 
         if write_to_file_path is not None:
@@ -62,7 +60,7 @@ class Aggregator:
 
         if write_to_file_path is not None:
             with open(f"{write_to_file_path}{file_aggregator_pkl}", 'wb+') as f:
-                pickle.dump(self.aggregator_tracker.data, f, pickle.HIGHEST_PROTOCOL)
+                pickle.dump(self.tracker.data, f, pickle.HIGHEST_PROTOCOL)
             f.close()
 
     def pricing(self, num_iteration, aggregate_demand_profile, aggregate_inconvenience=0, finalising=False):
@@ -73,7 +71,7 @@ class Aggregator:
         new_aggregate_demand_profile = aggregate_demand_profile
         time_pricing = 0
 
-        if num_iteration == 0:
+        if num_iteration == 0 or finalising:
             prices, consumption_cost = self.__prices_and_cost(aggregate_demand_profile)
         else:
             new_aggregate_demand_profile, step, prices, consumption_cost, inconvenience, time_pricing \
@@ -81,11 +79,13 @@ class Aggregator:
                                         aggregate_inconvenience=aggregate_inconvenience)
 
         if not finalising:
-            self.aggregator_tracker.update(num_record=num_iteration, demands=new_aggregate_demand_profile,
-                                           step=step, prices=prices, cost=consumption_cost, penalty=inconvenience,
-                                           run_time=time_pricing)
+            self.tracker.update(num_record=num_iteration, method=self.pricing_method,
+                                demands=new_aggregate_demand_profile,
+                                step=step, prices=prices, cost=consumption_cost, penalty=inconvenience,
+                                run_time=time_pricing)
         else:
-            self.aggregator_final.update(num_record=num_iteration, demands=new_aggregate_demand_profile,
+            self.aggregator_final.update(num_record=num_iteration, method=self.pricing_method,
+                                         demands=new_aggregate_demand_profile,
                                          prices=prices, cost=consumption_cost, penalty=inconvenience)
 
         return prices, consumption_cost, inconvenience, step, new_aggregate_demand_profile, time_pricing
@@ -120,10 +120,10 @@ class Aggregator:
     def __find_step_size(self, num_iteration, aggregate_demand_profile, aggregate_inconvenience):
         pricing_method = self.pricing_method
         time_begin = time()
-        demand_profile_fw_pre = self.aggregator_tracker.data[pricing_method][k0_demand][num_iteration - 1][:]
-        inconvenience_fw_pre = self.aggregator_tracker.data[pricing_method][k0_penalty][num_iteration - 1]
-        price_fw = self.aggregator_tracker.data[pricing_method][k0_prices][num_iteration - 1][:]
-        cost_fw = self.aggregator_tracker.data[pricing_method][k0_cost][num_iteration - 1]
+        demand_profile_fw_pre = self.tracker.data[pricing_method][k0_demand][num_iteration - 1][:]
+        inconvenience_fw_pre = self.tracker.data[pricing_method][k0_penalty][num_iteration - 1]
+        price_fw = self.tracker.data[pricing_method][k0_prices][num_iteration - 1][:]
+        cost_fw = self.tracker.data[pricing_method][k0_cost][num_iteration - 1]
 
         demand_profile_fw = demand_profile_fw_pre[:]
         inconvenience_fw = inconvenience_fw_pre
@@ -179,7 +179,7 @@ class Aggregator:
 
     def compute_start_time_probabilities(self, pricing_method):
         prob_dist = []
-        history_steps = list(self.aggregator_tracker.data[pricing_method][k0_step].values())
+        history_steps = list(self.tracker.data[pricing_method][k0_step].values())
         del history_steps[0]
 
         for alpha in history_steps:

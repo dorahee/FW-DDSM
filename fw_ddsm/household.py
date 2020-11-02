@@ -24,11 +24,9 @@ class Household:
 
     def read(self, scheduling_method, read_from_file=None):
         self.tasks = dict()
-        self.household_tracker = Tracker()
-
         self.tasks = self.__existing_household(household_file=read_from_file)
         self.household_tracker.new(method=scheduling_method)
-        self.household_tracker.update(num_record=0, demands=self.tasks[k0_demand], penalty=0)
+        self.household_tracker.update(num_record=0, method=scheduling_method, demands=self.tasks[k0_demand], penalty=0)
         print(f"Household{self.tasks[h_key]} is read.")
 
     def new(self, scheduling_method,
@@ -44,7 +42,6 @@ class Household:
 
         self.scheduling_method = scheduling_method
         self.tasks = dict()
-        self.household_tracker = Tracker()
 
         if preferred_demand_profile is None and preferred_demand_profile_csv is None:
             print("Please provide a preferred demand profile or the csv. ")
@@ -72,7 +69,8 @@ class Household:
                                max_care_factor=max_care_factor,
                                household_id=household_id)
         self.household_tracker.new(method=scheduling_method)
-        self.household_tracker.update(num_record=0, demands=household_demand_profile, penalty=0)
+        self.household_tracker.update(num_record=0, method=scheduling_method,
+                                      demands=household_demand_profile, penalty=0)
 
         if write_to_file_path is not None:
             self.write_to_file(write_to_file_path=write_to_file_path, household_id=household_id)

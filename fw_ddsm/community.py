@@ -23,16 +23,16 @@ class Community:
             else read_from_folder + "/"
 
         self.households = dict()
-        self.community_tracker = Tracker()
-        self.community_final = Tracker()
         self.preferred_demand_profile = None
 
         self.households = self.__existing_households(file_path=read_from_folder,
                                                      inconvenience_cost_weight=inconvenience_cost_weight)
         self.preferred_demand_profile = self.households.pop(k0_demand)
         self.num_households = len(self.households) - 1
+
         self.community_tracker.new(method=scheduling_method)
-        self.community_tracker.update(num_record=0, demands=self.preferred_demand_profile, penalty=0)
+        self.community_tracker.update(num_record=0, method=scheduling_method,
+                                      demands=self.preferred_demand_profile, penalty=0)
         self.community_final.new(method=scheduling_method)
         print("The community is read. ")
 
@@ -47,8 +47,6 @@ class Community:
             write_to_file_path=None):
 
         self.households = dict()
-        self.community_tracker = Tracker()
-        self.community_final = Tracker()
         self.preferred_demand_profile = None
 
         self.scheduling_method = scheduling_method
@@ -67,7 +65,8 @@ class Community:
                                     inconvenience_cost_weight=inconvenience_cost_weight,
                                     max_care_factor=max_care_factor)
         self.community_tracker.new(method=scheduling_method)
-        self.community_tracker.update(num_record=0, demands=self.preferred_demand_profile, penalty=0)
+        self.community_tracker.update(num_record=0, method=scheduling_method,
+                                      demands=self.preferred_demand_profile, penalty=0)
         self.community_final.new(method=scheduling_method)
 
         if write_to_file_path is not None:
@@ -91,7 +90,7 @@ class Community:
 
     def schedule(self, num_iteration, prices, scheduling_method, model=None, solver=None, search=None, households=None):
         prices = self.__convert_price(prices)
-        self.community_tracker.update(num_record=num_iteration, prices=prices)
+        self.community_tracker.update(num_record=num_iteration, method=scheduling_method, prices=prices)
 
         print(f"{num_iteration}. Start scheduling households using {scheduling_method}...")
         if households is None:
@@ -118,8 +117,8 @@ class Community:
                                               zip(chosen_demand_profile, final_aggregate_demand_profile)]
             final_total_inconvenience += chosen_penalty
 
-        self.community_final.update(num_record=num_sample, demands=final_aggregate_demand_profile,
-                                    penalty=final_total_inconvenience)
+        self.community_final.update(num_record=num_sample, method=self.scheduling_method,
+                                    demands=final_aggregate_demand_profile, penalty=final_total_inconvenience)
 
         return final_aggregate_demand_profile, final_total_inconvenience
 
