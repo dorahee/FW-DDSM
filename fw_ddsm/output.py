@@ -15,16 +15,22 @@ class Show:
         self.output_folder = ""
         self.aggregator_tracker = Tracker()
         self.community_tracker = Tracker()
+        self.output_root_folder = ""
+        self.output_parent_folder = ""
+        self.output_folder = ""
 
-    def set_output_folder(self, output_folder):
+    def set_output_folder(self, output_root_folder):
+        if not output_root_folder.endswith("/"):
+            output_root_folder += "/"
+
         this_date = str(date.today())
         this_time = str(datetime.now().time().strftime("%H-%M-%S"))
-        output_folder = output_folder if output_folder.endswith("/") else output_folder + "/"
-        self.output_folder = f"{output_folder}{this_date}/{this_time}/"
+        self.output_parent_folder = f"{output_root_folder}{this_date}/"
+        self.output_folder = f"{self.output_parent_folder}/{this_time}/"
         path = Path(self.output_folder)
         if not path.exists():
             path.mkdir(mode=0o777, parents=True, exist_ok=False)
-        return self.output_folder
+        return self.output_parent_folder, self.output_folder
 
     def set_data(self, algorithm, aggregator_tracker, community_tracker=None):
         self.aggregator_tracker = Tracker()

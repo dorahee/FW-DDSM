@@ -49,17 +49,13 @@ class Iteration:
                             aggregate_preferred_demand_profile=self.community.preferred_demand_profile,
                             pricing_method=self.pricing_method, write_to_file_path=self.data_folder)
 
-        print("Households and the aggregator are created. ")
-
     def read_data(self, algorithm, read_from_folder="test2"):
         self.scheduling_method = algorithm[k2_before_fw]
         self.pricing_method = algorithm[k2_after_fw]
         self.community.read(read_from_folder=read_from_folder, scheduling_method=self.scheduling_method)
         self.aggregator.read(read_from_folder=read_from_folder, pricing_method=self.pricing_method)
 
-        print("Households and the aggregator are read. ")
-
-    def begin_iteration(self, algorithm):
+    def begin_iteration(self):
         scheduling_method = self.scheduling_method
         pricing_method = self.pricing_method
 
@@ -72,13 +68,13 @@ class Iteration:
 
         num_iteration = 1
         while step > 0:
-            aggregate_demand_profile, weigthed_total_inconvenience, time_scheduling_iteration \
+            aggregate_demand_profile, weighted_total_inconvenience, time_scheduling_iteration \
                 = self.community.schedule(num_iteration=num_iteration, prices=prices,
                                           scheduling_method=scheduling_method)
             prices, consumption_cost, inconvenience, step, new_aggregate_demand_profile, time_pricing \
                 = self.aggregator.pricing(num_iteration=num_iteration,
                                           aggregate_demand_profile=aggregate_demand_profile,
-                                          aggregate_inconvenience=weigthed_total_inconvenience)
+                                          aggregate_inconvenience=weighted_total_inconvenience)
             num_iteration += 1
 
         print(f"Converged in {num_iteration - 1}")

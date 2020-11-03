@@ -1,9 +1,0 @@
-,minizinc,ogsa
-max_demand,{0: 6011},{0: 5350}
-total_demand,{0: 76157},{0: 72800}
-PAR,{0: 11.365783841275261},{0: 10.582417582417582}
-inconvenient,{0: 0},{0: 0}
-final,{},{}
-cost,{},{}
-step_size,{},{}
-run_time,{},{}

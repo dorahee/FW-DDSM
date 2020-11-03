@@ -1,6 +1,5 @@
-from multiprocessing import Pool, cpu_count, freeze_support
+from multiprocessing import Pool, cpu_count
 import pickle
-from fw_ddsm.cfunctions import average
 from fw_ddsm.household import *
 from fw_ddsm.tracker import *
 
@@ -13,8 +12,8 @@ class Community:
         self.num_intervals_periods = int(num_intervals / num_periods)
         self.num_households = 0
         self.households = dict()
-        self.community_tracker = Tracker()
-        self.community_final = Tracker()
+        self.tracker = Tracker()
+        self.final = Tracker()
         self.scheduling_method = ""
         self.preferred_demand_profile = []
 
@@ -30,10 +29,10 @@ class Community:
         self.preferred_demand_profile = self.households.pop(k0_demand)
         self.num_households = len(self.households) - 1
 
-        self.community_tracker.new(method=scheduling_method)
-        self.community_tracker.update(num_record=0, method=scheduling_method,
-                                      demands=self.preferred_demand_profile, penalty=0)
-        self.community_final.new(method=scheduling_method)
+        self.tracker.new(method=scheduling_method)
+        self.tracker.update(num_record=0, method=scheduling_method,
+                            demands=self.preferred_demand_profile, penalty=0)
+        self.final.new(method=scheduling_method)
         print("The community is read. ")
 
     def new(self, file_preferred_demand_profile_path, file_demand_list_path, scheduling_method,
@@ -64,10 +63,10 @@ class Community:
                                     fixed_task_max=fixed_task_max,
                                     inconvenience_cost_weight=inconvenience_cost_weight,
                                     max_care_factor=max_care_factor)
-        self.community_tracker.new(method=scheduling_method)
-        self.community_tracker.update(num_record=0, method=scheduling_method,
-                                      demands=self.preferred_demand_profile, penalty=0)
-        self.community_final.new(method=scheduling_method)
+        self.tracker.new(method=scheduling_method)
+        self.tracker.update(num_record=0, method=scheduling_method,
+                            demands=self.preferred_demand_profile, penalty=0)
+        self.final.new(method=scheduling_method)
 
         if write_to_file_path is not None:
             self.write_to_file(write_to_file_path)
@@ -90,7 +89,7 @@ class Community:
 
     def schedule(self, num_iteration, prices, scheduling_method, model=None, solver=None, search=None, households=None):
         prices = self.__convert_price(prices)
-        self.community_tracker.update(num_record=num_iteration, method=scheduling_method, prices=prices)
+        self.tracker.update(num_record=num_iteration, method=scheduling_method, prices=prices)
 
         print(f"{num_iteration}. Start scheduling households using {scheduling_method}...")
         if households is None:
@@ -117,8 +116,8 @@ class Community:
                                               zip(chosen_demand_profile, final_aggregate_demand_profile)]
             final_total_inconvenience += chosen_penalty
 
-        self.community_final.update(num_record=num_sample, method=self.scheduling_method,
-                                    demands=final_aggregate_demand_profile, penalty=final_total_inconvenience)
+        self.final.update(num_record=num_sample, method=self.scheduling_method,
+                          demands=final_aggregate_demand_profile, penalty=final_total_inconvenience)
 
         return final_aggregate_demand_profile, final_total_inconvenience
 
@@ -194,9 +193,9 @@ class Community:
     def __schedule_multiple_processing(self, households, prices, scheduling_method, model, solver, search):
 
         pool = Pool(cpu_count())
-        single_household = Household()
-        results = pool.starmap_async(single_household.schedule,
-                                     [(prices, scheduling_method, self.num_intervals, household, model, solver, search)
+        results = pool.starmap_async(Household.schedule,
+                                     [(Household(), prices, scheduling_method, self.num_intervals,
+                                       household, model, solver, search)
                                       for household in households.values()]).get()
         # results = pool.starmap_async(self.schedule_single_household,
         #                              [(household, prices, scheduling_method, model, solver, search)
@@ -211,7 +210,6 @@ class Community:
         aggregate_demand_profile = [0] * self.num_intervals
         total_weighted_inconvenience = 0
         time_scheduling_iteration = 0
-        tasks_tracker = Tracker()
         for res in results:
             key = res[h_key]
             demands_household = res[k0_demand]
@@ -223,8 +221,8 @@ class Community:
             time_scheduling_iteration += time_household
 
             # update each household's tracker
-            tasks_tracker.update(num_record=num_iteration, tracker=self.households[key][k0_tracker],
-                                 method=self.scheduling_method, demands=demands_household,
-                                 penalty=weighted_penalty_household)
+            Tracker.update(self=Tracker(), num_record=num_iteration, tracker=self.households[key][k0_tracker],
+                           method=self.scheduling_method, demands=demands_household,
+                           penalty=weighted_penalty_household)
 
         return aggregate_demand_profile, total_weighted_inconvenience, time_scheduling_iteration

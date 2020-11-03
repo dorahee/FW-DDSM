@@ -1,11 +1,8 @@
 from pandas import read_csv
 import pickle
 from math import ceil
-from pathlib import Path
 from more_itertools import grouper
 from time import time
-from fw_ddsm.cfunctions import *
-from fw_ddsm.parameter import *
 from fw_ddsm.tracker import *
 
 
@@ -16,7 +13,7 @@ class Aggregator:
         self.cost_function_type = cost_function
         self.pricing_table = dict()
         self.tracker = Tracker()
-        self.aggregator_final = Tracker()
+        self.final = Tracker()
         self.start_time_probability = None
         self.pricing_method = ""
 
@@ -28,7 +25,7 @@ class Aggregator:
             else read_from_folder + "/"
         self.pricing_table, aggregator_tracker = self.__existing_aggregator(read_from_folder)
         self.tracker.read(aggregator_tracker[pricing_method], method=pricing_method)
-        self.aggregator_final.new(method=pricing_method)
+        self.final.new(method=pricing_method)
         print("Aggregator is read. ")
 
     def new(self, normalised_pricing_table_csv, aggregate_preferred_demand_profile, pricing_method,
@@ -41,7 +38,7 @@ class Aggregator:
         self.pricing_table = self.__new_pricing_table(normalised_pricing_table_csv, maximum_demand_level, weight)
         self.tracker.new(method=pricing_method)
         self.tracker.update(num_record=0, method=pricing_method, demands=aggregate_preferred_demand_profile)
-        self.aggregator_final.new(method=pricing_method)
+        self.final.new(method=pricing_method)
 
         if write_to_file_path is not None:
             self.write_to_file(write_to_file_path=write_to_file_path)
@@ -84,9 +81,9 @@ class Aggregator:
                                 step=step, prices=prices, cost=consumption_cost, penalty=inconvenience,
                                 run_time=time_pricing)
         else:
-            self.aggregator_final.update(num_record=num_iteration, method=self.pricing_method,
-                                         demands=new_aggregate_demand_profile,
-                                         prices=prices, cost=consumption_cost, penalty=inconvenience)
+            self.final.update(num_record=num_iteration, method=self.pricing_method,
+                              demands=new_aggregate_demand_profile,
+                              prices=prices, cost=consumption_cost, penalty=inconvenience)
 
         return prices, consumption_cost, inconvenience, step, new_aggregate_demand_profile, time_pricing
 
