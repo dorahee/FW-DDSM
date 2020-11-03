@@ -105,7 +105,7 @@ k2_after_fw = "pricing"
 
 # tracking-related
 k0_tracker = "tracker"
-
+k0_others = "others"
 algorithms = dict()
 algorithms[k1_minizinc] = dict()
 algorithms[k1_minizinc][k2_before_fw] = k1_minizinc

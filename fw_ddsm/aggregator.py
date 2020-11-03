@@ -17,14 +17,16 @@ class Aggregator:
         self.start_time_probability = None
         self.pricing_method = ""
 
-    def read(self, read_from_folder, pricing_method):
+    def read(self, pricing_method, aggregate_preferred_demand_profile, read_from_folder="data/"):
         self.pricing_table = dict()
         self.pricing_method = pricing_method
+        aggregate_preferred_demand_profile = self.__convert_demand_profile(aggregate_preferred_demand_profile)
 
         read_from_folder = read_from_folder if read_from_folder.endswith("/") \
             else read_from_folder + "/"
-        self.pricing_table, aggregator_tracker = self.__existing_aggregator(read_from_folder)
-        self.tracker.read(aggregator_tracker[pricing_method], method=pricing_method)
+        self.pricing_table = self.__existing_pricing_table(read_from_folder)
+        self.tracker.new(method=pricing_method)
+        self.tracker.update(num_record=0, method=pricing_method, demands=aggregate_preferred_demand_profile)
         self.final.new(method=pricing_method)
         print("Aggregator is read. ")
 
@@ -40,6 +42,7 @@ class Aggregator:
         self.tracker.update(num_record=0, method=pricing_method, demands=aggregate_preferred_demand_profile)
         self.final.new(method=pricing_method)
 
+        self.write_to_file("data/")
         if write_to_file_path is not None:
             self.write_to_file(write_to_file_path=write_to_file_path)
         print("Aggregator is created. ")
@@ -51,14 +54,14 @@ class Aggregator:
         if not path.exists():
             path.mkdir(mode=0o777, parents=True, exist_ok=False)
 
-        with open(f"{write_to_file_path}{file_pricing_table_pkl}", 'wb+') as f:
-            pickle.dump(self.pricing_table, f, pickle.HIGHEST_PROTOCOL)
-        f.close()
-
         if write_to_file_path is not None:
-            with open(f"{write_to_file_path}{file_aggregator_pkl}", 'wb+') as f:
-                pickle.dump(self.tracker.data, f, pickle.HIGHEST_PROTOCOL)
+            with open(f"{write_to_file_path}{file_pricing_table_pkl}", 'wb+') as f:
+                pickle.dump(self.pricing_table, f, pickle.HIGHEST_PROTOCOL)
             f.close()
+
+            # with open(f"{write_to_file_path}{file_aggregator_pkl}", 'wb+') as f:
+            #     pickle.dump(self.tracker.data, f, pickle.HIGHEST_PROTOCOL)
+            # f.close()
 
     def pricing(self, num_iteration, aggregate_demand_profile, aggregate_inconvenience=0, finalising=False):
 
@@ -228,14 +231,14 @@ class Aggregator:
 
         return pricing_table
 
-    def __existing_aggregator(self, file_folder):
+    def __existing_pricing_table(self, file_folder):
         # ---------------------------------------------------------------------- #
         # ---------------------------------------------------------------------- #
         with open(f"{file_folder}{file_pricing_table_pkl}", 'rb') as f:
             pricing_table = pickle.load(f)
         f.close()
 
-        with open(f"{file_folder}{file_aggregator_pkl}", 'rb') as f:
-            aggregator_tracker = pickle.load(f)
-        f.close()
-        return pricing_table, aggregator_tracker
+        # with open(f"{file_folder}{file_aggregator_pkl}", 'rb') as f:
+        #     aggregator_tracker = pickle.load(f)
+        # f.close()
+        return pricing_table

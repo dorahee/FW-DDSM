@@ -17,7 +17,7 @@ class Community:
         self.scheduling_method = ""
         self.preferred_demand_profile = []
 
-    def read(self, scheduling_method, read_from_folder, inconvenience_cost_weight=None):
+    def read(self, scheduling_method, read_from_folder="data/", inconvenience_cost_weight=None):
         read_from_folder = read_from_folder if read_from_folder.endswith("/") \
             else read_from_folder + "/"
 
@@ -65,9 +65,11 @@ class Community:
                                     max_care_factor=max_care_factor)
         self.tracker.new(method=scheduling_method)
         self.tracker.update(num_record=0, method=scheduling_method,
-                            demands=self.preferred_demand_profile, penalty=0)
+                            demands=self.preferred_demand_profile, penalty=0,
+                            run_time=0)
         self.final.new(method=scheduling_method)
 
+        self.write_to_file("data/")
         if write_to_file_path is not None:
             self.write_to_file(write_to_file_path)
 
@@ -88,10 +90,11 @@ class Community:
         f.close()
 
     def schedule(self, num_iteration, prices, scheduling_method, model=None, solver=None, search=None, households=None):
-        prices = self.__convert_price(prices)
-        self.tracker.update(num_record=num_iteration, method=scheduling_method, prices=prices)
-
         print(f"{num_iteration}. Start scheduling households using {scheduling_method}...")
+
+        prices = self.__convert_price(prices)
+        self.tracker.update(num_record=num_iteration - 1, method=scheduling_method, prices=prices)
+
         if households is None:
             households = self.households
         results = self.__schedule_multiple_processing(households=households, prices=prices,
@@ -100,6 +103,9 @@ class Community:
 
         aggregate_demand_profile, weighted_total_inconvenience, time_scheduling_iteration \
             = self.__retrieve_scheduling_results(results=results, num_iteration=num_iteration)
+
+        self.tracker.update(num_record=num_iteration, method=scheduling_method, demands=aggregate_demand_profile,
+                            penalty=weighted_total_inconvenience, run_time=time_scheduling_iteration)
 
         return aggregate_demand_profile, weighted_total_inconvenience, time_scheduling_iteration
 
@@ -137,8 +143,7 @@ class Community:
                          full_flex_task_min=no_full_flex_tasks_min, full_flex_task_max=0,
                          semi_flex_task_min=no_semi_flex_tasks_min, semi_flex_task_max=0,
                          fixed_task_min=no_fixed_tasks_min, fixed_task_max=0,
-                         inconvenience_cost_weight=care_f_weight, max_care_factor=care_f_max,
-                         write_to_file_path=None):
+                         inconvenience_cost_weight=care_f_weight, max_care_factor=care_f_max):
         # ---------------------------------------------------------------------- #
 
         # ---------------------------------------------------------------------- #

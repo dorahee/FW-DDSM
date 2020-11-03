@@ -15,29 +15,29 @@ def main():
     new_iteration = Iteration()
     show = Show()
     output_parent_folder, output_folder = show.set_output_folder(output_root_folder="results")
+    new_data = True
     for alg in algorithms.values():
-        new_iteration.new(algorithm=alg, num_households=5,
-                          max_demand_multiplier=maxium_demand_multiplier,
-                          num_tasks_dependent=3,
-                          full_flex_task_min=5, full_flex_task_max=0,
-                          semi_flex_task_min=0, semi_flex_task_max=0,
-                          fixed_task_min=0, fixed_task_max=0,
-                          inconvenience_cost_weight=1, max_care_factor=care_f_max,
-                          data_folder=output_folder)
+        if new_data:
+            new_iteration.new(algorithm=alg, num_households=5,
+                              max_demand_multiplier=maxium_demand_multiplier,
+                              num_tasks_dependent=3,
+                              full_flex_task_min=5, full_flex_task_max=0,
+                              semi_flex_task_min=0, semi_flex_task_max=0,
+                              fixed_task_min=0, fixed_task_max=0,
+                              inconvenience_cost_weight=1, max_care_factor=care_f_max,
+                              data_folder=output_folder)
+            new_data = False
+        else:
+            new_iteration.read_data(algorithm=alg)
         new_iteration.begin_iteration()
         new_iteration.finalise_schedules(num_samples=5)
         print("----------------------------------------")
 
-    new_iteration.aggregator.tracker.write_to_csv(write_to_folder=output_folder,
-                                                  write_to_parent_folder=output_parent_folder,
-                                                  tracker_name="aggregator")
-    new_iteration.aggregator.final.write_to_csv(write_to_folder=output_folder,
-                                                write_to_parent_folder=output_parent_folder,
-                                                tracker_name="final")
-    new_iteration.community.tracker.write_to_csv(write_to_folder=output_folder,
-                                                 write_to_parent_folder=output_parent_folder,
-                                                 tracker_name="community",
-                                                 print_demands=False, print_prices=False)
+    show.set_data(algorithms=algorithms,
+        aggregator_tracker= new_iteration.aggregator.tracker,
+                  aggregator_final=new_iteration.aggregator.final,
+                  community_tracker=new_iteration.community.tracker,
+                  community_final=new_iteration.community.final)
 
     # print("------------------------------")
     # show.write_to_csv()

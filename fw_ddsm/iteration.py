@@ -49,11 +49,12 @@ class Iteration:
                             aggregate_preferred_demand_profile=self.community.preferred_demand_profile,
                             pricing_method=self.pricing_method, write_to_file_path=self.data_folder)
 
-    def read_data(self, algorithm, read_from_folder="test2"):
+    def read_data(self, algorithm, read_from_folder="data/"):
         self.scheduling_method = algorithm[k2_before_fw]
         self.pricing_method = algorithm[k2_after_fw]
         self.community.read(read_from_folder=read_from_folder, scheduling_method=self.scheduling_method)
-        self.aggregator.read(read_from_folder=read_from_folder, pricing_method=self.pricing_method)
+        self.aggregator.read(read_from_folder=read_from_folder, pricing_method=self.pricing_method,
+                             aggregate_preferred_demand_profile=self.community.preferred_demand_profile)
 
     def begin_iteration(self):
         scheduling_method = self.scheduling_method
