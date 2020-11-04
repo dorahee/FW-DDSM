@@ -16,8 +16,10 @@ class Aggregator:
         self.final = Tracker()
         self.start_time_probability = None
         self.pricing_method = ""
+        self.init_demand_max = 0
+        self.init_cost = 0
 
-    def read(self, pricing_method, aggregate_preferred_demand_profile, read_from_folder="data/"):
+    def read_aggregator(self, pricing_method, aggregate_preferred_demand_profile, read_from_folder="data/"):
         self.pricing_table = dict()
         self.pricing_method = pricing_method
         aggregate_preferred_demand_profile = self.__convert_demand_profile(aggregate_preferred_demand_profile)
@@ -28,10 +30,10 @@ class Aggregator:
         self.tracker.new(method=pricing_method)
         self.tracker.update(num_record=0, method=pricing_method, demands=aggregate_preferred_demand_profile)
         self.final.new(method=pricing_method)
-        print("Aggregator is read. ")
+        print("0. Aggregator is read. ")
 
-    def new(self, normalised_pricing_table_csv, aggregate_preferred_demand_profile, pricing_method,
-            weight=pricing_table_weight, write_to_file_path=None):
+    def new_aggregator(self, normalised_pricing_table_csv, aggregate_preferred_demand_profile, pricing_method,
+                       weight=pricing_table_weight, write_to_file_path=None):
         self.pricing_table = dict()
         self.pricing_method = pricing_method
 
@@ -41,11 +43,12 @@ class Aggregator:
         self.tracker.new(method=pricing_method)
         self.tracker.update(num_record=0, method=pricing_method, demands=aggregate_preferred_demand_profile)
         self.final.new(method=pricing_method)
+        self.final.update(num_record=0, method=pricing_method, demands=aggregate_preferred_demand_profile)
 
         self.write_to_file("data/")
         if write_to_file_path is not None:
             self.write_to_file(write_to_file_path=write_to_file_path)
-        print("Aggregator is created. ")
+        print("0. Aggregator is created. ")
 
     def write_to_file(self, write_to_file_path):
         write_to_file_path = write_to_file_path if write_to_file_path.endswith("/") \
@@ -73,6 +76,13 @@ class Aggregator:
 
         if num_iteration == 0 or finalising:
             prices, consumption_cost = self.__prices_and_cost(aggregate_demand_profile)
+            if not finalising:
+                self.init_cost = consumption_cost
+                self.init_demand_max = max(new_aggregate_demand_profile)
+            self.final.update(num_record=num_iteration, method=self.pricing_method,
+                              demands=new_aggregate_demand_profile,
+                              prices=prices, cost=consumption_cost, penalty=inconvenience,
+                              init_cost=self.init_cost, init_demand_max=self.init_demand_max)
         else:
             new_aggregate_demand_profile, step, prices, consumption_cost, inconvenience, time_pricing \
                 = self.__find_step_size(num_iteration=num_iteration, aggregate_demand_profile=aggregate_demand_profile,
@@ -82,13 +92,30 @@ class Aggregator:
             self.tracker.update(num_record=num_iteration, method=self.pricing_method,
                                 demands=new_aggregate_demand_profile,
                                 step=step, prices=prices, cost=consumption_cost, penalty=inconvenience,
-                                run_time=time_pricing)
-        else:
-            self.final.update(num_record=num_iteration, method=self.pricing_method,
-                              demands=new_aggregate_demand_profile,
-                              prices=prices, cost=consumption_cost, penalty=inconvenience)
+                                run_time=time_pricing, init_cost=self.init_cost, init_demand_max=self.init_demand_max)
+        # else:
+        #     self.final.update(num_record=num_iteration, method=self.pricing_method,
+        #                       demands=new_aggregate_demand_profile,
+        #                       prices=prices, cost=consumption_cost, penalty=inconvenience,
+        #                       init_cost=self.init_cost, init_demand_max=self.init_demand_max)
 
         return prices, consumption_cost, inconvenience, step, new_aggregate_demand_profile, time_pricing
+
+    def compute_start_time_probabilities(self, pricing_method):
+        prob_dist = []
+        history_steps = list(self.tracker.data[pricing_method][k0_step].values())
+        del history_steps[0]
+
+        for alpha in history_steps:
+            if not prob_dist:
+                prob_dist.append(1 - alpha)
+                prob_dist.append(alpha)
+            else:
+                prob_dist = [p_d * (1 - alpha) for p_d in prob_dist]
+                prob_dist.append(alpha)
+        self.start_time_probability = prob_dist.copy()
+
+        return prob_dist
 
     def __prices_and_cost(self, aggregate_demand_profile):
         prices = []
@@ -173,25 +200,9 @@ class Aggregator:
                 # print("cost", cost)
                 num_itrs += 1
 
-        print(f"   Found the best step size {step_size_final} in {num_itrs} iterations at the cost of {cost_fw}")
+        print(f"   Best step size {round(step_size_final, 3)}, {num_itrs} iterations, cost {cost_fw}")
         time_fw = time() - time_begin
         return demand_profile_fw, step_size_final, price_fw, cost_fw, inconvenience_fw, time_fw
-
-    def compute_start_time_probabilities(self, pricing_method):
-        prob_dist = []
-        history_steps = list(self.tracker.data[pricing_method][k0_step].values())
-        del history_steps[0]
-
-        for alpha in history_steps:
-            if not prob_dist:
-                prob_dist.append(1 - alpha)
-                prob_dist.append(alpha)
-            else:
-                prob_dist = [p_d * (1 - alpha) for p_d in prob_dist]
-                prob_dist.append(alpha)
-        self.start_time_probability = prob_dist.copy()
-
-        return prob_dist
 
     def __convert_demand_profile(self, aggregate_demand_profile_interval):
         num_intervals = len(aggregate_demand_profile_interval)

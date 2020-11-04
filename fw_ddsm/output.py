@@ -9,32 +9,37 @@ from fw_ddsm.tracker import *
 
 class Show:
 
-    def __init__(self):
+    def __init__(self, output_root_folder="results/"):
 
         self.output_folder = ""
         self.aggregator_tracker = Tracker()
         self.aggregator_final = Tracker()
         self.community_tracker = Tracker()
         self.community_final = Tracker()
-        self.output_root_folder = ""
-        self.output_parent_folder = ""
-        self.output_folder = ""
 
-    def set_output_folder(self, output_root_folder):
         if not output_root_folder.endswith("/"):
             output_root_folder += "/"
+        self.output_root_folder = output_root_folder
 
         this_date = str(date.today())
         this_time = str(datetime.now().time().strftime("%H-%M-%S"))
-        self.output_parent_folder = f"{output_root_folder}{this_date}/"
-        self.output_folder = f"{self.output_parent_folder}/{this_time}/"
+        self.output_parent_folder = f"{self.output_root_folder}{this_date}-{this_time}/"
+
+    def set_output_folder(self,
+                          num_households=no_households,
+                          inconvenience_cost_weight=care_f_weight,
+                          num_dependent_tasks=no_tasks_dependent):
+
+        self.output_folder \
+            = f"{self.output_parent_folder}/h{num_households}-w{inconvenience_cost_weight}-t{num_dependent_tasks}/"
         path = Path(self.output_folder)
         if not path.exists():
             path.mkdir(mode=0o777, parents=True, exist_ok=False)
-        return self.output_parent_folder, self.output_folder
+        return self.output_folder
 
-    def set_data(self, algorithms, aggregator_tracker, community_tracker, aggregator_final, community_final=None,
-                 print_demands=False, print_prices=False, print_summary=True):
+    def save_data_to_files(self, algorithms, aggregator_tracker, community_tracker, aggregator_final,
+                           community_final=None,
+                           print_demands=False, print_prices=False, print_summary=True):
         self.aggregator_tracker = aggregator_tracker
         self.aggregator_final = aggregator_final
         self.community_tracker = community_tracker
@@ -48,13 +53,19 @@ class Show:
         plot_final_layout = []
         x_ticks = [0] + [i for i in range(1, 48) if (i + 1) % 12 == 0 ]
         # x_tick_labels = [0] + [f"{int((i + 1)/2)}h" for i in range(1, 48) if (i + 1) % 12 == 0 ]
+        df_overview = df()
         for alg in algorithms.values():
+            scheduling_method = alg[k2_before_fw]
             pricing_method = alg[k2_after_fw]
 
             # ------------------------------ FW results ------------------------------
             df_demands = df.from_dict(agg_demands[pricing_method]).div(1000)
             df_prices = df.from_dict(agg_prices[pricing_method])
             df_others = df.from_dict(agg_others[pricing_method])
+            df_times = df.from_dict(agg_times[pricing_method])
+
+            # df_overview.loc[pricing_method] = df_others.loc[df_others.index[-1]]
+            # df_overview.loc[pricing_method][k0_time] = df_times.mean
 
             # draw graphs
             p_demands = df_demands.iloc[:, [0, df_demands.columns[-1]]] \
@@ -129,5 +140,3 @@ class Show:
 
         print("Data are written and graphs are painted. ")
 
-    def draw_graphs(self):
-        return 0

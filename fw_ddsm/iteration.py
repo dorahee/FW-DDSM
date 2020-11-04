@@ -14,6 +14,7 @@ class Iteration:
         self.community = Community()
         self.aggregator = Aggregator()
         self.data_folder = "test_data/"
+        self.start_time_probability = [1] * no_periods
 
     def new(self, algorithm, num_households,
             file_task_power=file_demand_list, max_demand_multiplier=maxium_demand_multiplier,
@@ -45,22 +46,20 @@ class Iteration:
                            fixed_task_min=fixed_task_min, fixed_task_max=fixed_task_max,
                            inconvenience_cost_weight=inconvenience_cost_weight, max_care_factor=max_care_factor)
 
-        self.aggregator.new(normalised_pricing_table_csv=file_normalised_pricing_table,
-                            aggregate_preferred_demand_profile=self.community.preferred_demand_profile,
-                            pricing_method=self.pricing_method, write_to_file_path=self.data_folder)
+        self.aggregator.new_aggregator(normalised_pricing_table_csv=file_normalised_pricing_table,
+                                       aggregate_preferred_demand_profile=self.community.preferred_demand_profile,
+                                       pricing_method=self.pricing_method, write_to_file_path=self.data_folder)
 
     def read_data(self, algorithm, read_from_folder="data/"):
         self.scheduling_method = algorithm[k2_before_fw]
         self.pricing_method = algorithm[k2_after_fw]
         self.community.read(read_from_folder=read_from_folder, scheduling_method=self.scheduling_method)
-        self.aggregator.read(read_from_folder=read_from_folder, pricing_method=self.pricing_method,
-                             aggregate_preferred_demand_profile=self.community.preferred_demand_profile)
+        self.aggregator.read_aggregator(read_from_folder=read_from_folder, pricing_method=self.pricing_method,
+                                        aggregate_preferred_demand_profile=self.community.preferred_demand_profile)
 
     def begin_iteration(self):
         scheduling_method = self.scheduling_method
         pricing_method = self.pricing_method
-
-        # aggregator, k = 0
         aggregator_demand_profile = self.aggregator.tracker.data[pricing_method][k0_demand][0]
         prices, consumption_cost, inconvenience, step, new_aggregate_demand_profile, time_pricing \
             = self.aggregator.pricing(num_iteration=0,
@@ -79,22 +78,14 @@ class Iteration:
             num_iteration += 1
 
         print(f"Converged in {num_iteration - 1}")
-        self.aggregator.compute_start_time_probabilities(pricing_method)
+        self.start_time_probability = self.aggregator.compute_start_time_probabilities(pricing_method)
 
     def finalise_schedules(self, num_samples=1):
-
-        for i in range(num_samples):
-
-            start_time_probability_distribution = self.aggregator.start_time_probability
+        start_time_probability_distribution = self.start_time_probability
+        for i in range(1, num_samples + 1):
             final_aggregate_demand_profile, final_total_inconvenience \
                 = self.community.decide_final_schedules(num_sample=i,
-                                                        probability_distribution=start_time_probability_distribution)
-
-            self.aggregator.pricing(num_iteration=i, aggregate_demand_profile=final_aggregate_demand_profile,
+                                                        start_probability_distribution=start_time_probability_distribution)
+            prices, consumption_cost, inconvenience, step, new_aggregate_demand_profile, time_pricing \
+                = self.aggregator.pricing(num_iteration=i, aggregate_demand_profile=final_aggregate_demand_profile,
                                     finalising=True)
-
-            # print(f"Preferred cost is {self.aggregator.aggregator[pricing_method][k0_cost][0]}, "
-            #       f"PAR is {self.aggregator.aggregator[pricing_method][k0_par][0]}")
-            # print(f"Final cost is {final_consumption_cost}, "
-            #       f"PAR is {self.aggregator.aggregator[pricing_method][k0_final][k0_par]} and "
-            #       f"inconvenience is {final_total_inconvenience}.")

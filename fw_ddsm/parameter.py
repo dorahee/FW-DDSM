@@ -51,7 +51,7 @@ k0_tasks_no = "no_tasks"
 k0_cost_type = "cost_function_type"
 k0_iteration_no = "no_iterations"
 
-# househole dictionary keys
+# household dictionary keys
 h_key = "key"
 h_psts = "preferred_starts"
 h_ests = "earliest_starts"
@@ -66,12 +66,12 @@ h_succ_delay = "succeeding_delays"
 h_demand_limit = "maximum_demand"
 h_incon_weight = "inconvenience_cost_weight"
 
-
 # demand related parameters
 k0_household_key = "key"
 k0_starts = "start_times"
 k0_demand = "demands"
 k0_demand_max = "max_demand"
+k0_demand_reduction = "demand_reduction"
 k0_demand_total = "total_demand"
 k0_par = "PAR"
 k0_final = "final"
@@ -81,6 +81,7 @@ k0_step = "step_size"
 
 # objective related parameters
 k0_cost = "cost"
+k0_cost_reduction = "cost_reduction"
 k0_penalty = "inconvenient"
 k0_obj = "objective"
 
