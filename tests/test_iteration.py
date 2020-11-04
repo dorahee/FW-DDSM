@@ -10,18 +10,23 @@ algorithms[k1_ogsa] = dict()
 algorithms[k1_ogsa][k2_before_fw] = k1_ogsa
 algorithms[k1_ogsa][k2_after_fw] = f"{k1_ogsa}_fw"
 
-num_households_range = [100]
+num_households_range = [200]
 penalty_weight = 1
-num_tasks_dependent = 2
-num_full_flex_tasks = 3
+num_tasks_dependent = 4
+num_full_flex_tasks = 2
 num_semi_flex_tasks = 3
-num_fixed_tasks = 0
+num_fixed_tasks = 5
 
 def main():
     show = Show(output_root_folder="results")
     for num_households in num_households_range:
         print("----------------------------------------")
-        print(f"{num_households} households, {num_tasks_dependent} dependent tasks, {penalty_weight} penalty weight. ")
+        print(f"{num_households} households, "
+              f"{num_tasks_dependent} dependent tasks, "
+              f"{num_full_flex_tasks} fully flexible tasks, "
+              f"{num_semi_flex_tasks} semi-flexible tasks, "
+              f"{num_fixed_tasks} fixed tasks, "
+              f"{penalty_weight} penalty weight. ")
         print("----------------------------------------")
         new_iteration = Iteration()
         output_folder = show.set_output_folder(num_households=num_households,

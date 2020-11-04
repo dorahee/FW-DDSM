@@ -140,7 +140,7 @@ class Household:
             search = f"int_search(actual_starts, {variable_selection}, {value_choice}, complete)" \
                 if search is None else search
             succ_delays = [x[0] for x in list(household[h_succ_delay].values())]
-            actual_starts, household_demand_profile, time_scheduling \
+            actual_starts, time_scheduling \
                 = self.__minizinc_model(model_file=model, solver=solver, search=search,
                                         objective_values=objective_values, powers=powers, max_demand=max_demand,
                                         durations=durations, earliest_starts=earliest_starts,
@@ -150,12 +150,18 @@ class Household:
                                         prices=prices, inconvenience_cost_weight=inconvenience_cost_weight,
                                         num_intervals=num_intervals)
         else:
-            actual_starts, household_demand_profile, time_scheduling \
+            actual_starts, time_scheduling \
                 = self.__ogsa(objective_values=objective_values, big_value=big_value,
                               powers=powers, durations=durations, preferred_starts=preferred_starts,
                               latest_ends=latest_ends, max_demand=max_demand,
                               successors=successors, precedents=precedents, succ_delays=succ_delays,
                               randomness=False, num_intervals=num_intervals)
+
+
+        household_demand_profile = [0] * num_intervals
+        for p, ast, dur in zip(powers, actual_starts, durations):
+            for t in range(ast, ast + dur):
+                household_demand_profile[t % num_intervals] += p
 
         # return results
         weighted_penalty_household = sum([abs(pst - ast) * cf for pst, ast, cf
@@ -318,7 +324,7 @@ class Household:
         get_new_tasks(num_full_flex_tasks, "full")
 
         # set the household demand limit
-        maximum_demand = max(powers) * max_demand_multiplier
+        maximum_demand = sum(powers) * max_demand_multiplier
 
         # precedence among tasks
         precedors = dict()
@@ -443,24 +449,22 @@ class Household:
             ins["run_costs"] = objective_values
 
         # solve problem model
-        result = ins.solve(timeout=timedelta(seconds=2))
-        # result = ins.solve()
+        # result = ins.solve(timeout=timedelta(seconds=10))
+        result = ins.solve()
 
         # process problem solution
         # obj = result.objective
         solution = result.solution.actual_starts
-        if "cp" in solver_type:
-            actual_starts = [int(a) - 1 for a in solution]
-        else:  # "mip" in solver_type:
-            actual_starts = [sum([i * int(v) for i, v in enumerate(row)]) for row in solution]
+        actual_starts = [int(a) - 1 for a in solution]
+        # if "cp" in solver_type:
+        #     actual_starts = [int(a) - 1 for a in solution]
+        # else:  # "mip" in solver_type:
+        #     actual_starts = [sum([i * int(v) for i, v in enumerate(row)]) for row in solution]
         time = result.statistics["time"].total_seconds()
 
-        optimal_demand_profile = [0] * num_intervals
-        for power, duration, a_start, i in zip(powers, durations, actual_starts, range(num_tasks)):
-            for t in range(a_start, a_start + duration):
-                optimal_demand_profile[t % num_intervals] += power
 
-        return actual_starts, optimal_demand_profile, time
+
+        return actual_starts, time
 
 
     def __ogsa(self, objective_values, big_value, powers, durations, preferred_starts, latest_ends, max_demand,
@@ -569,11 +573,10 @@ class Household:
             actual_starts.append(a_start)
 
             # obj = 0
-            for d in range(a_start, a_start + duration):
-                household_profile[d % num_intervals] += power
+
             # obj += objective_values[task_id][a_start]
 
         time_scheduling_ogsa = timeit.default_timer() - start_time
         # obj = round(obj, 2)
 
-        return actual_starts, household_profile, time_scheduling_ogsa
+        return actual_starts, time_scheduling_ogsa
