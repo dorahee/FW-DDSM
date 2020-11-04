@@ -10,11 +10,11 @@ algorithms[k1_ogsa] = dict()
 algorithms[k1_ogsa][k2_before_fw] = k1_ogsa
 algorithms[k1_ogsa][k2_after_fw] = f"{k1_ogsa}_fw"
 
-num_households_range = [200, 50, 80, 100]
+num_households_range = [100]
 penalty_weight = 1
 num_tasks_dependent = 2
-num_full_flex_tasks = 5
-num_semi_flex_tasks = 0
+num_full_flex_tasks = 3
+num_semi_flex_tasks = 3
 num_fixed_tasks = 0
 
 def main():
@@ -26,6 +26,8 @@ def main():
         new_iteration = Iteration()
         output_folder = show.set_output_folder(num_households=num_households,
                                                num_dependent_tasks=num_tasks_dependent,
+                                               num_full_flex_task_min=num_full_flex_tasks,
+                                               num_semi_flex_task_min=num_semi_flex_tasks,
                                                inconvenience_cost_weight=penalty_weight)
         new_data = True
         for alg in algorithms.values():

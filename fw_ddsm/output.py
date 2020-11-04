@@ -28,10 +28,13 @@ class Show:
     def set_output_folder(self,
                           num_households=no_households,
                           inconvenience_cost_weight=care_f_weight,
-                          num_dependent_tasks=no_tasks_dependent):
+                          num_dependent_tasks=no_tasks_dependent,
+                          num_full_flex_task_min=no_full_flex_tasks_min,
+                          num_semi_flex_task_min=no_semi_flex_tasks_min):
 
         self.output_folder \
-            = f"{self.output_parent_folder}/h{num_households}-w{inconvenience_cost_weight}-t{num_dependent_tasks}/"
+            = f"{self.output_parent_folder}/h{num_households}-w{inconvenience_cost_weight}-dt{num_dependent_tasks}" \
+            f"-fft{num_full_flex_task_min}-sft{num_semi_flex_task_min}/"
         path = Path(self.output_folder)
         if not path.exists():
             path.mkdir(mode=0o777, parents=True, exist_ok=False)
@@ -62,10 +65,6 @@ class Show:
             df_demands = df.from_dict(agg_demands[pricing_method]).div(1000)
             df_prices = df.from_dict(agg_prices[pricing_method])
             df_others = df.from_dict(agg_others[pricing_method])
-            df_times = df.from_dict(agg_times[pricing_method])
-
-            # df_overview.loc[pricing_method] = df_others.loc[df_others.index[-1]]
-            # df_overview.loc[pricing_method][k0_time] = df_times.mean
 
             # draw graphs
             p_demands = df_demands.iloc[:, [0, df_demands.columns[-1]]] \

@@ -237,7 +237,7 @@ class Household:
             latest_finish_time = preferred_start_time + duration - 1
         else:
             earliest_start_time = r.randint(0, preferred_start_time)
-            latest_finish_time = num_intervals - 1 + duration
+            latest_finish_time = r.randint(preferred_start_time  + duration - 1, num_intervals - 1 + duration)
 
         # task care factor
         care_factor = int(r.choice([i for i in range(1, max_care_factor + 1)]))
