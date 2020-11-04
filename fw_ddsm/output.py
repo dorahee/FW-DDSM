@@ -1,11 +1,11 @@
-import pandas_bokeh
 from pathlib import Path
 from pandas import DataFrame as df
 from datetime import date, datetime
-from fw_ddsm.parameter import *
-from fw_ddsm.tracker import *
 from pandas_bokeh import *
-
+from bokeh.io import output_file, show
+from bokeh.layouts import layout, column
+from bokeh.models import ColumnDataSource, DataTable, TableColumn, Panel, Tabs, NumberFormatter
+from fw_ddsm.tracker import *
 
 class Show:
 
@@ -44,37 +44,69 @@ class Show:
         agg_demands_final, agg_prices_final, agg_others_final, agg_times_final = aggregator_final.extract_data()
         community_demands, community_prices, community_others, community_times = community_tracker.extract_data()
 
-        # df_aggregator = dict()
-        # df_final = dict()
-        plots_demands = []
+        plot_layout = []
+        plot_final_layout = []
+        x_ticks = [0] + [i for i in range(1, 48) if (i + 1) % 12 == 0 ]
+        # x_tick_labels = [0] + [f"{int((i + 1)/2)}h" for i in range(1, 48) if (i + 1) % 12 == 0 ]
         for alg in algorithms.values():
             pricing_method = alg[k2_after_fw]
 
-            df_demands = df.from_dict(agg_demands[pricing_method])
+            # ------------------------------ FW results ------------------------------
+            df_demands = df.from_dict(agg_demands[pricing_method]).div(1000)
             df_prices = df.from_dict(agg_prices[pricing_method])
             df_others = df.from_dict(agg_others[pricing_method])
 
+            # draw graphs
             p_demands = df_demands.iloc[:, [0, df_demands.columns[-1]]] \
-                .plot_bokeh(kind="line", xlabel="Time period", ylabel="Demand (kW)", title=pricing_method,
+                .plot_bokeh(kind="line", xlabel="Time period", ylabel="Demand (kWh)",
+                            title=algorithm_full_names[pricing_method],
                             plot_data_points=True,
-                            # show_figure=False
+                            xticks=x_ticks,
+                            show_figure=False
                             )
-            plots_demands.append(p_demands)
+            p_prices = df_prices.iloc[:, [0, df_prices.columns[-1]]] \
+                .plot_bokeh(kind="line", xlabel="Time period", ylabel="Price (dollar)",
+                            title=algorithm_full_names[pricing_method],
+                            plot_data_points=True,
+                            xticks=x_ticks,
+                            show_figure=False
+                            )
 
-            df_demands_final = df.from_dict(agg_demands_final[pricing_method])
+            # data table
+            source = ColumnDataSource(df_others)
+            columns = [TableColumn(field=x, title=x.replace("_", " "), formatter=NumberFormatter(format="0.00"))
+                       for x in df_others.columns]
+            data_table = DataTable(source=source, columns=columns)
+            plot_layout.append([p_demands, p_prices, data_table])
+
+            # ------------------------------ final schedules ------------------------------
+            df_demands_final = df.from_dict(agg_demands_final[pricing_method]).div(1000)
             df_prices_final = df.from_dict(agg_prices_final[pricing_method])
             df_others_final = df.from_dict(agg_others_final[pricing_method])
 
-            # df_aggregator[pricing_method] = dict()
-            # df_aggregator[pricing_method][k0_demand] = df_demands
-            # df_aggregator[pricing_method][k0_prices] = df_prices
-            # df_aggregator[pricing_method][k0_others] = df_others
-            #
-            # df_final[pricing_method] = dict()
-            # df_final[pricing_method][k0_demand] = df_demands_final
-            # df_final[pricing_method][k0_prices] = df_prices_final
-            # df_final[pricing_method][k0_others] = df_others_final
+            p_demands_final = df_demands_final \
+                .plot_bokeh(kind="line", xlabel="Time period", ylabel="Demand (kWh)",
+                            title=algorithm_full_names[pricing_method],
+                            plot_data_points=True,
+                            xticks=x_ticks,
+                            show_figure=False
+                            )
+            p_prices_final = df_prices_final \
+                .plot_bokeh(kind="line", xlabel="Time period", ylabel="Price (dollar)",
+                            title=algorithm_full_names[pricing_method],
+                            plot_data_points=True,
+                            xticks=x_ticks,
+                            show_figure=False
+                            )
 
+            # data table
+            source_final = ColumnDataSource(df_others_final)
+            columns_final = [TableColumn(field=x, title=x.replace("_", " "), formatter=NumberFormatter(format="0.00"))
+                       for x in df_others_final.columns]
+            data_table_final = DataTable(source=source_final, columns=columns_final)
+            plot_final_layout.append([p_demands_final, p_prices_final, data_table_final])
+
+            # ------------------------------ write all to CSV ------------------------------
             if print_demands:
                 df_demands.to_csv(r"{}{}_aggregator_demands.csv".format(self.output_folder, pricing_method))
                 df_demands_final.to_csv(r"{}{}_aggregator_demands_final.csv".format(self.output_folder, pricing_method))
@@ -89,9 +121,13 @@ class Show:
         df_times = df.from_dict(agg_times)
         df_times.to_csv(r"{}run_times.csv".format(self.output_folder))
 
-        # files to print
-        print()
-        # community_times
+        output_file(f"{self.output_folder}plots.html")
+        tab1 = Panel(child=layout(plot_layout), title="FW-DDSM results")
+        tab2 = Panel(child=layout(plot_final_layout), title="Actual schedules")
+        # show(Tabs(tabs=[tab1, tab2]))
+        show(Tabs(tabs=[tab2, tab1]))
+
+        print("Data are written and graphs are painted. ")
 
     def draw_graphs(self):
         return 0

@@ -18,7 +18,7 @@ def main():
     new_data = True
     for alg in algorithms.values():
         if new_data:
-            new_iteration.new(algorithm=alg, num_households=5,
+            new_iteration.new(algorithm=alg, num_households=20,
                               max_demand_multiplier=maxium_demand_multiplier,
                               num_tasks_dependent=3,
                               full_flex_task_min=5, full_flex_task_max=0,

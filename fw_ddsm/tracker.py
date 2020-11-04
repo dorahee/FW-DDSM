@@ -35,26 +35,25 @@ class Tracker:
         if tracker is None:
             tracker = self.data
         if final is not None:
-            # demands = self.__convert_demand_profile(demands)
             tracker[method][k0_final][k0_demand] = demands
-            tracker[method][k0_final][k0_demand_max] = max(demands)
-            tracker[method][k0_final][k0_par] = max(demands) / average(demands)
+            tracker[method][k0_final][k0_demand_max] = round(max(demands), 2)
+            tracker[method][k0_final][k0_par] = round(max(demands) / average(demands), 2)
             tracker[method][k0_final][k0_prices] = prices
-            tracker[method][k0_final][k0_cost] = cost
+            tracker[method][k0_final][k0_cost] = round(cost, 2)
         else:
             if step is not None:
-                tracker[method][k0_step][num_record] = step
+                tracker[method][k0_step][num_record] = round(step, 4)
             if prices is not None:
                 tracker[method][k0_prices][num_record] = prices
             if cost is not None:
-                tracker[method][k0_cost][num_record] = cost
+                tracker[method][k0_cost][num_record] = round(cost, 2)
             if penalty is not None:
-                tracker[method][k0_penalty][num_record] = penalty
+                tracker[method][k0_penalty][num_record] = round(penalty, 2)
             if demands is not None:
                 tracker[method][k0_demand][num_record] = demands
-                tracker[method][k0_demand_max][num_record] = max(demands)
-                tracker[method][k0_demand_total][num_record] = sum(demands)
-                tracker[method][k0_par][num_record] = max(demands) / average(demands)
+                tracker[method][k0_demand_max][num_record] = round(max(demands), 2)
+                tracker[method][k0_demand_total][num_record] = round(sum(demands), 2)
+                tracker[method][k0_par][num_record] = round(max(demands) / average(demands), 2)
             if run_time is not None:
                 tracker[method][k0_time][num_record] = round(run_time, 4)
         return tracker
@@ -70,7 +69,8 @@ class Tracker:
             demands[method] = data_method[k0_demand]
             prices[method] = data_method[k0_prices]
             times[method] = data_method[k0_time]
-            others[method] = {k:data_method[k] for k in [k0_demand_max, k0_par, k0_cost]}
+            others[method] = {k:data_method[k]
+                              for k in [k0_demand_total, k0_demand_max, k0_par, k0_cost, k0_penalty, k0_step]}
 
         return demands, prices, others, times
 

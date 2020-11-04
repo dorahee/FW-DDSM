@@ -114,5 +114,12 @@ algorithms[k1_ogsa] = dict()
 algorithms[k1_ogsa][k2_before_fw] = k1_ogsa
 algorithms[k1_ogsa][k2_after_fw] = f"{k1_ogsa}_fw"
 
+algorithm_full_names = dict()
+algorithm_full_names[algorithms[k1_minizinc][k2_before_fw]] = "MiniZinc model with data preprocessing"
+algorithm_full_names[algorithms[k1_minizinc][k2_after_fw]] = "FW-DDSM with MiniZinc model and data preprocessing"
+algorithm_full_names[algorithms[k1_ogsa][k2_before_fw]] = "OGSA"
+algorithm_full_names[algorithms[k1_ogsa][k2_after_fw]] = "FW-DDSM with OGSA"
+
+
 
 
