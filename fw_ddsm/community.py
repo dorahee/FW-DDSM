@@ -23,11 +23,10 @@ class Community:
             else read_from_folder + "/"
 
         self.households = dict()
-        self.preferred_demand_profile = None
 
-        self.households = self.__existing_households(file_path=read_from_folder,
+        self.households, self.preferred_demand_profile = self.__existing_households(file_path=read_from_folder,
+                                                     scheduling_method=scheduling_method,
                                                      inconvenience_cost_weight=inconvenience_cost_weight)
-        self.preferred_demand_profile = self.households.pop(k0_demand)
         self.num_households = len(self.households) - 1
 
         self.tracker.new(method=scheduling_method)
@@ -91,7 +90,7 @@ class Community:
         f.close()
 
     def schedule(self, num_iteration, prices, scheduling_method, model=None, solver=None, search=None, households=None):
-        print(f"{num_iteration}. Scheduling {self.num_households} households, {scheduling_method}...")
+        # print(f"{num_iteration}. Scheduling {self.num_households} households, {scheduling_method}...")
 
         prices = self.__convert_price(prices)
         # self.tracker.update(num_record=num_iteration - 1, method=scheduling_method, prices=prices)
@@ -103,21 +102,22 @@ class Community:
                                                       model=model, solver=solver, search=search)
 
         aggregate_demand_profile, weighted_total_inconvenience, time_scheduling_iteration \
-            = self.__retrieve_scheduling_results(results=results, num_iteration=num_iteration)
+            = self.__retrieve_scheduling_results(results=results, scheduling_method=scheduling_method,
+                                                 num_iteration=num_iteration)
 
         self.tracker.update(num_record=num_iteration, method=scheduling_method,
                             penalty=weighted_total_inconvenience, run_time=time_scheduling_iteration)
 
         return aggregate_demand_profile, weighted_total_inconvenience, time_scheduling_iteration
 
-    def decide_final_schedules(self, start_probability_distribution, num_sample=0):
+    def decide_final_schedules(self, scheduling_method, start_probability_distribution, num_sample=0):
         final_aggregate_demand_profile = [0] * self.num_intervals
         final_total_inconvenience = 0
         total_demand = 0
         for household in self.households.values():
             chosen_demand_profile, chosen_penalty \
-                = Household.finalise_household(self=Household(), household_tracker_data=household[k0_tracker],
-                                               scheduling_method=self.scheduling_method,
+                = Household.finalise_household(self=Household(), household_tracker_data=household[k0_tracker].data,
+                                               scheduling_method=scheduling_method,
                                                probability_distribution=start_probability_distribution)
             final_aggregate_demand_profile = [x + y for x, y in
                                               zip(chosen_demand_profile, final_aggregate_demand_profile)]
@@ -178,23 +178,28 @@ class Community:
             aggregate_demand_profile = [x + y for x, y in zip(household_profile, aggregate_demand_profile)]
 
             households[h] = tasks.copy()
-            households[h][k0_tracker] = household_tracker.data.copy()
+            households[h][k0_tracker] = household_tracker
 
         return households, aggregate_demand_profile
 
-    def __existing_households(self, file_path, inconvenience_cost_weight=None):
+    def __existing_households(self, file_path, scheduling_method, inconvenience_cost_weight=None):
         # ---------------------------------------------------------------------- #
         # ---------------------------------------------------------------------- #
-
         with open(f"{file_path}{file_community_pkl}", 'rb') as f:
             households = pickle.load(f)
         f.close()
+        preferred_demand_profile = households.pop(k0_demand)
 
-        if inconvenience_cost_weight is not None:
-            for household in households.values():
+        for household in households.values():
+            household_tracker = Tracker()
+            household_tracker.new(method=scheduling_method)
+            household_tracker.update(num_record=0, method=scheduling_method, demands=household[k0_demand], penalty=0)
+            household[k0_tracker] = household_tracker
+
+            if inconvenience_cost_weight is not None:
                 household["care_factor_weight"] = inconvenience_cost_weight
 
-        return households
+        return households, preferred_demand_profile
 
     def __schedule_multiple_processing(self, households, prices, scheduling_method, model, solver, search):
         t_begin = time()
@@ -209,10 +214,10 @@ class Community:
         #                               for household in households.values()]).get()
         pool.close()
         pool.join()
-        print(f"   Finish scheduling in {round(time() - t_begin)} seconds.")
+        # print(f"   Finish scheduling in {round(time() - t_begin)} seconds.")
         return results
 
-    def __retrieve_scheduling_results(self, results, num_iteration):
+    def __retrieve_scheduling_results(self, scheduling_method, results, num_iteration):
         aggregate_demand_profile = [0] * self.num_intervals
         total_weighted_inconvenience = 0
         time_scheduling_iteration = 0
@@ -229,10 +234,10 @@ class Community:
             time_scheduling_iteration += time_household
 
             # update each household's tracker
-            self.households[key][k0_tracker] \
+            self.households[key][k0_tracker].data \
                 = Tracker.update(self=Tracker(), num_record=num_iteration,
-                                 tracker_data=self.households[key][k0_tracker],
-                                 method=self.scheduling_method, demands=demands_household,
+                                 tracker_data=self.households[key][k0_tracker].data,
+                                 method=scheduling_method, demands=demands_household,
                                  penalty=weighted_penalty_household).copy()
 
         return aggregate_demand_profile, total_weighted_inconvenience, time_scheduling_iteration

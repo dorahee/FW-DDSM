@@ -2,8 +2,7 @@ from pathlib import Path
 from pandas import DataFrame as df
 from datetime import date, datetime
 from pandas_bokeh import *
-from bokeh.io import output_file, show
-from bokeh.layouts import layout, column
+from bokeh.layouts import layout
 from bokeh.models import ColumnDataSource, DataTable, TableColumn, Panel, Tabs, NumberFormatter
 from fw_ddsm.tracker import *
 
@@ -40,8 +39,9 @@ class Show:
             path.mkdir(mode=0o777, parents=True, exist_ok=False)
         return self.output_folder
 
-    def save_data_to_files(self, algorithms, aggregator_tracker, community_tracker, aggregator_final,
-                           community_final=None,
+    def save_data_to_files(self, algorithms, key_parameters,
+                           aggregator_tracker, community_tracker,
+                           aggregator_final, community_final=None,
                            print_demands=False, print_prices=False, print_summary=True):
         self.aggregator_tracker = aggregator_tracker
         self.aggregator_final = aggregator_final
@@ -56,15 +56,23 @@ class Show:
         plot_final_layout = []
         x_ticks = [0] + [i for i in range(1, 48) if (i + 1) % 12 == 0 ]
         # x_tick_labels = [0] + [f"{int((i + 1)/2)}h" for i in range(1, 48) if (i + 1) % 12 == 0 ]
-        df_overview = df()
+        overview_dict = dict()
         for alg in algorithms.values():
             scheduling_method = alg[k2_before_fw]
             pricing_method = alg[k2_after_fw]
+            overview_dict[pricing_method] = dict()
+            overview_dict[pricing_method].update(key_parameters)
 
             # ------------------------------ FW results ------------------------------
             df_demands = df.from_dict(agg_demands[pricing_method]).div(1000)
             df_prices = df.from_dict(agg_prices[pricing_method])
             df_others = df.from_dict(agg_others[pricing_method])
+            overview_dict[pricing_method][k0_par] = df_others[k0_par].values[-1]
+            overview_dict[pricing_method][k0_demand_max] = df_others[k0_demand_max].values[-1]
+            overview_dict[pricing_method][k0_demand_reduction] = df_others[k0_demand_reduction].values[-1]
+            overview_dict[pricing_method][k0_cost_reduction] = df_others[k0_cost_reduction].values[-1]
+            overview_dict[pricing_method][k1_time_pricing] = average(list(agg_times[pricing_method].values()))
+            overview_dict[pricing_method][k1_time_scheduling] = average(list(community_times[scheduling_method].values()))
 
             # draw graphs
             p_demands = df_demands.iloc[:, [0, df_demands.columns[-1]]] \
@@ -126,6 +134,7 @@ class Show:
             if print_summary:
                 df_others.to_csv(r"{}{}_aggregator_others.csv".format(self.output_folder, pricing_method))
                 df_others_final.to_csv(r"{}{}_aggregator_others_final.csv".format(self.output_folder, pricing_method))
+                df.from_dict(overview_dict).to_csv(r"{}aggregator_overview.csv".format(self.output_folder))
 
         agg_times.update(community_times)
         df_times = df.from_dict(agg_times)
@@ -135,7 +144,8 @@ class Show:
         tab1 = Panel(child=layout(plot_layout), title="FW-DDSM results")
         tab2 = Panel(child=layout(plot_final_layout), title="Actual schedules")
         # show(Tabs(tabs=[tab1, tab2]))
-        show(Tabs(tabs=[tab2, tab1]))
+        save(Tabs(tabs=[tab2, tab1]))
 
         print("Data are written and graphs are painted. ")
+        return df.from_dict(overview_dict)
 

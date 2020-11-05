@@ -1,0 +1,9 @@
+,minizinc_fw,ogsa_fw
+PAR,1.81,1.8
+max_demand,7718.91,7669.49
+demand_reduction,0.47,0.47
+cost_reduction,0.12,0.12
+minizinc_fw_run_time,0.0029393939393939396,
+minizinc_run_time,12.851562499999995,
+ogsa_fw_run_time,,0.0022413043478260873
+ogsa_run_time,,0.024335555555555555

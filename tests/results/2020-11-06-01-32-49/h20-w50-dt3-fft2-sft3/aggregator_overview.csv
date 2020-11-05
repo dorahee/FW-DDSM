@@ -1,0 +1,10 @@
+,minizinc_fw,ogsa_fw
+no_households,20.0,20.0
+penalty_weight,50.0,50.0
+no_dependent_tasks,3.0,3.0
+PAR,2.0,2.0
+max_demand,18316.48,18307.52
+demand_reduction,0.49,0.49
+cost_reduction,0.09,0.09
+pricing_time,0.0016777777777777778,0.0009800000000000002
+rescheduling_time,11.534444444444443,0.013799999999999996

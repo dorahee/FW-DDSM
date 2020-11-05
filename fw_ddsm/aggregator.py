@@ -200,7 +200,10 @@ class Aggregator:
                 # print("cost", cost)
                 num_itrs += 1
 
-        print(f"   Best step size {round(step_size_final, 3)}, {num_itrs} iterations, cost {cost_fw}")
+        print(f"{num_iteration}. "
+              f"Best step size {round(step_size_final, 3)}, "
+              f"{num_itrs} iterations, cost {cost_fw}, "
+              f"using {pricing_method}")
         time_fw = time() - time_begin
         return demand_profile_fw, step_size_final, price_fw, cost_fw, inconvenience_fw, time_fw
 

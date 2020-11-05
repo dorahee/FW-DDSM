@@ -80,11 +80,14 @@ class Iteration:
         print(f"Converged in {num_iteration - 1}")
         self.start_time_probability = self.aggregator.compute_start_time_probabilities(pricing_method)
 
-    def finalise_schedules(self, num_samples=1):
+    def finalise_schedules(self, scheduling_method=None, num_samples=1):
+        if scheduling_method is None:
+            scheduling_method = self.scheduling_method
         start_time_probability_distribution = self.start_time_probability
         for i in range(1, num_samples + 1):
             final_aggregate_demand_profile, final_total_inconvenience \
                 = self.community.decide_final_schedules(num_sample=i,
+                                                        scheduling_method=scheduling_method,
                                                         start_probability_distribution=start_time_probability_distribution)
             prices, consumption_cost, inconvenience, step, new_aggregate_demand_profile, time_pricing \
                 = self.aggregator.pricing(num_iteration=i, aggregate_demand_profile=final_aggregate_demand_profile,

@@ -50,6 +50,7 @@ k0_households_no = "no_households"
 k0_tasks_no = "no_tasks"
 k0_cost_type = "cost_function_type"
 k0_iteration_no = "no_iterations"
+k0_num_dependent_tasks = "no_dependent_tasks"
 
 # household dictionary keys
 h_key = "key"

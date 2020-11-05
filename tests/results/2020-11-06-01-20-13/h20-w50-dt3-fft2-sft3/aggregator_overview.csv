@@ -1,0 +1,12 @@
+,minizinc_fw,ogsa_fw
+no_households,20.0,20.0
+penalty_weight,50.0,50.0
+no_dependent_tasks,3.0,3.0
+PAR,1.78,1.74
+max_demand,13301.15,13035.98
+demand_reduction,0.48,0.49
+cost_reduction,0.09,0.09
+minizinc_fw_run_time,0.0023535714285714284,
+minizinc_run_time,13.286428571428573,
+ogsa_fw_run_time,,0.002535714285714286
+ogsa_run_time,,0.025707692307692306
