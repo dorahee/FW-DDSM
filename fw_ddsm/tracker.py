@@ -29,35 +29,35 @@ class Tracker:
 
     def read(self, method_tracker, method):
         self.data[method] = dict()
-        self.data[method] = method_tracker
+        self.data[method] = method_tracker.copy()
 
-    def update(self, num_record, method, tracker=None, demands=None, prices=None, penalty=None,
+    def update(self, num_record, method, tracker_data=None, demands=None, prices=None, penalty=None,
                run_time=None, cost=None, step=None, init_demand_max=None, init_cost=None):
-        if tracker is None:
-            tracker = self.data
+        if tracker_data is None:
+            tracker_data = self.data
         if step is not None:
-            tracker[method][k0_step][num_record] = round(step, 4)
+            tracker_data[method][k0_step][num_record] = round(step, 4)
         if prices is not None:
-            tracker[method][k0_prices][num_record] = prices
+            tracker_data[method][k0_prices][num_record] = prices
         if cost is not None:
-            tracker[method][k0_cost][num_record] = round(cost, 2)
+            tracker_data[method][k0_cost][num_record] = round(cost, 2)
             if init_cost is not None:
-                tracker[method][k0_cost_reduction][num_record] = round((init_cost - cost) / init_cost, 2)
+                tracker_data[method][k0_cost_reduction][num_record] = round((init_cost - cost) / init_cost, 2)
         if penalty is not None:
-            tracker[method][k0_penalty][num_record] = round(penalty, 2)
+            tracker_data[method][k0_penalty][num_record] = round(penalty, 2)
         if demands is not None:
             demand_max = round(max(demands), 2)
-            tracker[method][k0_demand][num_record] = demands
-            tracker[method][k0_demand_max][num_record] = demand_max
-            tracker[method][k0_demand_total][num_record] = round(sum(demands), 2)
-            tracker[method][k0_par][num_record] = round(demand_max / average(demands), 2)
+            tracker_data[method][k0_demand][num_record] = demands
+            tracker_data[method][k0_demand_max][num_record] = demand_max
+            tracker_data[method][k0_demand_total][num_record] = round(sum(demands), 2)
+            tracker_data[method][k0_par][num_record] = round(demand_max / average(demands), 2)
             if init_demand_max is not None:
-                tracker[method][k0_demand_reduction][num_record] \
+                tracker_data[method][k0_demand_reduction][num_record] \
                     = round((init_demand_max - demand_max) / init_demand_max, 2)
         if run_time is not None:
-            tracker[method][k0_time][num_record] = round(run_time, 4)
+            tracker_data[method][k0_time][num_record] = round(run_time, 4)
 
-        return tracker
+        return tracker_data
 
     def extract_data(self):
         demands = dict()

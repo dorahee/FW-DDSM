@@ -70,7 +70,7 @@ class Aggregator:
 
         aggregate_demand_profile = self.__convert_demand_profile(aggregate_demand_profile)
         step = 1
-        inconvenience = 0
+        inconvenience = aggregate_inconvenience
         new_aggregate_demand_profile = aggregate_demand_profile
         time_pricing = 0
 

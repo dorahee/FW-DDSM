@@ -24,9 +24,12 @@ class Household:
 
     def read_household(self, scheduling_method, household_tracker=Tracker(), read_from_folder=None, household_id=0):
         tasks = self.__existing_household(household_file_folder=read_from_folder, household_id=household_id)
+        print(f"0. Household{tasks[h_key]} is read.")
+        self.tasks = tasks.copy()
         household_tracker.new(method=scheduling_method)
-        household_tracker.update(num_record=0, method=scheduling_method, demands=self.tasks[k0_demand], penalty=0)
-        print(f"Household{tasks[h_key]} is read.")
+        self.household_tracker.data = household_tracker.update(num_record=0, method=scheduling_method,
+                                                               demands=self.tasks[k0_demand], penalty=0).copy()
+        self.scheduling_method = scheduling_method
         return tasks, household_tracker
 
     def new_household(self, num_intervals, scheduling_method,
@@ -39,7 +42,7 @@ class Household:
                       semi_flex_task_min=no_semi_flex_tasks_min, semi_flex_task_max=0,
                       fixed_task_min=no_fixed_tasks_min, fixed_task_max=0,
                       inconvenience_cost_weight=care_f_weight, max_care_factor=care_f_max,
-                      write_to_file_path=None, household_id=0):
+                      write_to_folder=None, household_id=0):
         if preferred_demand_profile is None and preferred_demand_profile_csv is None:
             print("Please provide a preferred demand profile or the csv. ")
         if list_of_devices_power is None and list_of_devices_power_csv is None:
@@ -65,14 +68,16 @@ class Household:
                                inconvenience_cost_weight=inconvenience_cost_weight,
                                max_care_factor=max_care_factor,
                                household_id=household_id)
-        household_tracker.new(method=scheduling_method)
-        household_tracker.update(num_record=0, method=scheduling_method,
-                                 demands=household_demand_profile, penalty=0)
 
-        if write_to_file_path is not None:
-            self.write_to_file(tasks=tasks, write_to_file_path=write_to_file_path, household_id=household_id)
+        if write_to_folder is not None:
+            self.write_to_file(tasks=tasks, write_to_file_path=write_to_folder, household_id=household_id)
         # print(f"Household{household_id} is created.")
-        return tasks, household_tracker
+        self.tasks = tasks.copy()
+        self.scheduling_method = scheduling_method
+        household_tracker.new(method=scheduling_method)
+        self.household_tracker.data = household_tracker.update(num_record=0, method=scheduling_method,
+                                                               demands=household_demand_profile, penalty=0).copy()
+        return self.tasks, self.household_tracker
 
     def write_to_file(self, tasks, write_to_file_path, household_id=0):
         write_to_file_path = write_to_file_path if write_to_file_path.endswith("/") \
@@ -83,7 +88,21 @@ class Household:
         with open(f"{write_to_file_path}household{household_id}.txt", "w") as f:
             f.write(dumps(tasks, indent=1))
         f.close()
-        print(f"{write_to_file_path}household{household_id}.txt written.")
+        print(f"0. {write_to_file_path}household{household_id}.txt written.")
+
+    def schedule(self, num_iteration, prices, model=None, solver=None, search=None):
+        result = self.schedule_household(prices=prices,
+                                         scheduling_method=self.scheduling_method,
+                                         household=self.tasks,
+                                         model=model, solver=solver, search=search)
+        household_demand_profile = result[k0_demand]
+        weighted_penalty_household = result[k0_penalty]
+        self.household_tracker.update(num_record=num_iteration,
+                                      method=self.scheduling_method,
+                                      demands=household_demand_profile,
+                                      penalty=weighted_penalty_household)
+
+        return household_demand_profile, weighted_penalty_household
 
     def schedule_household(self, prices, scheduling_method, household, num_intervals=no_intervals,
                            model=None, solver=None, search=None):
@@ -395,6 +414,8 @@ class Household:
     def __existing_household(self, household_file_folder, household_id):
         # ---------------------------------------------------------------------- #
         # ---------------------------------------------------------------------- #
+        household_file_folder = household_file_folder if household_file_folder.endswith("/") \
+            else household_file_folder + "/"
         with open(f"{household_file_folder}household{household_id}.txt", 'r') as f:
             household = load(f)
         f.close()
@@ -470,7 +491,7 @@ class Household:
                         = retrieve_successors_or_precedents(succ_or_prec, prec_or_succ_list1, succ_prec_list2)
                     list_r.extend(succ_succ_or_prec_prec)
                 else:
-                    list_r.append(l)
+                    list_r.append(int(l))
             return list_r
 
         def check_if_successors_or_precedents_exist(checked_task_id, prec_or_succ1, succ_or_prec2):

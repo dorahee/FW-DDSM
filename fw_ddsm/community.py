@@ -230,7 +230,8 @@ class Community:
 
             # update each household's tracker
             self.households[key][k0_tracker] \
-                = Tracker.update(self=Tracker(), num_record=num_iteration, tracker=self.households[key][k0_tracker],
+                = Tracker.update(self=Tracker(), num_record=num_iteration,
+                                 tracker_data=self.households[key][k0_tracker],
                                  method=self.scheduling_method, demands=demands_household,
                                  penalty=weighted_penalty_household).copy()
 
