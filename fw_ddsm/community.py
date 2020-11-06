@@ -3,6 +3,7 @@ import pickle
 from time import time
 from fw_ddsm.household import *
 from fw_ddsm.tracker import *
+from scripts import household_generation, household_scheduling
 
 
 class Community:
@@ -19,24 +20,22 @@ class Community:
         self.preferred_demand_profile = []
 
     def read(self, scheduling_method, read_from_folder="data/", inconvenience_cost_weight=None):
-        read_from_folder = read_from_folder if read_from_folder.endswith("/") \
-            else read_from_folder + "/"
+        if not read_from_folder.endswith("/"):
+            read_from_folder += "/"
 
         self.households = dict()
-
-        self.households, self.preferred_demand_profile = self.__existing_households(file_path=read_from_folder,
-                                                     scheduling_method=scheduling_method,
-                                                     inconvenience_cost_weight=inconvenience_cost_weight)
-        self.num_households = len(self.households) - 1
-
-        self.tracker.new(method=scheduling_method)
-        self.tracker.update(num_record=0, method=scheduling_method,
-                            demands=self.preferred_demand_profile, penalty=0)
-        self.final.new(method=scheduling_method)
+        self.households, self.preferred_demand_profile \
+            = self.__existing_households(file_path=read_from_folder,
+                                         inconvenience_cost_weight=inconvenience_cost_weight)
+        if k0_demand in self.households:
+            self.num_households = len(self.households) - 1
+        self.new_community_tracker(scheduling_method=scheduling_method)
         print("0. The community is read. ")
 
-    def new(self, file_preferred_demand_profile_path, file_demand_list_path, scheduling_method,
-            num_households=no_households,
+        return self.preferred_demand_profile
+
+    def new(self, file_preferred_demand_profile, file_demand_list, scheduling_method,
+            num_intervals=no_intervals, num_households=no_households,
             max_demand_multiplier=maxium_demand_multiplier,
             num_tasks_dependent=no_tasks_dependent,
             full_flex_task_min=no_full_flex_tasks_min, full_flex_task_max=0,
@@ -45,55 +44,73 @@ class Community:
             inconvenience_cost_weight=care_f_weight, max_care_factor=care_f_max,
             write_to_file_path=None):
 
-        self.households = dict()
-        self.preferred_demand_profile = None
-
         self.scheduling_method = scheduling_method
+        self.num_intervals = num_intervals
         self.num_households = num_households
-        self.households, self.preferred_demand_profile \
-            = self.__new_households(file_preferred_demand_profile_path,
-                                    file_demand_list_path,
-                                    max_demand_multiplier=max_demand_multiplier,
-                                    num_tasks_dependent=num_tasks_dependent,
-                                    full_flex_task_min=full_flex_task_min,
-                                    full_flex_task_max=full_flex_task_max,
-                                    semi_flex_task_min=semi_flex_task_min,
-                                    semi_flex_task_max=semi_flex_task_max,
-                                    fixed_task_min=fixed_task_min,
-                                    fixed_task_max=fixed_task_max,
-                                    inconvenience_cost_weight=inconvenience_cost_weight,
-                                    max_care_factor=max_care_factor)
-        self.tracker.new(method=scheduling_method)
-        self.tracker.update(num_record=0, method=scheduling_method, penalty=0,
-                            run_time=0)
-        self.final.new(method=scheduling_method)
-        self.tracker.update(num_record=0, method=scheduling_method, penalty=0, run_time=0)
+
+        households = dict()
+        aggregate_demand_profile = [0] * num_intervals
+        preferred_demand_profile = genfromtxt(file_preferred_demand_profile, delimiter=',', dtype="float")
+        list_of_devices_power = genfromtxt(file_demand_list, delimiter=',', dtype="float")
+        for h in range(num_households):
+            household, household_demand_profile \
+                = household_generation.new_household(num_intervals=num_intervals,
+                                                     preferred_demand_profile=preferred_demand_profile,
+                                                     list_of_devices_power=list_of_devices_power,
+                                                     max_demand_multiplier=max_demand_multiplier,
+                                                     num_tasks_dependent=num_tasks_dependent,
+                                                     full_flex_task_min=full_flex_task_min,
+                                                     full_flex_task_max=full_flex_task_max,
+                                                     semi_flex_task_min=semi_flex_task_min,
+                                                     semi_flex_task_max=semi_flex_task_max,
+                                                     fixed_task_min=fixed_task_min,
+                                                     fixed_task_max=fixed_task_max,
+                                                     inconvenience_cost_weight=inconvenience_cost_weight,
+                                                     max_care_factor=max_care_factor,
+                                                     household_id=h)
+            aggregate_demand_profile = [x + y for x, y in zip(household_demand_profile, aggregate_demand_profile)]
+
+            households[h] = household.copy()
+            households[h][k0_tracker] = Tracker()
+            households[h][k0_tracker].new()
+            households[h][k0_tracker].update(num_record=0, demands=household_demand_profile, penalty=0)
+
+        self.households = households
+        self.preferred_demand_profile = aggregate_demand_profile
+        self.new_community_tracker(scheduling_method=scheduling_method)
 
         self.write_to_file("data/")
         if write_to_file_path is not None:
             self.write_to_file(write_to_file_path)
 
         print("0. The community is created. ")
+        return aggregate_demand_profile
 
-    def write_to_file(self, write_to_file_path):
+    def new_community_tracker(self, scheduling_method):
+        self.tracker = Tracker()
+        self.tracker.new(name=f"{scheduling_method}_community")
+        self.tracker.update(num_record=0, penalty=0, run_time=0)
+        self.final = Tracker()
+        self.final.new(name=f"{scheduling_method}_community_final")
+        self.tracker.update(num_record=0, penalty=0, run_time=0)
 
-        write_to_file_path = write_to_file_path if write_to_file_path.endswith("/") \
-            else write_to_file_path + "/"
-        path = Path(write_to_file_path)
+    def write_to_file(self, folder):
+
+        if not folder.endswith("/"):
+            folder += "/"
+        path = Path(folder)
         if not path.exists():
             path.mkdir(mode=0o777, parents=True, exist_ok=False)
 
         self.households[k0_demand] = self.preferred_demand_profile
-        with open(f"{write_to_file_path}{file_community_pkl}", 'wb+') as f:
+        with open(f"{folder}{file_community_pkl}", 'wb+') as f:
             pickle.dump(self.households, f, pickle.HIGHEST_PROTOCOL)
         del self.households[k0_demand]
         f.close()
 
     def schedule(self, num_iteration, prices, scheduling_method, model=None, solver=None, search=None, households=None):
-        # print(f"{num_iteration}. Scheduling {self.num_households} households, {scheduling_method}...")
 
         prices = self.__convert_price(prices)
-        # self.tracker.update(num_record=num_iteration - 1, method=scheduling_method, prices=prices)
 
         if households is None:
             households = self.households
@@ -102,30 +119,28 @@ class Community:
                                                       model=model, solver=solver, search=search)
 
         aggregate_demand_profile, weighted_total_inconvenience, time_scheduling_iteration \
-            = self.__retrieve_scheduling_results(results=results, scheduling_method=scheduling_method,
-                                                 num_iteration=num_iteration)
+            = self.__retrieve_scheduling_results(results=results, num_iteration=num_iteration)
 
-        self.tracker.update(num_record=num_iteration, method=scheduling_method,
-                            penalty=weighted_total_inconvenience, run_time=time_scheduling_iteration)
+        self.tracker.update(num_record=num_iteration, penalty=weighted_total_inconvenience,
+                            run_time=time_scheduling_iteration)
 
         return aggregate_demand_profile, weighted_total_inconvenience, time_scheduling_iteration
 
-    def decide_final_schedules(self, scheduling_method, start_probability_distribution, num_sample=0):
+    def finalise_schedule(self, scheduling_method, start_probability_distribution, num_sample=0):
         final_aggregate_demand_profile = [0] * self.num_intervals
         final_total_inconvenience = 0
         total_demand = 0
         for household in self.households.values():
             chosen_demand_profile, chosen_penalty \
                 = Household.finalise_household(self=Household(), household_tracker_data=household[k0_tracker].data,
-                                               scheduling_method=scheduling_method,
                                                probability_distribution=start_probability_distribution)
-            final_aggregate_demand_profile = [x + y for x, y in
-                                              zip(chosen_demand_profile, final_aggregate_demand_profile)]
+            final_aggregate_demand_profile \
+                = [x + y for x, y in zip(chosen_demand_profile, final_aggregate_demand_profile)]
             final_total_inconvenience += chosen_penalty
             total_demand += sum(chosen_demand_profile)
 
-        # self.final.update(num_record=num_sample, method=self.scheduling_method,
-        #                   demands=final_aggregate_demand_profile, penalty=final_total_inconvenience)
+        self.final.update(num_record=num_sample, demands=final_aggregate_demand_profile,
+                          penalty=final_total_inconvenience)
 
         return final_aggregate_demand_profile, final_total_inconvenience
 
@@ -139,50 +154,7 @@ class Community:
 
         return prices
 
-    def __new_households(self, file_probability_path, file_demand_list_path,
-                         max_demand_multiplier=maxium_demand_multiplier,
-                         num_tasks_dependent=no_tasks_dependent,
-                         full_flex_task_min=no_full_flex_tasks_min, full_flex_task_max=0,
-                         semi_flex_task_min=no_semi_flex_tasks_min, semi_flex_task_max=0,
-                         fixed_task_min=no_fixed_tasks_min, fixed_task_max=0,
-                         inconvenience_cost_weight=care_f_weight, max_care_factor=care_f_max):
-        # ---------------------------------------------------------------------- #
-
-        # ---------------------------------------------------------------------- #
-
-        num_households = self.num_households
-        preferred_demand_profile = genfromtxt(file_probability_path, delimiter=',', dtype="float")
-        list_of_devices_power = genfromtxt(file_demand_list_path, delimiter=',', dtype="float")
-
-        households = dict()
-        num_intervals = self.num_intervals
-        aggregate_demand_profile = [0] * num_intervals
-
-        for h in range(num_households):
-            tasks, household_tracker = Household.new_household(self=Household(),
-                                                               num_intervals=self.num_intervals,
-                                                               scheduling_method=self.scheduling_method,
-                                                               preferred_demand_profile=preferred_demand_profile,
-                                                               list_of_devices_power=list_of_devices_power,
-                                                               max_demand_multiplier=max_demand_multiplier,
-                                                               num_tasks_dependent=num_tasks_dependent,
-                                                               full_flex_task_min=full_flex_task_min,
-                                                               full_flex_task_max=full_flex_task_max,
-                                                               semi_flex_task_min=semi_flex_task_min,
-                                                               semi_flex_task_max=semi_flex_task_max,
-                                                               fixed_task_min=fixed_task_min,
-                                                               fixed_task_max=fixed_task_max,
-                                                               inconvenience_cost_weight=inconvenience_cost_weight,
-                                                               max_care_factor=max_care_factor, household_id=h)
-            household_profile = tasks[k0_demand]
-            aggregate_demand_profile = [x + y for x, y in zip(household_profile, aggregate_demand_profile)]
-
-            households[h] = tasks.copy()
-            households[h][k0_tracker] = household_tracker
-
-        return households, aggregate_demand_profile
-
-    def __existing_households(self, file_path, scheduling_method, inconvenience_cost_weight=None):
+    def __existing_households(self, file_path, inconvenience_cost_weight=None):
         # ---------------------------------------------------------------------- #
         # ---------------------------------------------------------------------- #
         with open(f"{file_path}{file_community_pkl}", 'rb') as f:
@@ -192,8 +164,8 @@ class Community:
 
         for household in households.values():
             household_tracker = Tracker()
-            household_tracker.new(method=scheduling_method)
-            household_tracker.update(num_record=0, method=scheduling_method, demands=household[k0_demand], penalty=0)
+            household_tracker.new()
+            household_tracker.update(num_record=0, demands=household[k0_demand], penalty=0)
             household[k0_tracker] = household_tracker
 
             if inconvenience_cost_weight is not None:
@@ -202,22 +174,17 @@ class Community:
         return households, preferred_demand_profile
 
     def __schedule_multiple_processing(self, households, prices, scheduling_method, model, solver, search):
-        t_begin = time()
         pool = Pool(cpu_count())
         results = pool.starmap_async(Household.schedule_household,
                                      [(Household(), prices, scheduling_method, household,
                                        self.num_intervals, model, solver, search)
                                       for household in households.values()]).get()
-        # parameters' order: prices, scheduling_method = self.scheduling_method, household = self.tasks, num_intervals = self.num_intervals, model = model, solver = solver, search = search
-        # results = pool.starmap_async(self.schedule_single_household,
-        #                              [(household, prices, scheduling_method, model, solver, search)
-        #                               for household in households.values()]).get()
+        # parameter order: prices, scheduling_method, household, num_intervals, model, solver, search
         pool.close()
         pool.join()
-        # print(f"   Finish scheduling in {round(time() - t_begin)} seconds.")
         return results
 
-    def __retrieve_scheduling_results(self, scheduling_method, results, num_iteration):
+    def __retrieve_scheduling_results(self, results, num_iteration):
         aggregate_demand_profile = [0] * self.num_intervals
         total_weighted_inconvenience = 0
         time_scheduling_iteration = 0
@@ -234,10 +201,7 @@ class Community:
             time_scheduling_iteration += time_household
 
             # update each household's tracker
-            self.households[key][k0_tracker].data \
-                = Tracker.update(self=Tracker(), num_record=num_iteration,
-                                 tracker_data=self.households[key][k0_tracker].data,
-                                 method=scheduling_method, demands=demands_household,
-                                 penalty=weighted_penalty_household).copy()
+            self.households[key][k0_tracker].update(num_record=num_iteration, demands=demands_household,
+                                                    penalty=weighted_penalty_household)
 
         return aggregate_demand_profile, total_weighted_inconvenience, time_scheduling_iteration

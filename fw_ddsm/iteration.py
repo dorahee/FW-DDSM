@@ -25,48 +25,55 @@ class Iteration:
             fixed_task_min=no_fixed_tasks_min, fixed_task_max=0,
             inconvenience_cost_weight=care_f_weight, max_care_factor=care_f_max,
             data_folder=None):
+
+        if not data_folder.endswith("/"):
+            data_folder += "/"
+
         self.scheduling_method = algorithm[k2_before_fw]
         self.pricing_method = algorithm[k2_after_fw]
-
         self.num_households = num_households
 
-        if data_folder is not None:
-            self.data_folder = data_folder if data_folder.endswith("/") else data_folder + "/"
-
         # 1. generate new households, trackers and a pricing table
-        self.community.new(num_households=self.num_households,
-                           scheduling_method=self.scheduling_method,
-                           file_preferred_demand_profile_path=file_preferred_demand_profile,
-                           file_demand_list_path=file_task_power,
-                           write_to_file_path=self.data_folder,
-                           max_demand_multiplier=max_demand_multiplier,
-                           num_tasks_dependent=num_tasks_dependent,
-                           full_flex_task_min=full_flex_task_min, full_flex_task_max=full_flex_task_max,
-                           semi_flex_task_min=semi_flex_task_min, semi_flex_task_max=semi_flex_task_max,
-                           fixed_task_min=fixed_task_min, fixed_task_max=fixed_task_max,
-                           inconvenience_cost_weight=inconvenience_cost_weight, max_care_factor=max_care_factor)
+        preferred_demand_profile = self.community.new(num_households=self.num_households,
+                                                      scheduling_method=self.scheduling_method,
+                                                      file_preferred_demand_profile=file_preferred_demand_profile,
+                                                      file_demand_list=file_task_power,
+                                                      write_to_file_path=self.data_folder,
+                                                      max_demand_multiplier=max_demand_multiplier,
+                                                      num_tasks_dependent=num_tasks_dependent,
+                                                      full_flex_task_min=full_flex_task_min,
+                                                      full_flex_task_max=full_flex_task_max,
+                                                      semi_flex_task_min=semi_flex_task_min,
+                                                      semi_flex_task_max=semi_flex_task_max,
+                                                      fixed_task_min=fixed_task_min, fixed_task_max=fixed_task_max,
+                                                      inconvenience_cost_weight=inconvenience_cost_weight,
+                                                      max_care_factor=max_care_factor)
+        prices, preferred_cost = self.aggregator.new_aggregator(
+            normalised_pricing_table_csv=file_normalised_pricing_table,
+            aggregate_preferred_demand_profile=preferred_demand_profile,
+            pricing_method=self.pricing_method, write_to_file_path=self.data_folder)
 
-        self.aggregator.new_aggregator(normalised_pricing_table_csv=file_normalised_pricing_table,
-                                       aggregate_preferred_demand_profile=self.community.preferred_demand_profile,
-                                       pricing_method=self.pricing_method, write_to_file_path=self.data_folder)
+        return preferred_demand_profile, prices
 
-    def read_data(self, algorithm, read_from_folder="data/"):
+    def read(self, algorithm, read_from_folder="data/"):
         self.scheduling_method = algorithm[k2_before_fw]
         self.pricing_method = algorithm[k2_after_fw]
-        self.community.read(read_from_folder=read_from_folder, scheduling_method=self.scheduling_method)
-        self.aggregator.read_aggregator(read_from_folder=read_from_folder, pricing_method=self.pricing_method,
-                                        aggregate_preferred_demand_profile=self.community.preferred_demand_profile)
+        preferred_demand_profile = self.community.read(read_from_folder=read_from_folder,
+                                                       scheduling_method=self.scheduling_method)
+        prices, preferred_cost = self.aggregator.read_aggregator(
+            read_from_folder=read_from_folder,
+            pricing_method=self.pricing_method,
+            aggregate_preferred_demand_profile=preferred_demand_profile)
 
-    def begin_iteration(self):
+        return preferred_demand_profile, prices
+
+    def begin_iteration(self, starting_prices):
         scheduling_method = self.scheduling_method
         pricing_method = self.pricing_method
-        aggregator_demand_profile = self.aggregator.tracker.data[pricing_method][k0_demand][0]
-        prices, consumption_cost, inconvenience, step, new_aggregate_demand_profile, time_pricing \
-            = self.aggregator.pricing(num_iteration=0,
-                                      aggregate_demand_profile=aggregator_demand_profile,
-                                      aggregate_inconvenience=0)
+        prices = starting_prices
 
         num_iteration = 1
+        step = 1
         while step > 0:
             aggregate_demand_profile, weighted_total_inconvenience, time_scheduling_iteration \
                 = self.community.schedule(num_iteration=num_iteration, prices=prices,
@@ -78,17 +85,21 @@ class Iteration:
             num_iteration += 1
 
         print(f"Converged in {num_iteration - 1}")
-        self.start_time_probability = self.aggregator.compute_start_time_probabilities(pricing_method)
 
-    def finalise_schedules(self, scheduling_method=None, num_samples=1):
+        self.start_time_probability = self.aggregator.compute_start_time_probabilities()
+        return self.start_time_probability
+
+    def finalise_schedules(self, start_time_probability=None, scheduling_method=None, num_samples=1):
         if scheduling_method is None:
             scheduling_method = self.scheduling_method
-        start_time_probability_distribution = self.start_time_probability
+        if start_time_probability is None:
+            start_time_probability = self.start_time_probability
         for i in range(1, num_samples + 1):
             final_aggregate_demand_profile, final_total_inconvenience \
-                = self.community.decide_final_schedules(num_sample=i,
-                                                        scheduling_method=scheduling_method,
-                                                        start_probability_distribution=start_time_probability_distribution)
+                = self.community.finalise_schedule(num_sample=i,
+                                                   scheduling_method=scheduling_method,
+                                                   start_probability_distribution=start_time_probability)
             prices, consumption_cost, inconvenience, step, new_aggregate_demand_profile, time_pricing \
                 = self.aggregator.pricing(num_iteration=i, aggregate_demand_profile=final_aggregate_demand_profile,
-                                    finalising=True)
+                                          finalising=True)
+        # return consumption_cost, inconvenience
