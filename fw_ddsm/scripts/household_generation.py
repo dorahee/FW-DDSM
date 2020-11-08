@@ -1,6 +1,6 @@
-from parameter import *
 import random as r
 from numpy import sqrt, pi, random
+from fw_ddsm.parameter import *
 
 
 def new_task(

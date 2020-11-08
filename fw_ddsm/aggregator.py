@@ -3,9 +3,9 @@ import pickle
 from math import ceil
 from more_itertools import grouper
 from time import time
-from fw_ddsm.tracker import *
-from scripts import aggregator_generation, aggregator_pricing
 from pathlib import Path
+from fw_ddsm.tracker import *
+from fw_ddsm.scripts import aggregator_generation, aggregator_pricing
 
 
 class Aggregator:

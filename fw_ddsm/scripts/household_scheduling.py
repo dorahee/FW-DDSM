@@ -1,7 +1,7 @@
 from minizinc import *
-from parameter import *
 import timeit
 import random as r
+from fw_ddsm.parameter import *
 
 
 def preprocessing(

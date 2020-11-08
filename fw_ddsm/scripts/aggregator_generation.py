@@ -3,7 +3,7 @@ import pickle
 from math import ceil
 from more_itertools import grouper
 from time import time
-from parameter import *
+from fw_ddsm.parameter import *
 
 
 def new_pricing_table(normalised_pricing_table_csv, maximum_demand_level,

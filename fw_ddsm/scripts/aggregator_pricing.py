@@ -1,7 +1,7 @@
 from math import ceil
 from time import time
-from parameter import *
-from scripts.custom_functions import *
+from fw_ddsm.parameter import *
+from fw_ddsm.scripts.custom_functions import *
 
 
 def prices_and_cost(aggregate_demand_profile, pricing_table, cost_function=cost_function_type):
