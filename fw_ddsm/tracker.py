@@ -1,5 +1,5 @@
 from pandas import DataFrame as df
-from scripts.custom_functions import *
+from fw_ddsm.scripts.custom_functions import *
 from fw_ddsm.parameter import *
 
 
