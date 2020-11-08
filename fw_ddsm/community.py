@@ -19,14 +19,16 @@ class Community:
         self.scheduling_method = ""
         self.preferred_demand_profile = []
 
-    def read(self, scheduling_method, read_from_folder="data/", inconvenience_cost_weight=None):
+    def read(self, scheduling_method, read_from_folder="data/",
+             inconvenience_cost_weight=None, num_dependent_tasks=None):
         if not read_from_folder.endswith("/"):
             read_from_folder += "/"
 
         self.households = dict()
         self.households, self.preferred_demand_profile \
             = self.__existing_households(file_path=read_from_folder,
-                                         inconvenience_cost_weight=inconvenience_cost_weight)
+                                         inconvenience_cost_weight=inconvenience_cost_weight,
+                                         num_dependent_tasks=num_dependent_tasks)
         if s_demand in self.households:
             self.num_households = len(self.households) - 1
         self.new_community_tracker(scheduling_method=scheduling_method)
@@ -154,7 +156,7 @@ class Community:
 
         return prices
 
-    def __existing_households(self, file_path, inconvenience_cost_weight=None):
+    def __existing_households(self, file_path, inconvenience_cost_weight=None, num_dependent_tasks=None):
         # ---------------------------------------------------------------------- #
         # ---------------------------------------------------------------------- #
         with open(f"{file_path}{file_community_pkl}", 'rb') as f:
@@ -162,7 +164,7 @@ class Community:
         f.close()
         preferred_demand_profile = households.pop(s_demand)
 
-        for household in households.values():
+        for key, household in households.items():
             household_tracker = Tracker()
             household_tracker.new()
             household_tracker.update(num_record=0, demands=household[s_demand], penalty=0)
@@ -170,6 +172,25 @@ class Community:
 
             if inconvenience_cost_weight is not None:
                 household["care_factor_weight"] = inconvenience_cost_weight
+
+            if num_dependent_tasks is not None:
+                num_intervals = len(household[s_demand])
+                durations = household[h_durs]
+                num_total_tasks = len(durations)
+                preferred_starts = household[h_psts]
+                earliest_starts = household[h_ests]
+                latest_ends = household[h_lfs]
+                no_precedences, precedors, succ_delays \
+                    = household_generation.new_dependent_tasks(
+                    num_intervals=num_intervals, num_tasks_dependent=num_dependent_tasks,
+                    num_total_tasks=num_total_tasks,
+                    preferred_starts=preferred_starts, durations=durations, earliest_starts=earliest_starts,
+                    latest_ends=latest_ends)
+                household[h_no_precs] = no_precedences
+                household[h_precs] = precedors.copy()
+                household[h_succ_delay] = succ_delays.copy()
+
+            households[key] = household.copy()
 
         return households, preferred_demand_profile
 

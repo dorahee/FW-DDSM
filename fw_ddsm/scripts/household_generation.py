@@ -51,6 +51,64 @@ def new_task(
     return power, duration, preferred_start_time, earliest_start_time, latest_finish_time, care_factor
 
 
+def new_dependent_tasks(num_intervals, num_tasks_dependent, num_total_tasks,
+                        preferred_starts, durations, earliest_starts, latest_ends):
+    precedors = dict()
+    no_precedences = 0
+    succ_delays = dict()
+
+    def retrieve_precedes(list0):
+        list3 = []
+        for l in list0:
+            if l in precedors:
+                list2 = precedors[l]
+                retrieved_list = retrieve_precedes(list2)
+                list3.extend(retrieved_list)
+            else:
+                list3.append(l)
+        return list3
+
+    def add_precedes(task, previous, delay):
+        if task not in precedors:
+            precedors[task] = [previous]
+            succ_delays[task] = [delay]
+        else:
+            precedors[task].append(previous)
+            succ_delays[task].append(delay)
+
+    for t in range(num_total_tasks - num_tasks_dependent, num_total_tasks):
+        if r.choice([True, False]):
+            previous_tasks = list(range(t))
+            r.shuffle(previous_tasks)
+            for prev in previous_tasks:
+                if preferred_starts[prev] + durations[prev] - 1 < preferred_starts[t] \
+                        and earliest_starts[prev] + durations[prev] < latest_ends[t] - durations[t] + 1:
+
+                    if prev not in precedors:
+                        # feasible delay
+                        succeding_delay = num_intervals - 1
+                        add_precedes(t, prev, succeding_delay)
+                        no_precedences += 1
+                        break
+                    else:
+                        # find all precedors of this previous task
+                        precs_prev = retrieve_precedes([prev])
+                        precs_prev.append(prev)
+
+                        precs_prev_duration = sum([durations[x] for x in precs_prev])
+                        latest_pstart = preferred_starts[precs_prev[0]]
+                        latest_estart = earliest_starts[precs_prev[0]]
+
+                        if latest_pstart + precs_prev_duration - 1 < preferred_starts[t] \
+                                and latest_estart + precs_prev_duration < latest_ends[t] - durations[t] + 1:
+                            succeding_delay = num_intervals - 1
+                            add_precedes(t, prev, succeding_delay)
+                            no_precedences += 1
+                            break
+
+    return no_precedences, precedors, succ_delays
+
+
 def new_household(
         preferred_demand_profile, list_of_devices_power,
         num_intervals=no_intervals, num_periods=no_periods, num_intervals_periods=no_intervals_periods,
@@ -132,59 +190,10 @@ def new_household(
     maximum_demand = sum(powers) * max_demand_multiplier
 
     # precedence among tasks
-    precedors = dict()
-    no_precedences = 0
-    succ_delays = dict()
-
-    def retrieve_precedes(list0):
-        list3 = []
-        for l in list0:
-            if l in precedors:
-                list2 = precedors[l]
-                retrieved_list = retrieve_precedes(list2)
-                list3.extend(retrieved_list)
-            else:
-                list3.append(l)
-        return list3
-
-    def add_precedes(task, previous, delay):
-        if task not in precedors:
-            precedors[task] = [previous]
-            succ_delays[task] = [delay]
-        else:
-            precedors[task].append(previous)
-            succ_delays[task].append(delay)
-
     num_total_tasks = num_full_flex_tasks + num_semi_flex_tasks + num_fixed_tasks
-    for t in range(num_total_tasks - num_tasks_dependent, num_total_tasks):
-        if r.choice([True, False]):
-            previous_tasks = list(range(t))
-            r.shuffle(previous_tasks)
-            for prev in previous_tasks:
-                if preferred_starts[prev] + durations[prev] - 1 < preferred_starts[t] \
-                        and earliest_starts[prev] + durations[prev] < latest_ends[t] - durations[t] + 1:
-
-                    if prev not in precedors:
-                        # feasible delay
-                        succeding_delay = num_intervals - 1
-                        add_precedes(t, prev, succeding_delay)
-                        no_precedences += 1
-                        break
-                    else:
-                        # find all precedors of this previous task
-                        precs_prev = retrieve_precedes([prev])
-                        precs_prev.append(prev)
-
-                        precs_prev_duration = sum([durations[x] for x in precs_prev])
-                        latest_pstart = preferred_starts[precs_prev[0]]
-                        latest_estart = earliest_starts[precs_prev[0]]
-
-                        if latest_pstart + precs_prev_duration - 1 < preferred_starts[t] \
-                                and latest_estart + precs_prev_duration < latest_ends[t] - durations[t] + 1:
-                            succeding_delay = num_intervals - 1
-                            add_precedes(t, prev, succeding_delay)
-                            no_precedences += 1
-                            break
+    no_precedences, precedors, succ_delays \
+        = new_dependent_tasks(num_intervals, num_tasks_dependent, num_total_tasks,
+                              preferred_starts, durations, earliest_starts, latest_ends)
 
     household = dict()
     if household_id is not None:

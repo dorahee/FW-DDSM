@@ -31,11 +31,12 @@ class Output:
                           inconvenience_cost_weight=care_f_weight,
                           num_dependent_tasks=no_tasks_dependent,
                           num_full_flex_task_min=no_full_flex_tasks_min,
-                          num_semi_flex_task_min=no_semi_flex_tasks_min):
+                          num_semi_flex_task_min=no_semi_flex_tasks_min,
+                          repeat=0):
 
         self.output_folder \
             = f"{self.output_parent_folder}/h{num_households}-w{inconvenience_cost_weight}-dt{num_dependent_tasks}" \
-              f"-fft{num_full_flex_task_min}-sft{num_semi_flex_task_min}/"
+              f"-fft{num_full_flex_task_min}-sft{num_semi_flex_task_min}-r{repeat}/"
         path = Path(self.output_folder)
         if not path.exists():
             path.mkdir(mode=0o777, parents=True, exist_ok=False)
