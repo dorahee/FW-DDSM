@@ -3,7 +3,7 @@ import pickle
 from time import time
 from fw_ddsm.household import *
 from fw_ddsm.tracker import *
-from scripts import household_generation, household_scheduling
+from fw_ddsm.scripts import household_generation, household_scheduling
 
 
 class Community:

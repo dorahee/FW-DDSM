@@ -4,8 +4,8 @@ from json import dumps, load
 from pathlib import Path
 
 from numpy import genfromtxt
-from scripts import household_generation
-from scripts import household_scheduling
+from fw_ddsm.scripts import household_generation
+from fw_ddsm.scripts import household_scheduling
 from fw_ddsm.tracker import *
 
 
