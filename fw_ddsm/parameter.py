@@ -42,6 +42,7 @@ file_community_pkl = "community.pkl"
 file_community_meta_pkl = "community_aggregate.pkl"
 file_aggregator_pkl = "aggregator.pkl"
 file_pricing_table_pkl = "pricing_table.pkl"
+file_experiment_pkl = "experiment.pkl"
 
 # summary related parameters
 k_area = "area"
@@ -69,60 +70,58 @@ h_incon_weight = "inconvenience_cost_weight"
 
 # demand related parameters
 k_household_key = "key"
-k_starts = "start_times"
-k_demand = "demands"
-k_demand_max = "max_demand"
-k_demand_max_init = "init_max_demand"
-k_demand_reduction = "demand_reduction"
-k_demand_total = "total_demand"
-k_par = "PAR"
-k_par_init = "init_PAR"
-k_final = "final"
+s_starts = "start_times"
+s_demand = "demands"
+s_demand_max = "max_demand"
+s_demand_max_init = "init_max_demand"
+s_demand_reduction = "demand_reduction"
+s_demand_total = "total_demand"
+s_par = "PAR"
+s_par_init = "init_PAR"
+s_final = "final"
+s_penalty = "inconvenient"
+s_obj = "objective"
 
 # step size
-k0_step = "step_size"
-
-# objective related parameters
-k0_cost = "cost"
-k0_cost_reduction = "cost_reduction"
-k0_penalty = "inconvenient"
-k0_obj = "objective"
+p_step = "step_size"
 
 # pricing related parameters
-k0_prices = "prices"
-k0_price_levels = "price_levels"
-k0_demand_table = "demand_levels"
+p_cost = "cost"
+p_cost_reduction = "cost_reduction"
+p_prices = "prices"
+p_price_levels = "price_levels"
+p_demand_table = "demand_levels"
 
 # run time related
-k0_time = "run_time"
-k1_time_scheduling = "rescheduling_time"
-k1_time_pricing = "pricing_time"
-k1_time_average = "average_run_time"
+t_time = "run_time"
+t_scheduling = "rescheduling_time"
+t_pricing = "pricing_time"
+t_average = "average_run_time"
 
 # k1_interval = "interval"
 # k1_period = "period"
-k0_algorithm = "algorithm"
-k1_minizinc = "minizinc"
-k1_ogsa = "ogsa"
-k2_before_fw = "scheduling"
-k2_after_fw = "pricing"
+m_algorithm = "algorithm"
+m_minizinc = "minizinc"
+m_ogsa = "ogsa"
+m_before_fw = "scheduling"
+m_after_fw = "pricing"
 
 # tracking-related
-k0_tracker = "tracker"
-k0_others = "others"
+k_tracker = "tracker"
+k_others = "others"
 algorithms = dict()
-algorithms[k1_minizinc] = dict()
-algorithms[k1_minizinc][k2_before_fw] = k1_minizinc
-algorithms[k1_minizinc][k2_after_fw] = f"{k1_minizinc}_fw"
-algorithms[k1_ogsa] = dict()
-algorithms[k1_ogsa][k2_before_fw] = k1_ogsa
-algorithms[k1_ogsa][k2_after_fw] = f"{k1_ogsa}_fw"
+algorithms[m_minizinc] = dict()
+algorithms[m_minizinc][m_before_fw] = m_minizinc
+algorithms[m_minizinc][m_after_fw] = f"{m_minizinc}_fw"
+algorithms[m_ogsa] = dict()
+algorithms[m_ogsa][m_before_fw] = m_ogsa
+algorithms[m_ogsa][m_after_fw] = f"{m_ogsa}_fw"
 
 algorithm_full_names = dict()
-algorithm_full_names[algorithms[k1_minizinc][k2_before_fw]] = "MiniZinc model with data preprocessing"
-algorithm_full_names[algorithms[k1_minizinc][k2_after_fw]] = "FW-DDSM with MiniZinc model and data preprocessing"
-algorithm_full_names[algorithms[k1_ogsa][k2_before_fw]] = "OGSA"
-algorithm_full_names[algorithms[k1_ogsa][k2_after_fw]] = "FW-DDSM with OGSA"
+algorithm_full_names[algorithms[m_minizinc][m_before_fw]] = "MiniZinc model with data preprocessing"
+algorithm_full_names[algorithms[m_minizinc][m_after_fw]] = "FW-DDSM with MiniZinc model and data preprocessing"
+algorithm_full_names[algorithms[m_ogsa][m_before_fw]] = "OGSA"
+algorithm_full_names[algorithms[m_ogsa][m_after_fw]] = "FW-DDSM with OGSA"
 
 
 

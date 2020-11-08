@@ -29,8 +29,8 @@ class Iteration:
         if not data_folder.endswith("/"):
             data_folder += "/"
 
-        self.scheduling_method = algorithm[k2_before_fw]
-        self.pricing_method = algorithm[k2_after_fw]
+        self.scheduling_method = algorithm[m_before_fw]
+        self.pricing_method = algorithm[m_after_fw]
         self.num_households = num_households
 
         # 1. generate new households, trackers and a pricing table
@@ -56,8 +56,8 @@ class Iteration:
         return preferred_demand_profile, prices
 
     def read(self, algorithm, read_from_folder="data/"):
-        self.scheduling_method = algorithm[k2_before_fw]
-        self.pricing_method = algorithm[k2_after_fw]
+        self.scheduling_method = algorithm[m_before_fw]
+        self.pricing_method = algorithm[m_after_fw]
         preferred_demand_profile = self.community.read(read_from_folder=read_from_folder,
                                                        scheduling_method=self.scheduling_method)
         prices, preferred_cost = self.aggregator.read_aggregator(

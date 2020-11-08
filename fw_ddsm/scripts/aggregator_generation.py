@@ -23,9 +23,9 @@ def new_pricing_table(normalised_pricing_table_csv, maximum_demand_level,
 
     zero_digit = 100
     pricing_table = dict()
-    pricing_table[k0_price_levels] = list(csv_table[0].values)
-    pricing_table[k0_demand_table] = dict()
-    pricing_table[k0_demand_table] = \
+    pricing_table[p_price_levels] = list(csv_table[0].values)
+    pricing_table[p_demand_table] = dict()
+    pricing_table[p_demand_table] = \
         {period:
              {level:
                   ceil(csv_table[period + 1].values[level] * demand_level_scalar / zero_digit) * zero_digit

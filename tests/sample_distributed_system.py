@@ -1,9 +1,9 @@
 from fw_ddsm.aggregator import *
 from fw_ddsm.household import *
 
-algorithm = algorithms[k1_ogsa]
-scheduling_method = algorithm[k2_before_fw]
-pricing_method = algorithm[k2_after_fw]
+algorithm = algorithms[m_ogsa]
+scheduling_method = algorithm[m_before_fw]
+pricing_method = algorithm[m_after_fw]
 
 # ------------------------------ iteration = 0 ------------------------------
 num_full_flex_task_min = 10
@@ -24,7 +24,7 @@ household1.new(num_intervals=no_intervals,
 # household1.read_household(scheduling_method=scheduling_method,
 #                           read_from_folder="households/",
 #                           household_id=1)
-h1_demand_profile = household1.tasks[k_demand]
+h1_demand_profile = household1.tasks[s_demand]
 
 # household 2
 household2 = Household()
@@ -40,7 +40,7 @@ household2.new(num_intervals=no_intervals,
 # household2.read_household(scheduling_method=scheduling_method,
 #                           read_from_folder="households/",
 #                           household_id=2)
-h2_demand_profile = household2.tasks[k_demand]
+h2_demand_profile = household2.tasks[s_demand]
 
 # household 3
 household3 = Household()
@@ -56,7 +56,7 @@ household3.new(num_intervals=no_intervals,
 # household3.read_household(scheduling_method=scheduling_method,
 #                           read_from_folder="households/",
 #                           household_id=3)
-h3_demand_profile = household3.tasks[k_demand]
+h3_demand_profile = household3.tasks[s_demand]
 
 # aggregator
 aggregate_demand_profile_interval = [0] * no_intervals

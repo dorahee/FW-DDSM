@@ -4,12 +4,12 @@ from fw_ddsm.output import *
 from pandas import DataFrame
 
 algorithms = dict()
-algorithms[k1_minizinc] = dict()
-algorithms[k1_minizinc][k2_before_fw] = k1_minizinc
-algorithms[k1_minizinc][k2_after_fw] = f"{k1_minizinc}_fw"
-algorithms[k1_ogsa] = dict()
-algorithms[k1_ogsa][k2_before_fw] = k1_ogsa
-algorithms[k1_ogsa][k2_after_fw] = f"{k1_ogsa}_fw"
+algorithms[m_minizinc] = dict()
+algorithms[m_minizinc][m_before_fw] = m_minizinc
+algorithms[m_minizinc][m_after_fw] = f"{m_minizinc}_fw"
+algorithms[m_ogsa] = dict()
+algorithms[m_ogsa][m_before_fw] = m_ogsa
+algorithms[m_ogsa][m_after_fw] = f"{m_ogsa}_fw"
 
 # num_households_range = [20]
 # penalty_weight_range = [0, 5, 50, 500, 5000, 50000]
@@ -59,7 +59,7 @@ def main():
                     experiment_tracker[num_experiment][k_households_no] = num_households
                     experiment_tracker[num_experiment][k_penalty_weight] = penalty_weight
                     experiment_tracker[num_experiment][k_dependent_tasks_no] = num_tasks_dependent
-                    experiment_tracker[num_experiment][k0_algorithm] = alg[k2_after_fw]
+                    experiment_tracker[num_experiment][m_algorithm] = alg[m_after_fw]
 
                     if new_data:
                         preferred_demand_profile, prices = \
@@ -92,6 +92,8 @@ def main():
                     plot_final_layout.append(plots_final)
                     DataFrame.from_dict(experiment_tracker).transpose() \
                         .to_csv(r"{}overview_all_tests.csv".format(out.output_parent_folder))
+                    with open(f"{out.output_parent_folder}{file_experiment_pkl}", 'wb+') as f:
+                        pickle.dump(experiment_tracker, f, pickle.HIGHEST_PROTOCOL)
                     print("----------------------------------------")
 
                 # experiment_tracker[num_experiment].update(overview_dt)
@@ -105,13 +107,13 @@ def main():
     print("Experiment is finished. ")
     print(experiment_tracker)
 
-    plots_experiment = []
-    df_experiments = DataFrame.from_dict(experiment_tracker).transpose()
-    df_scheduling_times = df_experiments[k_households_no, k1_time_scheduling, k_penalty_weight, k_dependent_tasks_no]
-    df_pricing_times = df_experiments[k_households_no, k1_time_pricing, k_penalty_weight, k_dependent_tasks_no]
-    df_par = df_experiments[k_households_no, k_par, k_penalty_weight, k_dependent_tasks_no]
-    df_demand_reductions = df_experiments[k_households_no, k_demand_reduction, k_penalty_weight, k_dependent_tasks_no]
-    df_cost_reductions = df_experiments[k_households_no, k0_cost_reduction, k_penalty_weight, k_dependent_tasks_no]
+    # plots_experiment = []
+    # df_experiments = DataFrame.from_dict(experiment_tracker).transpose()
+    # df_scheduling_times = df_experiments[k_households_no, t_scheduling, k_penalty_weight, k_dependent_tasks_no]
+    # df_pricing_times = df_experiments[k_households_no, t_pricing, k_penalty_weight, k_dependent_tasks_no]
+    # df_par = df_experiments[k_households_no, s_par_init, s_par, k_penalty_weight, k_dependent_tasks_no]
+    # df_demand_reductions = df_experiments[k_households_no, s_demand_reduction, k_penalty_weight, k_dependent_tasks_no]
+    # df_cost_reductions = df_experiments[k_households_no, p_cost_reduction, k_penalty_weight, k_dependent_tasks_no]
 
     # time and reductions per number of household
     # time and reduction per care factors (same number of households)

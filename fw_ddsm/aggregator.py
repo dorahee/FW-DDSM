@@ -105,10 +105,10 @@ class Aggregator:
                               demands=new_aggregate_demand_profile, init_demand_max=self.init_demand_max,
                               prices=prices, cost=consumption_cost, init_cost=self.init_cost)
         else:
-            demand_profile_fw_pre = self.tracker.data[k_demand][num_iteration - 1][:]
-            inconvenience_fw_pre = self.tracker.data[k0_penalty][num_iteration - 1]
-            price_fw_pre = self.tracker.data[k0_prices][num_iteration - 1][:]
-            cost_fw_pre = self.tracker.data[k0_cost][num_iteration - 1]
+            demand_profile_fw_pre = self.tracker.data[s_demand][num_iteration - 1][:]
+            inconvenience_fw_pre = self.tracker.data[s_penalty][num_iteration - 1]
+            price_fw_pre = self.tracker.data[p_prices][num_iteration - 1][:]
+            cost_fw_pre = self.tracker.data[p_cost][num_iteration - 1]
             new_aggregate_demand_profile, step, prices, consumption_cost, inconvenience, time_pricing \
                 = aggregator_pricing.find_step_size(num_iteration=num_iteration,
                                                     pricing_method=self.pricing_method,
@@ -128,7 +128,7 @@ class Aggregator:
         return prices, consumption_cost, inconvenience, step, new_aggregate_demand_profile, time_pricing
 
     def compute_start_time_probabilities(self):
-        history_steps = list(self.tracker.data[k0_step].values())
+        history_steps = list(self.tracker.data[p_step].values())
         self.start_time_probability \
             = aggregator_pricing.compute_start_time_probabilities(history_steps=history_steps)
         return self.start_time_probability

@@ -27,7 +27,7 @@ class Community:
         self.households, self.preferred_demand_profile \
             = self.__existing_households(file_path=read_from_folder,
                                          inconvenience_cost_weight=inconvenience_cost_weight)
-        if k_demand in self.households:
+        if s_demand in self.households:
             self.num_households = len(self.households) - 1
         self.new_community_tracker(scheduling_method=scheduling_method)
         print("0. The community is read. ")
@@ -71,9 +71,9 @@ class Community:
             aggregate_demand_profile = [x + y for x, y in zip(household_demand_profile, aggregate_demand_profile)]
 
             households[h] = household.copy()
-            households[h][k0_tracker] = Tracker()
-            households[h][k0_tracker].new()
-            households[h][k0_tracker].update(num_record=0, demands=household_demand_profile, penalty=0)
+            households[h][k_tracker] = Tracker()
+            households[h][k_tracker].new()
+            households[h][k_tracker].update(num_record=0, demands=household_demand_profile, penalty=0)
 
         self.households = households
         self.preferred_demand_profile = aggregate_demand_profile
@@ -102,10 +102,10 @@ class Community:
         if not path.exists():
             path.mkdir(mode=0o777, parents=True, exist_ok=False)
 
-        self.households[k_demand] = self.preferred_demand_profile
+        self.households[s_demand] = self.preferred_demand_profile
         with open(f"{folder}{file_community_pkl}", 'wb+') as f:
             pickle.dump(self.households, f, pickle.HIGHEST_PROTOCOL)
-        del self.households[k_demand]
+        del self.households[s_demand]
         f.close()
 
     def schedule(self, num_iteration, prices, scheduling_method, model=None, solver=None, search=None, households=None):
@@ -132,7 +132,7 @@ class Community:
         total_demand = 0
         for household in self.households.values():
             chosen_demand_profile, chosen_penalty \
-                = Household.finalise_household(self=Household(), household_tracker_data=household[k0_tracker].data,
+                = Household.finalise_household(self=Household(), household_tracker_data=household[k_tracker].data,
                                                probability_distribution=start_probability_distribution)
             final_aggregate_demand_profile \
                 = [x + y for x, y in zip(chosen_demand_profile, final_aggregate_demand_profile)]
@@ -160,13 +160,13 @@ class Community:
         with open(f"{file_path}{file_community_pkl}", 'rb') as f:
             households = pickle.load(f)
         f.close()
-        preferred_demand_profile = households.pop(k_demand)
+        preferred_demand_profile = households.pop(s_demand)
 
         for household in households.values():
             household_tracker = Tracker()
             household_tracker.new()
-            household_tracker.update(num_record=0, demands=household[k_demand], penalty=0)
-            household[k0_tracker] = household_tracker
+            household_tracker.update(num_record=0, demands=household[s_demand], penalty=0)
+            household[k_tracker] = household_tracker
 
             if inconvenience_cost_weight is not None:
                 household["care_factor_weight"] = inconvenience_cost_weight
@@ -191,9 +191,9 @@ class Community:
         total_demand = 0
         for res in results:
             key = res[h_key]
-            demands_household = res[k_demand]
-            weighted_penalty_household = res[k0_penalty]
-            time_household = res[k0_time]
+            demands_household = res[s_demand]
+            weighted_penalty_household = res[s_penalty]
+            time_household = res[t_time]
             total_demand += sum(demands_household)
 
             aggregate_demand_profile = [x + y for x, y in zip(demands_household, aggregate_demand_profile)]
@@ -201,7 +201,7 @@ class Community:
             time_scheduling_iteration += time_household
 
             # update each household's tracker
-            self.households[key][k0_tracker].update(num_record=num_iteration, demands=demands_household,
-                                                    penalty=weighted_penalty_household)
+            self.households[key][k_tracker].update(num_record=num_iteration, demands=demands_household,
+                                                   penalty=weighted_penalty_household)
 
         return aggregate_demand_profile, total_weighted_inconvenience, time_scheduling_iteration

@@ -23,7 +23,8 @@ class Output:
 
         this_date = str(date.today())
         this_time = str(datetime.now().time().strftime("%H-%M-%S"))
-        self.output_parent_folder = f"{self.output_root_folder}{this_date}-{this_time}/"
+        self.this_date_time = f"{this_date}_{this_time}"
+        self.output_parent_folder = f"{self.output_root_folder}{self.this_date_time}/"
 
     def new_output_folder(self,
                           num_households=no_households,
@@ -54,25 +55,25 @@ class Output:
         x_ticks = [0] + [i for i in range(1, 48) if (i + 1) % 12 == 0]
         # x_tick_labels = [0] + [f"{int((i + 1)/2)}h" for i in range(1, 48) if (i + 1) % 12 == 0 ]
         overview_dict = dict()
-        agg_times = agg_others[k0_time]
-        community_times = community_others[k0_time]
+        agg_times = agg_others[t_time]
+        community_times = community_others[t_time]
 
         # ------------------------------ FW results ------------------------------
         df_demands = df.from_dict(agg_demands).div(1000)
         df_prices = df.from_dict(agg_prices)
         df_others = df.from_dict(agg_others)
-        overview_dict[k_par_init] = df_others[k_par].values[0]
-        overview_dict[k_par] = df_others[k_par].values[-1]
-        overview_dict[k_demand_max_init] = df_others[k_demand_max].values[0]
-        overview_dict[k_demand_max] = df_others[k_demand_max].values[-1]
-        overview_dict[k_demand_total] = df_others[k_demand_total].values[-1]
-        overview_dict[k_demand_reduction] = df_others[k_demand_reduction].values[-1]
-        overview_dict[k0_cost_reduction] = df_others[k0_cost_reduction].values[-1]
-        overview_dict[k1_time_pricing] = average(list(agg_times.values()))
-        overview_dict[k1_time_scheduling] = average(list(community_times.values()))
+        overview_dict[s_par_init] = df_others[s_par].values[0]
+        overview_dict[s_par] = df_others[s_par].values[-1]
+        overview_dict[s_demand_max_init] = df_others[s_demand_max].values[0]
+        overview_dict[s_demand_max] = df_others[s_demand_max].values[-1]
+        overview_dict[s_demand_total] = df_others[s_demand_total].values[-1]
+        overview_dict[s_demand_reduction] = df_others[s_demand_reduction].values[-1]
+        overview_dict[p_cost_reduction] = df_others[p_cost_reduction].values[-1]
+        overview_dict[t_pricing] = average(list(agg_times.values()))
+        overview_dict[t_scheduling] = average(list(community_times.values()))
 
-        scheduling_method = algorithm[k2_before_fw]
-        pricing_method = algorithm[k2_after_fw]
+        scheduling_method = algorithm[m_before_fw]
+        pricing_method = algorithm[m_after_fw]
 
         # draw graphs
         p_demands = df_demands.iloc[:, [0, df_demands.columns[-1]]] \

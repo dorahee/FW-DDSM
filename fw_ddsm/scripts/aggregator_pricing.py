@@ -8,9 +8,9 @@ def prices_and_cost(aggregate_demand_profile, pricing_table, cost_function=cost_
     prices = []
     consumption_cost = 0
 
-    price_levels = pricing_table[k0_price_levels]
+    price_levels = pricing_table[p_price_levels]
     for demand_period, demand_level_period in \
-            zip(aggregate_demand_profile, pricing_table[k0_demand_table].values()):
+            zip(aggregate_demand_profile, pricing_table[p_demand_table].values()):
         demand_level = list(demand_level_period.values())
         level = bisect_left(demand_level, demand_period)
         if level != len(demand_level):
@@ -50,7 +50,7 @@ def find_step_size(num_iteration, pricing_method, pricing_table, aggregate_deman
     while gradient < 0 and step_size_final < 1:
         step_profile = []
         for dp, dn, demand_levels_period in \
-                zip(demand_profile_fw_pre, aggregate_demand_profile, pricing_table[k0_demand_table].values()):
+                zip(demand_profile_fw_pre, aggregate_demand_profile, pricing_table[p_demand_table].values()):
             d_levels = list(demand_levels_period.values())[:-1]
             min_demand_level = min(d_levels)
             max_demand_level = d_levels[-1]
