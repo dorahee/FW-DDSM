@@ -56,9 +56,9 @@ def main():
                 for alg in algorithms.values():
                     num_experiment += 1
                     experiment_tracker[num_experiment] = dict()
-                    experiment_tracker[num_experiment][k0_households_no] = num_households
-                    experiment_tracker[num_experiment][k0_penalty_weight] = penalty_weight
-                    experiment_tracker[num_experiment][k0_num_dependent_tasks] = num_tasks_dependent
+                    experiment_tracker[num_experiment][k_households_no] = num_households
+                    experiment_tracker[num_experiment][k_penalty_weight] = penalty_weight
+                    experiment_tracker[num_experiment][k_dependent_tasks_no] = num_tasks_dependent
                     experiment_tracker[num_experiment][k0_algorithm] = alg[k2_after_fw]
 
                     if new_data:
@@ -104,6 +104,15 @@ def main():
     # print("------------------------------")
     print("Experiment is finished. ")
     print(experiment_tracker)
+
+    plots_experiment = []
+    df_experiments = DataFrame.from_dict(experiment_tracker).transpose()
+    df_scheduling_times = df_experiments[k_households_no, k1_time_scheduling, k_penalty_weight, k_dependent_tasks_no]
+    df_pricing_times = df_experiments[k_households_no, k1_time_pricing, k_penalty_weight, k_dependent_tasks_no]
+    df_par = df_experiments[k_households_no, k_par, k_penalty_weight, k_dependent_tasks_no]
+    df_demand_reductions = df_experiments[k_households_no, k_demand_reduction, k_penalty_weight, k_dependent_tasks_no]
+    df_cost_reductions = df_experiments[k_households_no, k0_cost_reduction, k_penalty_weight, k_dependent_tasks_no]
+
     # time and reductions per number of household
     # time and reduction per care factors (same number of households)
     # time and reduction per number of dependent tasks (same number of households and same care factor)

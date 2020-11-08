@@ -22,11 +22,13 @@ class Aggregator:
         self.start_time_probability = None
         self.init_demand_max = 0
         self.init_cost = 0
+        self.preferred_demand_profile = []
 
     def read_aggregator(self, pricing_method, aggregate_preferred_demand_profile, read_from_folder="data/"):
         self.pricing_table = dict()
         self.pricing_method = pricing_method
         aggregate_preferred_demand_profile = self.__convert_demand_profile(aggregate_preferred_demand_profile)
+        self.preferred_demand_profile = aggregate_preferred_demand_profile
 
         read_from_folder = read_from_folder if read_from_folder.endswith("/") \
             else read_from_folder + "/"
@@ -46,6 +48,7 @@ class Aggregator:
         self.pricing_method = pricing_method
 
         aggregate_preferred_demand_profile = self.__convert_demand_profile(aggregate_preferred_demand_profile)
+        self.preferred_demand_profile = aggregate_preferred_demand_profile
         maximum_demand_level = max(aggregate_preferred_demand_profile)
         self.pricing_table = aggregator_generation.new_pricing_table(
             normalised_pricing_table_csv=normalised_pricing_table_csv,
@@ -102,7 +105,7 @@ class Aggregator:
                               demands=new_aggregate_demand_profile, init_demand_max=self.init_demand_max,
                               prices=prices, cost=consumption_cost, init_cost=self.init_cost)
         else:
-            demand_profile_fw_pre = self.tracker.data[k0_demand][num_iteration - 1][:]
+            demand_profile_fw_pre = self.tracker.data[k_demand][num_iteration - 1][:]
             inconvenience_fw_pre = self.tracker.data[k0_penalty][num_iteration - 1]
             price_fw_pre = self.tracker.data[k0_prices][num_iteration - 1][:]
             cost_fw_pre = self.tracker.data[k0_cost][num_iteration - 1]

@@ -27,7 +27,7 @@ class Community:
         self.households, self.preferred_demand_profile \
             = self.__existing_households(file_path=read_from_folder,
                                          inconvenience_cost_weight=inconvenience_cost_weight)
-        if k0_demand in self.households:
+        if k_demand in self.households:
             self.num_households = len(self.households) - 1
         self.new_community_tracker(scheduling_method=scheduling_method)
         print("0. The community is read. ")
@@ -102,10 +102,10 @@ class Community:
         if not path.exists():
             path.mkdir(mode=0o777, parents=True, exist_ok=False)
 
-        self.households[k0_demand] = self.preferred_demand_profile
+        self.households[k_demand] = self.preferred_demand_profile
         with open(f"{folder}{file_community_pkl}", 'wb+') as f:
             pickle.dump(self.households, f, pickle.HIGHEST_PROTOCOL)
-        del self.households[k0_demand]
+        del self.households[k_demand]
         f.close()
 
     def schedule(self, num_iteration, prices, scheduling_method, model=None, solver=None, search=None, households=None):
@@ -160,12 +160,12 @@ class Community:
         with open(f"{file_path}{file_community_pkl}", 'rb') as f:
             households = pickle.load(f)
         f.close()
-        preferred_demand_profile = households.pop(k0_demand)
+        preferred_demand_profile = households.pop(k_demand)
 
         for household in households.values():
             household_tracker = Tracker()
             household_tracker.new()
-            household_tracker.update(num_record=0, demands=household[k0_demand], penalty=0)
+            household_tracker.update(num_record=0, demands=household[k_demand], penalty=0)
             household[k0_tracker] = household_tracker
 
             if inconvenience_cost_weight is not None:
@@ -191,7 +191,7 @@ class Community:
         total_demand = 0
         for res in results:
             key = res[h_key]
-            demands_household = res[k0_demand]
+            demands_household = res[k_demand]
             weighted_penalty_household = res[k0_penalty]
             time_household = res[k0_time]
             total_demand += sum(demands_household)

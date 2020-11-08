@@ -35,7 +35,7 @@ class Household:
 
         self.household_tracker = Tracker()
         self.household_tracker.new(name=f"h{household_id}")
-        self.household_tracker.update(num_record=0, demands=self.tasks[k0_demand], penalty=0)
+        self.household_tracker.update(num_record=0, demands=self.tasks[k_demand], penalty=0)
         self.household_final = Tracker()
         self.household_final.new(name=f"h{household_id}_final")
 
@@ -113,7 +113,7 @@ class Household:
                                          scheduling_method=self.scheduling_method,
                                          household=self.tasks,
                                          model=model, solver=solver, search=search)
-        household_demand_profile = result[k0_demand]
+        household_demand_profile = result[k_demand]
         weighted_penalty_household = result[k0_penalty]
         self.household_tracker.update(num_record=num_iteration,
                                       demands=household_demand_profile,
@@ -188,7 +188,7 @@ class Household:
             = inconvenience_cost_weight * sum([abs(pst - ast) * cf
                                                for pst, ast, cf in zip(preferred_starts, actual_starts, care_factors)])
 
-        return {h_key: key, k0_demand: household_demand_profile, k0_starts: actual_starts,
+        return {h_key: key, k_demand: household_demand_profile, k_starts: actual_starts,
                 k0_penalty: weighted_penalty_household, k0_time: time_scheduling}
 
     def finalise_household(self, probability_distribution,
@@ -198,7 +198,7 @@ class Household:
             household_tracker_data = self.household_tracker.data
 
         chosen_iter = choice(len(probability_distribution), size=1, p=probability_distribution)[0]
-        chosen_demand_profile = household_tracker_data[k0_demand][chosen_iter].copy()
+        chosen_demand_profile = household_tracker_data[k_demand][chosen_iter].copy()
         chosen_penalty = household_tracker_data[k0_penalty][chosen_iter]
 
         if household_tracker_data is None:

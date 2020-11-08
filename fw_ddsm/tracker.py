@@ -12,7 +12,7 @@ class Tracker:
     def new(self, name=""):
         self.name = name
 
-        for key in [k0_demand, k0_demand_max, k0_demand_total, k0_demand_reduction, k0_par,
+        for key in [k_demand, k_demand_max, k_demand_total, k_demand_reduction, k_par,
                     k0_penalty, k0_prices, k0_cost, k0_cost_reduction, k0_step, k0_time]:
             self.data[key] = dict()
 
@@ -36,12 +36,12 @@ class Tracker:
             tracker_data[k0_penalty][num_record] = round(penalty, 2)
         if demands is not None:
             demand_max = round(max(demands), 2)
-            tracker_data[k0_demand][num_record] = demands
-            tracker_data[k0_demand_max][num_record] = demand_max
-            tracker_data[k0_demand_total][num_record] = round(sum(demands), 2)
-            tracker_data[k0_par][num_record] = round(demand_max / average(demands), 2)
+            tracker_data[k_demand][num_record] = demands
+            tracker_data[k_demand_max][num_record] = demand_max
+            tracker_data[k_demand_total][num_record] = round(sum(demands), 2)
+            tracker_data[k_par][num_record] = round(demand_max / average(demands), 2)
             if init_demand_max is not None:
-                tracker_data[k0_demand_reduction][num_record] \
+                tracker_data[k_demand_reduction][num_record] \
                     = round((init_demand_max - demand_max) / init_demand_max, 2)
         if run_time is not None:
             tracker_data[k0_time][num_record] = round(run_time, 4)
@@ -50,11 +50,11 @@ class Tracker:
 
     def extract_data(self):
 
-        demands = self.data[k0_demand]
+        demands = self.data[k_demand]
         prices = self.data[k0_prices]
         others = {k: self.data[k]
-                  for k in [k0_par, k0_demand_reduction, k0_cost_reduction, k0_penalty,
-                            k0_demand_total, k0_demand_max, k0_cost, k0_time]}
+                  for k in [k_par, k_demand_reduction, k0_cost_reduction, k0_penalty,
+                            k_demand_total, k_demand_max, k0_cost, k0_time]}
         return demands, prices, others
 
     def write_to_file(self, folder, print_demands=True, print_prices=True, print_others=True):
