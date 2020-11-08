@@ -15,8 +15,8 @@ algorithms[k1_ogsa][k2_after_fw] = f"{k1_ogsa}_fw"
 # penalty_weight_range = [0, 5, 50, 500, 5000, 50000]
 # num_tasks_dependent_range = [0, 3, 5]
 num_households_range = [10, 20]
-penalty_weight_range = [5]
-num_tasks_dependent_range = [3]
+penalty_weight_range = [5, 500]
+num_tasks_dependent_range = [1, 3]
 num_full_flex_tasks = 5
 num_semi_flex_tasks = 0
 num_fixed_tasks = 0
@@ -56,10 +56,10 @@ def main():
                 for alg in algorithms.values():
                     num_experiment += 1
                     experiment_tracker[num_experiment] = dict()
-                    experiment_tracker[num_experiment][k0_algorithm] = alg[k2_after_fw]
                     experiment_tracker[num_experiment][k0_households_no] = num_households
                     experiment_tracker[num_experiment][k0_penalty_weight] = penalty_weight
                     experiment_tracker[num_experiment][k0_num_dependent_tasks] = num_tasks_dependent
+                    experiment_tracker[num_experiment][k0_algorithm] = alg[k2_after_fw]
 
                     if new_data:
                         preferred_demand_profile, prices = \
@@ -90,6 +90,9 @@ def main():
                     experiment_tracker[num_experiment].update(overview_dict)
                     plot_layout.append(plots)
                     plot_final_layout.append(plots_final)
+                    DataFrame.from_dict(experiment_tracker).transpose() \
+                        .to_csv(r"{}overview_all_tests.csv".format(out.output_parent_folder))
+                    print("----------------------------------------")
 
                 # experiment_tracker[num_experiment].update(overview_dt)
                 output_file(f"{output_folder}plots.html")
@@ -99,10 +102,11 @@ def main():
                 print("----------------------------------------")
 
     # print("------------------------------")
-    DataFrame.from_dict(experiment_tracker).transpose()\
-        .to_csv(r"{}overview_all_tests.csv".format(out.output_parent_folder))
     print("Experiment is finished. ")
     print(experiment_tracker)
+    # time and reductions per number of household
+    # time and reduction per care factors (same number of households)
+    # time and reduction per number of dependent tasks (same number of households and same care factor)
 
 
 if __name__ == '__main__':

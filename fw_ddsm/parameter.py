@@ -72,9 +72,11 @@ k0_household_key = "key"
 k0_starts = "start_times"
 k0_demand = "demands"
 k0_demand_max = "max_demand"
+k0_demand_max_init = "init_max_demand"
 k0_demand_reduction = "demand_reduction"
 k0_demand_total = "total_demand"
 k0_par = "PAR"
+k0_par_init = "init_PAR"
 k0_final = "final"
 
 # step size
