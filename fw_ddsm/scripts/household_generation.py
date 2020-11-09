@@ -77,34 +77,34 @@ def new_dependent_tasks(num_intervals, num_tasks_dependent, num_total_tasks,
             succ_delays[task].append(delay)
 
     for t in range(num_total_tasks - num_tasks_dependent, num_total_tasks):
-        if r.choice([True, False]):
-            previous_tasks = list(range(t))
-            r.shuffle(previous_tasks)
-            for prev in previous_tasks:
-                if preferred_starts[prev] + durations[prev] - 1 < preferred_starts[t] \
-                        and earliest_starts[prev] + durations[prev] < latest_ends[t] - durations[t] + 1:
+        # if r.choice([True, False]):
+        previous_tasks = list(range(t))
+        r.shuffle(previous_tasks)
+        for prev in previous_tasks:
+            if preferred_starts[prev] + durations[prev] - 1 < preferred_starts[t] \
+                    and earliest_starts[prev] + durations[prev] < latest_ends[t] - durations[t] + 1:
 
-                    if prev not in precedors:
-                        # feasible delay
+                if prev not in precedors:
+                    # feasible delay
+                    succeding_delay = num_intervals - 1
+                    add_precedes(t, prev, succeding_delay)
+                    no_precedences += 1
+                    break
+                else:
+                    # find all precedors of this previous task
+                    precs_prev = retrieve_precedes([prev])
+                    precs_prev.append(prev)
+
+                    precs_prev_duration = sum([durations[x] for x in precs_prev])
+                    latest_pstart = preferred_starts[precs_prev[0]]
+                    latest_estart = earliest_starts[precs_prev[0]]
+
+                    if latest_pstart + precs_prev_duration - 1 < preferred_starts[t] \
+                            and latest_estart + precs_prev_duration < latest_ends[t] - durations[t] + 1:
                         succeding_delay = num_intervals - 1
                         add_precedes(t, prev, succeding_delay)
                         no_precedences += 1
                         break
-                    else:
-                        # find all precedors of this previous task
-                        precs_prev = retrieve_precedes([prev])
-                        precs_prev.append(prev)
-
-                        precs_prev_duration = sum([durations[x] for x in precs_prev])
-                        latest_pstart = preferred_starts[precs_prev[0]]
-                        latest_estart = earliest_starts[precs_prev[0]]
-
-                        if latest_pstart + precs_prev_duration - 1 < preferred_starts[t] \
-                                and latest_estart + precs_prev_duration < latest_ends[t] - durations[t] + 1:
-                            succeding_delay = num_intervals - 1
-                            add_precedes(t, prev, succeding_delay)
-                            no_precedences += 1
-                            break
 
     return no_precedences, precedors, succ_delays
 

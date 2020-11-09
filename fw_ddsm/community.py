@@ -171,7 +171,7 @@ class Community:
             household[k_tracker] = household_tracker
 
             if inconvenience_cost_weight is not None:
-                household["care_factor_weight"] = inconvenience_cost_weight
+                household[h_incon_weight] = inconvenience_cost_weight
 
             if num_dependent_tasks is not None:
                 num_intervals = len(household[s_demand])
