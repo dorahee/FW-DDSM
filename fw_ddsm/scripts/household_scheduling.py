@@ -1,6 +1,7 @@
 from minizinc import *
 import timeit
 import random as r
+from datetime import timedelta
 from fw_ddsm.parameter import *
 
 
@@ -67,8 +68,8 @@ def minizinc_model(model_file, solver, search,
         ins["run_costs"] = objective_values
 
     # solve problem model
-    # result = ins.solve(timeout=timedelta(seconds=10))
-    result = ins.solve()
+    result = ins.solve(timeout=timedelta(seconds=time_out))
+    # result = ins.solve()
 
     # process problem solution
     # obj = result.objective
