@@ -13,7 +13,7 @@ class Iteration:
 
         self.community = Community()
         self.aggregator = Aggregator()
-        self.data_folder = "test_data/"
+        self.data_folder = "data/"
         self.start_time_probability = [1] * no_periods
 
     def new(self, algorithm, num_households,
