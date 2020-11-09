@@ -63,8 +63,8 @@ def find_step_size(num_iteration, pricing_method, pricing_table, aggregate_deman
                 dl = find_ge(d_levels, dp) + 0.01 if dd > 0 else find_le(d_levels, dp) - 0.01
                 step = (dl - dp) / dd
                 step = ceil(step * 1000) / 1000
-                step = step if step > min_step_size else 1
-                # step = max(step, min_step_size)
+                # step = step if step > min_step_size else 1
+                step = max(step, min_step_size)
             step_profile.append(step)
         step_size_incr = min(step_profile)
 
