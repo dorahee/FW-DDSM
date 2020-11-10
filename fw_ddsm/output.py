@@ -84,6 +84,7 @@ class Output:
                         xticks=x_ticks,
                         show_figure=False
                         )
+        p_demands.y_range.start = 0
         p_prices = df_prices.iloc[:, [0, df_prices.columns[-1]]] \
             .plot_bokeh(kind="line", xlabel="Time period", ylabel="Price (dollar)",
                         title=algorithm_full_names[pricing_method],
@@ -91,6 +92,7 @@ class Output:
                         xticks=x_ticks,
                         show_figure=False
                         )
+        p_prices.y_range.start = 0
 
         # data table
         source = ColumnDataSource(df_others)
