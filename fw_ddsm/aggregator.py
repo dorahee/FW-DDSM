@@ -56,9 +56,10 @@ class Aggregator:
         self.new_aggregator_tracker(pricing_method=pricing_method,
                                     aggregate_preferred_demand_profile=aggregate_preferred_demand_profile)
 
-        self.write_to_file("data/")
         if write_to_file_path is not None:
             self.write_to_file(folder=write_to_file_path)
+        else:
+            self.write_to_file("data/")
         print("0. Aggregator is created. ")
 
         prices, consumption_cost, inconvenience, step, new_aggregate_demand_profile, time_pricing \

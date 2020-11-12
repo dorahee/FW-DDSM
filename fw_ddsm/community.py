@@ -81,10 +81,10 @@ class Community:
         self.preferred_demand_profile = aggregate_demand_profile
         self.new_community_tracker(scheduling_method=scheduling_method)
 
-        self.write_to_file("data/")
         if write_to_file_path is not None:
             self.write_to_file(write_to_file_path)
-
+        else:
+            self.write_to_file("data/")
         print("0. The community is created. ")
         return aggregate_demand_profile
 
