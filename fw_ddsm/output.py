@@ -45,7 +45,7 @@ class Output:
     def save_to_output_folder(self, algorithm,
                               aggregator_tracker, community_tracker,
                               aggregator_final, community_final=None,
-                              print_demands=False, print_prices=False, print_summary=True):
+                              print_demands=True, print_prices=True, print_summary=True):
 
         agg_demands, agg_prices, agg_others = aggregator_tracker.extract_data()
         agg_demands_final, agg_prices_final, agg_others_final = aggregator_final.extract_data()
