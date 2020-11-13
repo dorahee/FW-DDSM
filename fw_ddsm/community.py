@@ -110,7 +110,8 @@ class Community:
         del self.households[s_demand]
         f.close()
 
-    def schedule(self, num_iteration, prices, scheduling_method, model=None, solver=None, search=None, households=None):
+    def schedule(self, num_iteration, prices, scheduling_method, model=None, solver=None, search=None, households=None,
+                 num_cpus=None):
 
         prices = self.__convert_price(prices)
 
@@ -118,7 +119,8 @@ class Community:
             households = self.households
         results = self.__schedule_multiple_processing(households=households, prices=prices,
                                                       scheduling_method=scheduling_method,
-                                                      model=model, solver=solver, search=search)
+                                                      model=model, solver=solver, search=search,
+                                                      num_cpus=num_cpus)
 
         aggregate_demand_profile, weighted_total_inconvenience, time_scheduling_iteration \
             = self.__retrieve_scheduling_results(results=results, num_iteration=num_iteration)
@@ -194,8 +196,11 @@ class Community:
 
         return households, preferred_demand_profile
 
-    def __schedule_multiple_processing(self, households, prices, scheduling_method, model, solver, search):
-        pool = Pool(cpu_count())
+    def __schedule_multiple_processing(self, households, prices, scheduling_method, model, solver, search, num_cpus=None):
+        if num_cpus is not None:
+            pool = Pool(num_cpus)
+        else:
+            pool = Pool(cpu_count())
         results = pool.starmap_async(Household.schedule_household,
                                      [(Household(), prices, scheduling_method, household,
                                        self.num_intervals, model, solver, search)

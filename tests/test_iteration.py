@@ -81,7 +81,7 @@ def main():
                                 new_iteration.read(algorithm=alg, inconvenience_cost_weight=penalty_weight,
                                                    num_dependent_tasks=num_tasks_dependent,
                                                    read_from_folder=out.output_parent_folder)
-                        start_time_probability = new_iteration.begin_iteration(starting_prices=prices)
+                        start_time_probability = new_iteration.begin_iteration(starting_prices=prices, num_cpus=4)
                         new_iteration.finalise_schedules(num_samples=num_samples,
                                                          start_time_probability=start_time_probability)
                         print("----------------------------------------")
