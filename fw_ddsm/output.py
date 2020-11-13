@@ -9,7 +9,7 @@ from fw_ddsm.tracker import *
 
 class Output:
 
-    def __init__(self, output_root_folder="results/"):
+    def __init__(self, output_root_folder="results/", output_parent_folder=None):
 
         self.output_folder = ""
         # self.aggregator_tracker = Tracker()
@@ -24,7 +24,10 @@ class Output:
         this_date = str(date.today())
         this_time = str(datetime.now().time().strftime("%H-%M-%S"))
         self.this_date_time = f"{this_date}_{this_time}"
-        self.output_parent_folder = f"{self.output_root_folder}{self.this_date_time}/"
+        if output_root_folder is not None:
+            self.output_parent_folder = f"{self.output_root_folder}{output_parent_folder}/"
+        else:
+            self.output_parent_folder = f"{self.output_root_folder}{self.this_date_time}/"
 
     def new_output_folder(self,
                           num_households=no_households,
@@ -32,14 +35,19 @@ class Output:
                           num_dependent_tasks=no_tasks_dependent,
                           num_full_flex_task_min=no_full_flex_tasks_min,
                           num_semi_flex_task_min=no_semi_flex_tasks_min,
-                          repeat=0):
+                          repeat=0, folder_id=None):
 
         self.output_folder \
             = f"{self.output_parent_folder}/h{num_households}-w{inconvenience_cost_weight}-dt{num_dependent_tasks}" \
-              f"-fft{num_full_flex_task_min}-sft{num_semi_flex_task_min}-r{repeat}/"
+              f"-fft{num_full_flex_task_min}-sft{num_semi_flex_task_min}-r{repeat}"
+        if folder_id is not None:
+            self.output_folder += f"-id{folder_id}/"
+        else:
+            self.output_folder += "/"
         path = Path(self.output_folder)
         if not path.exists():
             path.mkdir(mode=0o777, parents=True, exist_ok=False)
+
         return self.output_folder
 
     def save_to_output_folder(self, algorithm,
