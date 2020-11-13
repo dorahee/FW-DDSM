@@ -24,7 +24,7 @@ num_samples = 5
 num_repeat = 1
 
 
-def main(output_parent_folder="test_exp", folder_id=3):
+def main(output_parent_folder=None, folder_id=1):
     experiment_tracker = dict()
     out = Output(output_root_folder="results", output_parent_folder=output_parent_folder)
 
@@ -83,7 +83,7 @@ def main(output_parent_folder="test_exp", folder_id=3):
                                                    num_dependent_tasks=num_tasks_dependent,
                                                    read_from_folder=out.output_parent_folder,
                                                    date_time=out.this_date_time)
-                        start_time_probability = new_iteration.begin_iteration(starting_prices=prices)
+                        start_time_probability = new_iteration.begin_iteration(starting_prices=prices, num_cpus=4)
                         new_iteration.finalise_schedules(num_samples=num_samples,
                                                          start_time_probability=start_time_probability)
                         print("----------------------------------------")
@@ -99,7 +99,8 @@ def main(output_parent_folder="test_exp", folder_id=3):
                         plot_final_layout.append(plots_final)
                         DataFrame.from_dict(experiment_tracker).transpose() \
                             .to_csv(r"{}{}_overview.csv".format(out.output_parent_folder, out.this_date_time))
-                        with open(f"{out.output_parent_folder}data/{out.this_date_time}_{file_experiment_pkl}", 'wb+') as f:
+                        with open(f"{out.output_parent_folder}data/{out.this_date_time}_{file_experiment_pkl}",
+                                  'wb+') as f:
                             pickle.dump(experiment_tracker, f, pickle.HIGHEST_PROTOCOL)
                         print("----------------------------------------")
 

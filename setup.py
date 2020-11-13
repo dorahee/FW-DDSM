@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="fw_ddsm",
-    version="0.2.22",
+    version="0.2.24",
     author="Shan Dora He",
     author_email="dora.shan.he@gmail.com",
     description="Frank-Wolfe-based distributed demand scheduling method package",
@@ -18,5 +18,5 @@ setuptools.setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    python_requires='>=3.7',
+    python_requires='>=3.6',
 )

@@ -66,7 +66,7 @@ class Iteration:
 
         return preferred_demand_profile, prices
 
-    def begin_iteration(self, starting_prices):
+    def begin_iteration(self, starting_prices, num_cpus=None):
         scheduling_method = self.scheduling_method
         pricing_method = self.pricing_method
         prices = starting_prices
@@ -76,7 +76,7 @@ class Iteration:
         while step > 0:
             aggregate_demand_profile, weighted_total_inconvenience, time_scheduling_iteration \
                 = self.community.schedule(num_iteration=num_iteration, prices=prices,
-                                          scheduling_method=scheduling_method)
+                                          scheduling_method=scheduling_method, num_cpus=num_cpus)
             prices, consumption_cost, inconvenience, step, new_aggregate_demand_profile, time_pricing \
                 = self.aggregator.pricing(num_iteration=num_iteration,
                                           aggregate_demand_profile=aggregate_demand_profile,

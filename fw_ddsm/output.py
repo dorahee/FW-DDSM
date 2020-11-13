@@ -24,7 +24,7 @@ class Output:
         this_date = str(date.today())
         this_time = str(datetime.now().time().strftime("%H-%M-%S"))
         self.this_date_time = f"{this_date}_{this_time}"
-        if output_root_folder is not None:
+        if output_parent_folder is not None:
             self.output_parent_folder = f"{self.output_root_folder}{output_parent_folder}/"
         else:
             self.output_parent_folder = f"{self.output_root_folder}{self.this_date_time}/"
@@ -35,20 +35,21 @@ class Output:
                           num_dependent_tasks=no_tasks_dependent,
                           num_full_flex_task_min=no_full_flex_tasks_min,
                           num_semi_flex_task_min=no_semi_flex_tasks_min,
-                          repeat=0, folder_id=None):
+                          repeat=None, folder_id=None):
 
         self.output_folder \
             = f"{self.output_parent_folder}/h{num_households}-w{inconvenience_cost_weight}-dt{num_dependent_tasks}" \
-              f"-fft{num_full_flex_task_min}-sft{num_semi_flex_task_min}-r{repeat}"
+              f"-fft{num_full_flex_task_min}-sft{num_semi_flex_task_min}"
+        if repeat is not None:
+            self.output_folder += f"-r{repeat}"
         if folder_id is not None:
             self.output_folder += f"-id{folder_id}/"
-        else:
-            self.output_folder += "/"
+        self.output_folder += "/"
         path = Path(self.output_folder)
         if not path.exists():
             path.mkdir(mode=0o777, parents=True, exist_ok=False)
 
-        return self.output_folder
+        return self.output_folder, self.output_parent_folder, self.this_date_time
 
     def save_to_output_folder(self, algorithm,
                               aggregator_tracker, community_tracker,
