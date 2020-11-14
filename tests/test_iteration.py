@@ -15,7 +15,7 @@ algorithms[m_ogsa][m_after_fw] = f"{m_ogsa}_fw"
 # penalty_weight_range = [0, 5, 50, 500, 5000, 50000]
 # num_tasks_dependent_range = [0, 3, 5]
 num_households_range = [10]
-penalty_weight_range = [1, 2]
+penalty_weight_range = [1, 3]
 num_tasks_dependent_range = [2]
 num_full_flex_tasks = 5
 num_semi_flex_tasks = 0
@@ -24,9 +24,13 @@ num_samples = 5
 num_repeat = 1
 
 
+<<<<<<< HEAD
 def main(out_parent_folder=None):
+=======
+def main(output_parent_folder=None, folder_id=1):
+>>>>>>> 39c25c72344c5bfc56c19ee4fc36ee27d79d4d23
     experiment_tracker = dict()
-    out = Output(output_root_folder="results")
+    out = Output(output_root_folder="results", output_parent_folder=output_parent_folder)
 
     num_experiment = -1
     for r in range(num_repeat):
@@ -52,7 +56,7 @@ def main(out_parent_folder=None):
                                                           num_full_flex_task_min=num_full_flex_tasks,
                                                           num_semi_flex_task_min=num_semi_flex_tasks,
                                                           inconvenience_cost_weight=penalty_weight,
-                                                          repeat=r)
+                                                          repeat=r, folder_id=folder_id)
                     plot_layout = []
                     plot_final_layout = []
                     for alg in algorithms.values():
@@ -74,13 +78,15 @@ def main(out_parent_folder=None):
                                                   fixed_task_min=num_fixed_tasks, fixed_task_max=0,
                                                   inconvenience_cost_weight=penalty_weight,
                                                   max_care_factor=care_f_max,
-                                                  data_folder=out.output_parent_folder)
+                                                  data_folder=out.output_parent_folder,
+                                                  date_time=out.this_date_time)
                             # new_data = False
                         else:
                             preferred_demand_profile, prices = \
                                 new_iteration.read(algorithm=alg, inconvenience_cost_weight=penalty_weight,
                                                    num_dependent_tasks=num_tasks_dependent,
-                                                   read_from_folder=out.output_parent_folder)
+                                                   read_from_folder=out.output_parent_folder,
+                                                   date_time=out.this_date_time)
                         start_time_probability = new_iteration.begin_iteration(starting_prices=prices, num_cpus=4)
                         new_iteration.finalise_schedules(num_samples=num_samples,
                                                          start_time_probability=start_time_probability)
@@ -96,8 +102,9 @@ def main(out_parent_folder=None):
                         plot_layout.append(plots)
                         plot_final_layout.append(plots_final)
                         DataFrame.from_dict(experiment_tracker).transpose() \
-                            .to_csv(r"{}overview_all_tests.csv".format(out.output_parent_folder))
-                        with open(f"{out.output_parent_folder}{file_experiment_pkl}", 'wb+') as f:
+                            .to_csv(r"{}{}_overview.csv".format(out.output_parent_folder, out.this_date_time))
+                        with open(f"{out.output_parent_folder}data/{out.this_date_time}_{file_experiment_pkl}",
+                                  'wb+') as f:
                             pickle.dump(experiment_tracker, f, pickle.HIGHEST_PROTOCOL)
                         print("----------------------------------------")
 

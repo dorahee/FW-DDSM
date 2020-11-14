@@ -20,13 +20,13 @@ class Community:
         self.preferred_demand_profile = []
 
     def read(self, scheduling_method, read_from_folder="data/",
-             inconvenience_cost_weight=None, num_dependent_tasks=None):
+             inconvenience_cost_weight=None, num_dependent_tasks=None, date_time=None):
         if not read_from_folder.endswith("/"):
             read_from_folder += "/"
 
         self.households = dict()
         self.households, self.preferred_demand_profile \
-            = self.__existing_households(file_path=read_from_folder,
+            = self.__existing_households(file_path=read_from_folder, date_time=date_time,
                                          inconvenience_cost_weight=inconvenience_cost_weight,
                                          num_dependent_tasks=num_dependent_tasks)
         if s_demand in self.households:
@@ -44,7 +44,7 @@ class Community:
             semi_flex_task_min=no_semi_flex_tasks_min, semi_flex_task_max=0,
             fixed_task_min=no_fixed_tasks_min, fixed_task_max=0,
             inconvenience_cost_weight=care_f_weight, max_care_factor=care_f_max,
-            write_to_file_path=None):
+            write_to_file_path=None, date_time=None):
 
         self.scheduling_method = scheduling_method
         self.num_intervals = num_intervals
@@ -82,7 +82,7 @@ class Community:
         self.new_community_tracker(scheduling_method=scheduling_method)
 
         if write_to_file_path is not None:
-            self.write_to_file(write_to_file_path)
+            self.write_to_file(write_to_file_path, date_time=date_time)
         else:
             self.write_to_file("data/")
         print("0. The community is created. ")
@@ -96,16 +96,21 @@ class Community:
         self.final.new(name=f"{scheduling_method}_community_final")
         self.tracker.update(num_record=0, penalty=0, run_time=0)
 
-    def write_to_file(self, folder):
+    def write_to_file(self, folder, date_time=None):
 
         if not folder.endswith("/"):
             folder += "/"
+        folder += "data/"
         path = Path(folder)
         if not path.exists():
             path.mkdir(mode=0o777, parents=True, exist_ok=False)
 
         self.households[s_demand] = self.preferred_demand_profile
-        with open(f"{folder}{file_community_pkl}", 'wb+') as f:
+        if date_time is None:
+            file_name = f"{folder}{file_community_pkl}"
+        else:
+            file_name = f"{folder}{date_time}_{file_community_pkl}"
+        with open(file_name, 'wb+') as f:
             pickle.dump(self.households, f, pickle.HIGHEST_PROTOCOL)
         del self.households[s_demand]
         f.close()
@@ -158,10 +163,15 @@ class Community:
 
         return prices
 
-    def __existing_households(self, file_path, inconvenience_cost_weight=None, num_dependent_tasks=None):
+    def __existing_households(self, file_path, date_time=None, inconvenience_cost_weight=None,
+                              num_dependent_tasks=None):
         # ---------------------------------------------------------------------- #
         # ---------------------------------------------------------------------- #
-        with open(f"{file_path}{file_community_pkl}", 'rb') as f:
+        if date_time is None:
+            file_name = f"{file_path}data/{file_community_pkl}"
+        else:
+            file_name = f"{file_path}data/{date_time}_{file_community_pkl}"
+        with open(file_name, 'rb') as f:
             households = pickle.load(f)
         f.close()
         preferred_demand_profile = households.pop(s_demand)

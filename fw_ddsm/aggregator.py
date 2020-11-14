@@ -24,7 +24,8 @@ class Aggregator:
         self.init_cost = 0
         self.preferred_demand_profile = []
 
-    def read_aggregator(self, pricing_method, aggregate_preferred_demand_profile, read_from_folder="data/"):
+    def read_aggregator(self, pricing_method, aggregate_preferred_demand_profile,
+                        read_from_folder="data/", date_time=None):
         self.pricing_table = dict()
         self.pricing_method = pricing_method
         aggregate_preferred_demand_profile = self.__convert_demand_profile(aggregate_preferred_demand_profile)
@@ -32,7 +33,7 @@ class Aggregator:
 
         read_from_folder = read_from_folder if read_from_folder.endswith("/") \
             else read_from_folder + "/"
-        self.pricing_table = self.__existing_pricing_table(read_from_folder)
+        self.pricing_table = self.__existing_pricing_table(read_from_folder, date_time=date_time)
         self.new_aggregator_tracker(pricing_method=pricing_method,
                                     aggregate_preferred_demand_profile=aggregate_preferred_demand_profile)
         print("0. Aggregator is read. ")
@@ -43,7 +44,7 @@ class Aggregator:
         return prices, consumption_cost
 
     def new_aggregator(self, normalised_pricing_table_csv, aggregate_preferred_demand_profile, pricing_method,
-                       num_periods=no_periods, weight=pricing_table_weight, write_to_file_path=None):
+                       num_periods=no_periods, weight=pricing_table_weight, write_to_file_path=None, date_time=None):
         self.pricing_table = dict()
         self.pricing_method = pricing_method
 
@@ -57,7 +58,7 @@ class Aggregator:
                                     aggregate_preferred_demand_profile=aggregate_preferred_demand_profile)
 
         if write_to_file_path is not None:
-            self.write_to_file(folder=write_to_file_path)
+            self.write_to_file(folder=write_to_file_path, date_time=date_time)
         else:
             self.write_to_file("data/")
         print("0. Aggregator is created. ")
@@ -67,13 +68,18 @@ class Aggregator:
                            aggregate_inconvenience=0)
         return prices, consumption_cost
 
-    def write_to_file(self, folder):
+    def write_to_file(self, folder, date_time=None):
         if not folder.endswith("/"):
             folder += "/"
+        folder += "data/"
         path = Path(folder)
         if not path.exists():
             path.mkdir(mode=0o777, parents=True, exist_ok=False)
-        with open(f"{folder}{file_pricing_table_pkl}", 'wb+') as f:
+        if date_time is None:
+            file_name = f"{folder}{file_pricing_table_pkl}"
+        else:
+            file_name = f"{folder}{date_time}_{file_pricing_table_pkl}"
+        with open(file_name, 'wb+') as f:
             pickle.dump(self.pricing_table, f, pickle.HIGHEST_PROTOCOL)
         f.close()
 
@@ -143,8 +149,12 @@ class Aggregator:
                                                grouper(num_intervals_periods, aggregate_demand_profile_interval)]
         return aggregate_demand_profile_period
 
-    def __existing_pricing_table(self, file_folder):
-        with open(f"{file_folder}{file_pricing_table_pkl}", 'rb') as f:
+    def __existing_pricing_table(self, file_folder, date_time=None):
+        if date_time is None:
+            file_name = f"{file_folder}data/{file_pricing_table_pkl}"
+        else:
+            file_name = f"{file_folder}data/{date_time}_{file_pricing_table_pkl}"
+        with open(file_name, 'rb') as f:
             pricing_table = pickle.load(f)
         f.close()
 
