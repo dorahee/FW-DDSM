@@ -24,11 +24,7 @@ num_samples = 5
 num_repeat = 1
 
 
-<<<<<<< HEAD
-def main(out_parent_folder=None):
-=======
 def main(output_parent_folder=None, folder_id=1):
->>>>>>> 39c25c72344c5bfc56c19ee4fc36ee27d79d4d23
     experiment_tracker = dict()
     out = Output(output_root_folder="results", output_parent_folder=output_parent_folder)
 

@@ -56,6 +56,9 @@ def main(num_households, num_tasks_dependent, penalty_weight, num_cpus=None, exp
         experiment_tracker[num_experiment][k_households_no] = num_households
         experiment_tracker[num_experiment][k_penalty_weight] = penalty_weight
         experiment_tracker[num_experiment][k_dependent_tasks_no] = num_tasks_dependent
+        experiment_tracker[num_experiment][h_tasks_no_ff_min] = num_full_flex_tasks
+        experiment_tracker[num_experiment][h_tasks_no_sf_min] = num_semi_flex_tasks
+        experiment_tracker[num_experiment][h_tasks_no_fixed_min] = num_fixed_tasks
         experiment_tracker[num_experiment][m_algorithm] = alg[m_after_fw]
         experiment_tracker[num_experiment]["id"] = job_id
 

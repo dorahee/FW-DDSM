@@ -11,6 +11,7 @@ no_households = 10
 no_full_flex_tasks_min = 5
 no_full_flex_tasks_max = 8
 no_semi_flex_tasks_min = 0
+no_semi_flex_tasks_max = 0
 no_fixed_tasks_min = 0
 no_tasks_dependent = 2
 maxium_demand_multiplier = no_full_flex_tasks_min + no_semi_flex_tasks_min + no_fixed_tasks_min
@@ -68,6 +69,12 @@ h_precs = "precedents"
 h_succ_delay = "succeeding_delays"
 h_demand_limit = "maximum_demand"
 h_incon_weight = "inconvenience_cost_weight"
+h_tasks_no_ff_min = "no_fully_flexible_tasks_min"
+h_tasks_no_ff_max = "no_fully_flexible_tasks_max"
+h_tasks_no_sf_min = "no_semi_flexible_tasks_min"
+h_tasks_no_sf_max = "no_semi_flexible_tasks_max"
+h_tasks_no_fixed_min = "no_fixed_tasks_min"
+h_tasks_no_fixed_max = "no_fixed_tasks_max"
 
 # demand related parameters
 k_household_key = "key"
