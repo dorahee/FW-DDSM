@@ -24,7 +24,7 @@ num_samples = 5
 num_repeat = 1
 
 
-def main():
+def main(out_parent_folder=None):
     experiment_tracker = dict()
     out = Output(output_root_folder="results")
 
