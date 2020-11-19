@@ -44,13 +44,14 @@ class Aggregator:
         return prices, consumption_cost
 
     def new_aggregator(self, normalised_pricing_table_csv, aggregate_preferred_demand_profile, pricing_method,
-                       num_periods=no_periods, weight=pricing_table_weight, write_to_file_path=None, date_time=None):
+                       max_scale=0, num_periods=no_periods, weight=pricing_table_weight, write_to_file_path=None, 
+                       date_time=None):
         self.pricing_table = dict()
         self.pricing_method = pricing_method
 
         aggregate_preferred_demand_profile = self.__convert_demand_profile(aggregate_preferred_demand_profile)
         self.preferred_demand_profile = aggregate_preferred_demand_profile
-        maximum_demand_level = max(aggregate_preferred_demand_profile)
+        maximum_demand_level = max(aggregate_preferred_demand_profile) if max_scale == 0 else max_scale
         self.pricing_table = aggregator_generation.new_pricing_table(
             normalised_pricing_table_csv=normalised_pricing_table_csv,
             maximum_demand_level=maximum_demand_level, weight=weight, num_periods=num_periods)
