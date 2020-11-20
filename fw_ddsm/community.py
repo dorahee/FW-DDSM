@@ -210,7 +210,7 @@ class Community:
         if num_cpus is not None:
             pool = Pool(num_cpus)
         else:
-            pool = Pool(cpu_count())
+            pool = Pool()
         results = pool.starmap_async(Household.schedule_household,
                                      [(Household(), prices, scheduling_method, household,
                                        self.num_intervals, model, solver, search)
@@ -226,6 +226,7 @@ class Community:
         time_scheduling_iteration = 0
         total_demand = 0
         for res in results:
+            print(res)
             key = res[h_key]
             demands_household = res[s_demand]
             weighted_penalty_household = res[s_penalty]

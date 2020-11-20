@@ -73,6 +73,7 @@ def minizinc_model(model_file, solver, search,
 
     # process problem solution
     # obj = result.objective
+    print(result)
     solution = result.solution.actual_starts
     actual_starts = [int(a) - 1 for a in solution]
     # if "cp" in solver_type:
