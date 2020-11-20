@@ -226,7 +226,7 @@ class Community:
         time_scheduling_iteration = 0
         total_demand = 0
         for res in results:
-            print(res)
+            # print(res)
             key = res[h_key]
             demands_household = res[s_demand]
             weighted_penalty_household = res[s_penalty]
