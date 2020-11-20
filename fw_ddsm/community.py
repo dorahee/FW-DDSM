@@ -211,10 +211,10 @@ class Community:
             pool = Pool(num_cpus)
         else:
             pool = Pool()
-        results = pool.starmap_async(Household.schedule_household,
+        results = pool.starmap(Household.schedule_household,
                                      [(Household(), prices, scheduling_method, household,
                                        self.num_intervals, model, solver, search)
-                                      for household in households.values()]).get()
+                                      for household in households.values()])
         # parameter order: prices, scheduling_method, household, num_intervals, model, solver, search
         pool.close()
         pool.join()
