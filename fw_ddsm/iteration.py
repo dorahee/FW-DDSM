@@ -17,9 +17,9 @@ class Iteration:
         self.start_time_probability = [1] * no_periods
 
     def new(self, algorithm, num_households,
-            file_task_power=file_demand_list, max_demand_multiplier=maxium_demand_multiplier,
+            file_task_power=file_demand_list, max_demand_multiplier=maximum_demand_multiplier,
             file_normalised_pricing_table=file_pricing_table, file_preferred_demand_profile=file_pdp,
-            num_tasks_dependent=no_tasks_dependent,
+            num_tasks_dependent=no_tasks_dependent, ensure_dependent=False,
             full_flex_task_min=no_full_flex_tasks_min, full_flex_task_max=0,
             semi_flex_task_min=no_semi_flex_tasks_min, semi_flex_task_max=0,
             fixed_task_min=no_fixed_tasks_min, fixed_task_max=0,
@@ -38,7 +38,8 @@ class Iteration:
         preferred_demand_profile = self.community.new(
             num_households=self.num_households, scheduling_method=self.scheduling_method,
             file_preferred_demand_profile=file_preferred_demand_profile, file_demand_list=file_task_power,
-            num_tasks_dependent=num_tasks_dependent, max_demand_multiplier=max_demand_multiplier,
+            num_tasks_dependent=num_tasks_dependent, ensure_dependent=ensure_dependent,
+            max_demand_multiplier=max_demand_multiplier,
             full_flex_task_min=full_flex_task_min, full_flex_task_max=full_flex_task_max,
             semi_flex_task_min=semi_flex_task_min, semi_flex_task_max=semi_flex_task_max,
             fixed_task_min=fixed_task_min, fixed_task_max=fixed_task_max,
@@ -51,13 +52,14 @@ class Iteration:
 
         return preferred_demand_profile, prices
 
-    def read(self, algorithm, inconvenience_cost_weight=None, num_dependent_tasks=None, read_from_folder="data/",
-             date_time=None):
+    def read(self, algorithm, inconvenience_cost_weight=None, num_dependent_tasks=None, ensure_dependent=False,
+             read_from_folder="data/", date_time=None):
         self.scheduling_method = algorithm[m_before_fw]
         self.pricing_method = algorithm[m_after_fw]
         preferred_demand_profile = self.community.read(
             read_from_folder=read_from_folder, scheduling_method=self.scheduling_method,
-            inconvenience_cost_weight=inconvenience_cost_weight, num_dependent_tasks=num_dependent_tasks,
+            inconvenience_cost_weight=inconvenience_cost_weight,
+            num_dependent_tasks=num_dependent_tasks, ensure_dependent=ensure_dependent,
             date_time=date_time)
         prices, preferred_cost = self.aggregator.read_aggregator(
             read_from_folder=read_from_folder, date_time=date_time,

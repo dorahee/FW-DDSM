@@ -15,13 +15,14 @@ algorithms[m_ogsa][m_after_fw] = f"{m_ogsa}_fw"
 # penalty_weight_range = [0, 5, 50, 500, 5000, 50000]
 # num_tasks_dependent_range = [0, 3, 5]
 num_households_range = [10]
-penalty_weight_range = [1, 3]
-num_tasks_dependent_range = [2]
+penalty_weight_range = [1]
+num_tasks_dependent_range = [1, 3]
 num_full_flex_tasks = 5
 num_semi_flex_tasks = 0
 num_fixed_tasks = 0
 num_samples = 5
 num_repeat = 1
+ensure_dependent = True
 
 
 def main(output_parent_folder=None, folder_id=1):
@@ -47,12 +48,13 @@ def main(output_parent_folder=None, folder_id=1):
                     print("----------------------------------------")
 
                     new_iteration = Iteration()
-                    output_folder = out.new_output_folder(num_households=num_households,
-                                                          num_dependent_tasks=num_tasks_dependent,
-                                                          num_full_flex_task_min=num_full_flex_tasks,
-                                                          num_semi_flex_task_min=num_semi_flex_tasks,
-                                                          inconvenience_cost_weight=penalty_weight,
-                                                          repeat=r, folder_id=folder_id)
+                    output_folder, output_parent_folder, this_date_time = out.new_output_folder(
+                        num_households=num_households,
+                        num_dependent_tasks=num_tasks_dependent,
+                        num_full_flex_task_min=num_full_flex_tasks,
+                        num_semi_flex_task_min=num_semi_flex_tasks,
+                        inconvenience_cost_weight=penalty_weight,
+                        repeat=r, folder_id=folder_id)
                     plot_layout = []
                     plot_final_layout = []
                     for alg in algorithms.values():
@@ -67,8 +69,9 @@ def main(output_parent_folder=None, folder_id=1):
                         if new_data:
                             preferred_demand_profile, prices = \
                                 new_iteration.new(algorithm=alg, num_households=num_households,
-                                                  max_demand_multiplier=maxium_demand_multiplier,
+                                                  max_demand_multiplier=maximum_demand_multiplier,
                                                   num_tasks_dependent=num_tasks_dependent,
+                                                  ensure_dependent=ensure_dependent,
                                                   full_flex_task_min=num_full_flex_tasks, full_flex_task_max=0,
                                                   semi_flex_task_min=num_semi_flex_tasks, semi_flex_task_max=0,
                                                   fixed_task_min=num_fixed_tasks, fixed_task_max=0,
@@ -76,11 +79,12 @@ def main(output_parent_folder=None, folder_id=1):
                                                   max_care_factor=care_f_max,
                                                   data_folder=out.output_parent_folder,
                                                   date_time=out.this_date_time)
-                            # new_data = False
+                            new_data = False
                         else:
                             preferred_demand_profile, prices = \
                                 new_iteration.read(algorithm=alg, inconvenience_cost_weight=penalty_weight,
                                                    num_dependent_tasks=num_tasks_dependent,
+                                                   ensure_dependent=ensure_dependent,
                                                    read_from_folder=out.output_parent_folder,
                                                    date_time=out.this_date_time)
                         start_time_probability = new_iteration.begin_iteration(starting_prices=prices, num_cpus=4)

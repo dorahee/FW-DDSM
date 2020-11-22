@@ -20,7 +20,8 @@ class Community:
         self.preferred_demand_profile = []
 
     def read(self, scheduling_method, read_from_folder="data/",
-             inconvenience_cost_weight=None, num_dependent_tasks=None, date_time=None):
+             inconvenience_cost_weight=None, num_dependent_tasks=None, ensure_dependent=False,
+             date_time=None):
         if not read_from_folder.endswith("/"):
             read_from_folder += "/"
 
@@ -28,7 +29,7 @@ class Community:
         self.households, self.preferred_demand_profile \
             = self.__existing_households(file_path=read_from_folder, date_time=date_time,
                                          inconvenience_cost_weight=inconvenience_cost_weight,
-                                         num_dependent_tasks=num_dependent_tasks)
+                                         num_dependent_tasks=num_dependent_tasks, ensure_dependent=ensure_dependent)
         if s_demand in self.households:
             self.num_households = len(self.households) - 1
         self.new_community_tracker(scheduling_method=scheduling_method)
@@ -38,8 +39,8 @@ class Community:
 
     def new(self, file_preferred_demand_profile, file_demand_list, scheduling_method,
             num_intervals=no_intervals, num_households=no_households,
-            max_demand_multiplier=maxium_demand_multiplier,
-            num_tasks_dependent=no_tasks_dependent,
+            max_demand_multiplier=maximum_demand_multiplier,
+            num_tasks_dependent=no_tasks_dependent, ensure_dependent=False,
             full_flex_task_min=no_full_flex_tasks_min, full_flex_task_max=0,
             semi_flex_task_min=no_semi_flex_tasks_min, semi_flex_task_max=0,
             fixed_task_min=no_fixed_tasks_min, fixed_task_max=0,
@@ -61,6 +62,7 @@ class Community:
                                                      list_of_devices_power=list_of_devices_power,
                                                      max_demand_multiplier=max_demand_multiplier,
                                                      num_tasks_dependent=num_tasks_dependent,
+                                                     ensure_dependent=ensure_dependent,
                                                      full_flex_task_min=full_flex_task_min,
                                                      full_flex_task_max=full_flex_task_max,
                                                      semi_flex_task_min=semi_flex_task_min,
@@ -164,7 +166,7 @@ class Community:
         return prices
 
     def __existing_households(self, file_path, date_time=None, inconvenience_cost_weight=None,
-                              num_dependent_tasks=None):
+                              num_dependent_tasks=None, ensure_dependent=False):
         # ---------------------------------------------------------------------- #
         # ---------------------------------------------------------------------- #
         if date_time is None:
@@ -195,6 +197,7 @@ class Community:
                 no_precedences, precedors, succ_delays \
                     = household_generation.new_dependent_tasks(
                     num_intervals=num_intervals, num_tasks_dependent=num_dependent_tasks,
+                    ensure_dependent=ensure_dependent,
                     num_total_tasks=num_total_tasks,
                     preferred_starts=preferred_starts, durations=durations, earliest_starts=earliest_starts,
                     latest_ends=latest_ends)
@@ -206,15 +209,16 @@ class Community:
 
         return households, preferred_demand_profile
 
-    def __schedule_multiple_processing(self, households, prices, scheduling_method, model, solver, search, num_cpus=None):
+    def __schedule_multiple_processing(self, households, prices, scheduling_method, model, solver, search,
+                                       num_cpus=None):
         if num_cpus is not None:
             pool = Pool(num_cpus)
         else:
             pool = Pool()
         results = pool.starmap(Household.schedule_household,
-                                     [(Household(), prices, scheduling_method, household,
-                                       self.num_intervals, model, solver, search)
-                                      for household in households.values()])
+                               [(Household(), prices, scheduling_method, household,
+                                 self.num_intervals, model, solver, search)
+                                for household in households.values()])
         # parameter order: prices, scheduling_method, household, num_intervals, model, solver, search
         pool.close()
         pool.join()

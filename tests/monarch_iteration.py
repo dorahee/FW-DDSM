@@ -68,7 +68,7 @@ def main(num_households, num_tasks_dependent, penalty_weight, num_cpus=None, exp
         if new_data:
             preferred_demand_profile, prices = \
                 new_iteration.new(algorithm=alg, num_households=num_households,
-                                  max_demand_multiplier=maxium_demand_multiplier,
+                                  max_demand_multiplier=maximum_demand_multiplier,
                                   num_tasks_dependent=num_tasks_dependent,
                                   full_flex_task_min=num_full_flex_tasks, full_flex_task_max=0,
                                   semi_flex_task_min=num_semi_flex_tasks, semi_flex_task_max=0,

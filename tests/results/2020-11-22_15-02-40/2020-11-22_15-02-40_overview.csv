@@ -1,0 +1,3 @@
+,no_households,penalty_weight,no_dependent_tasks,algorithm,repeat,init_PAR,PAR,init_max_demand,max_demand,total_demand,demand_reduction,cost_reduction,pricing_time,rescheduling_time
+0,10,1,1,minizinc_fw,0,5.33,2.76,18379.0,9527.25,165661.0,0.48,0.2,0.0028833333333333337,1.7466666666666668
+1,10,1,1,ogsa_fw,0,5.33,2.74,18379.0,9456.39,165661.0,0.49,0.2,0.002566666666666667,0.00416

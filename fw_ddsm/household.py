@@ -44,7 +44,7 @@ class Household:
     def new(self, num_intervals, scheduling_method,
             preferred_demand_profile=None, list_of_devices_power=None,
             preferred_demand_profile_csv=None, list_of_devices_power_csv=None,
-            max_demand_multiplier=maxium_demand_multiplier,
+            max_demand_multiplier=maximum_demand_multiplier,
             num_tasks_dependent=no_tasks_dependent,
             full_flex_task_min=no_full_flex_tasks_min, full_flex_task_max=0,
             semi_flex_task_min=no_semi_flex_tasks_min, semi_flex_task_max=0,

@@ -52,7 +52,7 @@ def new_task(
 
 
 def new_dependent_tasks(num_intervals, num_tasks_dependent, num_total_tasks,
-                        preferred_starts, durations, earliest_starts, latest_ends):
+                        preferred_starts, durations, earliest_starts, latest_ends, ensure_dependent=False):
     precedors = dict()
     no_precedences = 0
     succ_delays = dict()
@@ -77,7 +77,7 @@ def new_dependent_tasks(num_intervals, num_tasks_dependent, num_total_tasks,
             succ_delays[task].append(delay)
 
     for t in range(num_total_tasks - num_tasks_dependent, num_total_tasks):
-        if r.choice([True, False]):
+        if r.choice([True, ensure_dependent]):
             previous_tasks = list(range(t))
             r.shuffle(previous_tasks)
             for prev in previous_tasks:
@@ -112,8 +112,8 @@ def new_dependent_tasks(num_intervals, num_tasks_dependent, num_total_tasks,
 def new_household(
         preferred_demand_profile, list_of_devices_power,
         num_intervals=no_intervals, num_periods=no_periods, num_intervals_periods=no_intervals_periods,
-        max_demand_multiplier=maxium_demand_multiplier,
-        num_tasks_dependent=no_tasks_dependent,
+        max_demand_multiplier=maximum_demand_multiplier,
+        num_tasks_dependent=no_tasks_dependent, ensure_dependent=False,
         full_flex_task_min=no_full_flex_tasks_min, full_flex_task_max=0,
         semi_flex_task_min=no_semi_flex_tasks_min, semi_flex_task_max=0,
         fixed_task_min=no_fixed_tasks_min, fixed_task_max=0,
@@ -193,7 +193,7 @@ def new_household(
     num_total_tasks = num_full_flex_tasks + num_semi_flex_tasks + num_fixed_tasks
     no_precedences, precedors, succ_delays \
         = new_dependent_tasks(num_intervals, num_tasks_dependent, num_total_tasks,
-                              preferred_starts, durations, earliest_starts, latest_ends)
+                              preferred_starts, durations, earliest_starts, latest_ends, ensure_dependent)
 
     household = dict()
     if household_id is not None:
