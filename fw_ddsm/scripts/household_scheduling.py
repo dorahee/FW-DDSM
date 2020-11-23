@@ -37,7 +37,7 @@ def minizinc_model(model_file, solver, search,
                      earliest_starts, preferred_starts, latest_ends,
                      successors, precedents, no_precedents, succ_delays,
                      care_factors, prices, inconvenience_cost_weight,
-                     num_intervals=no_intervals):
+                     num_intervals=no_intervals, timeout=time_out):
     # problem model
     model = Model(model_file)
     gecode = Solver.lookup(solver)
@@ -68,7 +68,7 @@ def minizinc_model(model_file, solver, search,
         ins["run_costs"] = objective_values
 
     # solve problem model
-    result = ins.solve(timeout=timedelta(seconds=time_out))
+    result = ins.solve(timeout=timedelta(seconds=timeout))
     # result = ins.solve()
 
     # process problem solution

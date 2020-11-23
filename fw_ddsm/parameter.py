@@ -2,7 +2,7 @@
 no_intervals = 144
 no_periods = 48
 no_intervals_periods = int(no_intervals / no_periods)
-time_out = 10
+time_out = 60
 
 # household related parameters
 # new_households = True

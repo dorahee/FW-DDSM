@@ -107,11 +107,11 @@ class Household:
 
         print(f"0. {folder}{file_name} written.")
 
-    def schedule(self, num_iteration, prices, model=None, solver=None, search=None):
+    def schedule(self, num_iteration, prices, model=None, solver=None, search=None, timeout=time_out):
         result = self.schedule_household(prices=prices,
                                          scheduling_method=self.scheduling_method,
                                          household=self.tasks,
-                                         model=model, solver=solver, search=search)
+                                         model=model, solver=solver, search=search, timeout=timeout)
         household_demand_profile = result[s_demand]
         weighted_penalty_household = result[s_penalty]
         self.household_tracker.update(num_record=num_iteration,
@@ -121,7 +121,7 @@ class Household:
         return household_demand_profile, weighted_penalty_household
 
     def schedule_household(self, prices, scheduling_method, household, num_intervals=no_intervals,
-                           model=None, solver=None, search=None):
+                           model=None, solver=None, search=None, timeout=time_out):
 
         prices = self.__convert_price(num_intervals, prices)
 
@@ -169,7 +169,7 @@ class Household:
                                                       care_factors=care_factors,
                                                       prices=prices,
                                                       inconvenience_cost_weight=inconvenience_cost_weight,
-                                                      num_intervals=num_intervals)
+                                                      num_intervals=num_intervals, timeout=timeout)
         else:
             actual_starts, time_scheduling \
                 = household_scheduling.ogsa(objective_values=objective_values, big_value=big_value,
