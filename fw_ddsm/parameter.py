@@ -22,7 +22,7 @@ care_f_weight = 1
 pricing_table_weight = 1
 # cost_function_type = "linear"
 cost_function_type = "piece-wise"
-
+min_step = 0.001
 
 # solver related parameters
 variable_selection = "smallest"
