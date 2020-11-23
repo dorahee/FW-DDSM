@@ -3,7 +3,7 @@ from pandas import DataFrame as df
 from datetime import date, datetime
 from pandas_bokeh import *
 from bokeh.layouts import layout
-from bokeh.models import ColumnDataSource, DataTable, TableColumn, Panel, Tabs, NumberFormatter
+from bokeh.models import *
 from fw_ddsm.tracker import *
 
 
@@ -54,6 +54,7 @@ class Output:
     def save_to_output_folder(self, algorithm,
                               aggregator_tracker, community_tracker,
                               aggregator_final, community_final=None,
+                              params_tracker=None,
                               print_demands=True, print_prices=True, print_summary=True):
 
         agg_demands, agg_prices, agg_others = aggregator_tracker.extract_data()
@@ -104,6 +105,7 @@ class Output:
         p_prices.y_range.start = 0
 
         # data table
+        df_others[s_obj] = df_others[p_cost] + df_others[s_penalty]
         source = ColumnDataSource(df_others)
         columns = [TableColumn(field=x, title=x.replace("_", " "), formatter=NumberFormatter(format="0.00"))
                    for x in df_others.columns]
@@ -132,8 +134,8 @@ class Output:
         p_demands_final.y_range.start = 0
         p_prices_final.y_range.start = 0
 
-
         # data table
+        df_others_final[s_obj] = df_others_final[p_cost] + df_others_final[s_penalty]
         source_final = ColumnDataSource(df_others_final)
         columns_final = [TableColumn(field=x, title=x.replace("_", " "), formatter=NumberFormatter(format="0.00"))
                          for x in df_others_final.columns]
