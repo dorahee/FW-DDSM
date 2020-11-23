@@ -14,7 +14,7 @@ no_semi_flex_tasks_min = 0
 no_semi_flex_tasks_max = 0
 no_fixed_tasks_min = 0
 no_tasks_dependent = 2
-maximum_demand_multiplier = no_full_flex_tasks_min + no_semi_flex_tasks_min + no_fixed_tasks_min
+maximum_demand_multiplier = 1
 care_f_max = 10
 care_f_weight = 1
 
