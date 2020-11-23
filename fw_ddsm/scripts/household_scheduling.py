@@ -68,8 +68,10 @@ def minizinc_model(model_file, solver, search,
         ins["run_costs"] = objective_values
 
     # solve problem model
-    result = ins.solve(timeout=timedelta(seconds=timeout))
-    # result = ins.solve()
+    if timeout is None:
+        result = ins.solve()
+    else:
+        result = ins.solve(timeout=timedelta(seconds=timeout))
 
     # process problem solution
     # obj = result.objective
