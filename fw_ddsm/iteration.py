@@ -52,14 +52,14 @@ class Iteration:
 
         return preferred_demand_profile, prices
 
-    def read(self, algorithm, inconvenience_cost_weight=None, num_dependent_tasks=None, ensure_dependent=False,
+    def read(self, algorithm, inconvenience_cost_weight=None, new_dependent_tasks=None, ensure_dependent=False,
              read_from_folder="data/", date_time=None):
         self.scheduling_method = algorithm[m_before_fw]
         self.pricing_method = algorithm[m_after_fw]
         preferred_demand_profile = self.community.read(
             read_from_folder=read_from_folder, scheduling_method=self.scheduling_method,
             inconvenience_cost_weight=inconvenience_cost_weight,
-            num_dependent_tasks=num_dependent_tasks, ensure_dependent=ensure_dependent,
+            num_dependent_tasks=new_dependent_tasks, ensure_dependent=ensure_dependent,
             date_time=date_time)
         prices, preferred_cost = self.aggregator.read_aggregator(
             read_from_folder=read_from_folder, date_time=date_time,

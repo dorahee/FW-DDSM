@@ -81,7 +81,7 @@ def main(num_households, num_tasks_dependent, penalty_weight, num_cpus=None, exp
         else:
             preferred_demand_profile, prices = \
                 new_iteration.read(algorithm=alg, inconvenience_cost_weight=penalty_weight,
-                                   num_dependent_tasks=num_tasks_dependent,
+                                   new_dependent_tasks=num_tasks_dependent,
                                    read_from_folder=output_parent_folder,
                                    date_time=this_date_time)
 

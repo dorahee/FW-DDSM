@@ -83,7 +83,7 @@ def main(output_parent_folder=None, folder_id=1):
                         else:
                             preferred_demand_profile, prices = \
                                 new_iteration.read(algorithm=alg, inconvenience_cost_weight=penalty_weight,
-                                                   num_dependent_tasks=num_tasks_dependent,
+                                                   # num_dependent_tasks=num_tasks_dependent,
                                                    ensure_dependent=ensure_dependent,
                                                    read_from_folder=out.output_parent_folder,
                                                    date_time=out.this_date_time)
