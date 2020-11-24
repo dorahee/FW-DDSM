@@ -157,7 +157,7 @@ class Aggregator:
 
     def __existing_pricing_table(self, file_folder, date_time=None):
         if date_time is None:
-            file_name = f"{file_folder}data/{file_pricing_table_pkl}"
+            file_name = f"{file_folder}{file_pricing_table_pkl}"
         else:
             file_name = f"{file_folder}data/{date_time}_{file_pricing_table_pkl}"
         with open(file_name, 'rb') as f:
