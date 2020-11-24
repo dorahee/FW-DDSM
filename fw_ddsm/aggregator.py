@@ -94,7 +94,7 @@ class Aggregator:
         self.final.update(num_record=0, demands=aggregate_preferred_demand_profile)
 
     def pricing(self, num_iteration, aggregate_demand_profile, aggregate_inconvenience=0, finalising=False,
-                min_step_size=min_step, ignore_tiny_step=False, roundup_tiny_step=False):
+                min_step_size=min_step, ignore_tiny_step=False, roundup_tiny_step=False, print_steps=False):
 
         aggregate_demand_profile = self.__convert_demand_profile(aggregate_demand_profile)
         step = 1
@@ -129,7 +129,8 @@ class Aggregator:
                                                     price_fw_pre=price_fw_pre, cost_fw_pre=cost_fw_pre,
                                                     min_step_size=min_step_size,
                                                     ignore_tiny_step=ignore_tiny_step,
-                                                    roundup_tiny_step=roundup_tiny_step)
+                                                    roundup_tiny_step=roundup_tiny_step,
+                                                    print_steps=print_steps)
 
         if not finalising:
             self.tracker.update(num_record=num_iteration, penalty=inconvenience,

@@ -34,7 +34,7 @@ def prices_and_cost(aggregate_demand_profile, pricing_table, cost_function=cost_
 
 def find_step_size(num_iteration, pricing_method, pricing_table, aggregate_demand_profile, aggregate_inconvenience,
                    demand_profile_fw_pre, inconvenience_fw_pre, price_fw_pre, cost_fw_pre, min_step_size=min_step,
-                   ignore_tiny_step=False, roundup_tiny_step=False):
+                   ignore_tiny_step=False, roundup_tiny_step=False, print_steps=False):
     time_begin = time()
 
     price_fw = price_fw_pre[:]
@@ -82,6 +82,9 @@ def find_step_size(num_iteration, pricing_method, pricing_table, aggregate_deman
 
         demand_profile_fw_pre = demand_profile_fw_temp[:]
         step_size_final_temp = step_size_final + step_size_incr
+        if print_steps:
+            print(f"step {step_size_final_temp} at {num_itrs}, change of cost = {change_of_cost}, "
+                  f"gradient = {gradient}")
         if gradient < 0 and step_size_final_temp < 1 and abs(change_of_cost) > min_abs_change_of_cost:
             step_size_final = step_size_final_temp
             demand_profile_fw = demand_profile_fw_temp[:]
