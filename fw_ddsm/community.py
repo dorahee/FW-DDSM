@@ -212,17 +212,23 @@ class Community:
 
     def __schedule_multiple_processing(self, households, prices, scheduling_method, model, solver, search,
                                        num_cpus=None, timeout=time_out, print_done=False):
-        if num_cpus is not None:
-            pool = Pool(num_cpus)
-        else:
-            pool = Pool()
-        results = pool.starmap_async(Household.schedule_household,
-                               [(Household(), prices, scheduling_method, household,
-                                 self.num_intervals, model, solver, search, timeout, print_done)
-                                for household in households.values()]).get()
         # parameter order: prices, scheduling_method, household, num_intervals, model, solver, search
-        pool.close()
-        pool.join()
+        # if num_cpus is not None:
+        #     pool = Pool(num_cpus)
+        # else:
+        #     pool = Pool()
+        # results = pool.starmap_async(Household.schedule_household,
+        #                              [(Household(), prices, scheduling_method, household,
+        #                                self.num_intervals, model, solver, search, timeout, print_done)
+        #                               for household in households.values()]).get()
+        # pool.close()
+        # pool.join()
+
+        with concurrent.futures.ProcessPoolExecutor() as executor:
+            results = {executor.submit(Household.schedule_household, Household(), prices, scheduling_method, household,
+                                       self.num_intervals, model, solver, search, timeout, print_done):
+                           household for household in households.values()}
+
         return results
 
     def __retrieve_scheduling_results(self, results, num_iteration):
@@ -230,7 +236,11 @@ class Community:
         total_weighted_inconvenience = 0
         time_scheduling_iteration = 0
         total_demand = 0
-        for res in results:
+
+        for item in concurrent.futures.as_completed(results):
+            res = item.result()
+
+        # for res in results:
             # print(res)
             key = res[h_key]
             demands_household = res[s_demand]
