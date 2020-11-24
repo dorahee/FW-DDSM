@@ -69,7 +69,7 @@ class Iteration:
         return preferred_demand_profile, prices
 
     def begin_iteration(self, starting_prices, num_cpus=None, timeout=time_out,
-                        min_step_size=min_step, ignore_tiny_step=False):
+                        min_step_size=min_step, ignore_tiny_step=False, roundup_tiny_step=False):
         scheduling_method = self.scheduling_method
         pricing_method = self.pricing_method
         prices = starting_prices
@@ -84,7 +84,8 @@ class Iteration:
                 = self.aggregator.pricing(num_iteration=num_iteration,
                                           aggregate_demand_profile=aggregate_demand_profile,
                                           aggregate_inconvenience=weighted_total_inconvenience,
-                                          min_step_size=min_step_size, ignore_tiny_step=ignore_tiny_step)
+                                          min_step_size=min_step_size, ignore_tiny_step=ignore_tiny_step,
+                                          roundup_tiny_step=roundup_tiny_step)
             num_iteration += 1
 
         print(f"Converged in {num_iteration - 1}")

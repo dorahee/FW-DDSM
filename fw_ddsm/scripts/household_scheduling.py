@@ -33,11 +33,11 @@ def preprocessing(
 
 
 def minizinc_model(model_file, solver, search,
-                     objective_values, powers, max_demand, durations,
-                     earliest_starts, preferred_starts, latest_ends,
-                     successors, precedents, no_precedents, succ_delays,
-                     care_factors, prices, inconvenience_cost_weight,
-                     num_intervals=no_intervals, timeout=time_out):
+                   objective_values, powers, max_demand, durations,
+                   earliest_starts, preferred_starts, latest_ends,
+                   successors, precedents, no_precedents, succ_delays,
+                   care_factors, prices, inconvenience_cost_weight,
+                   num_intervals=no_intervals, timeout=time_out):
     # problem model
     model = Model(model_file)
     gecode = Solver.lookup(solver)
@@ -88,7 +88,7 @@ def minizinc_model(model_file, solver, search,
 
 
 def ogsa(objective_values, big_value, powers, durations, preferred_starts, latest_ends, max_demand,
-           successors, precedents, succ_delays, randomness=True, num_intervals=no_intervals):
+         successors, precedents, succ_delays, randomness=True, num_intervals=no_intervals):
     start_time = timeit.default_timer()
 
     def retrieve_successors_or_precedents(list0, prec_or_succ_list1, succ_prec_list2):
