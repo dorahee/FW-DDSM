@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="fw_ddsm",
-    version="0.2.43",
+    version="0.2.45",
     author="Shan Dora He",
     author_email="dora.shan.he@gmail.com",
     description="Frank-Wolfe-based distributed demand scheduling method package",
