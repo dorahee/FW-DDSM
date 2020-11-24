@@ -57,6 +57,10 @@ class Iteration:
 
     def read(self, algorithm, inconvenience_cost_weight=None, new_dependent_tasks=None, ensure_dependent=False,
              read_from_folder="data/", date_time=None):
+
+        if read_from_folder is None:
+            read_from_folder = self.data_folder
+
         self.scheduling_method = algorithm[m_before_fw]
         self.pricing_method = algorithm[m_after_fw]
         preferred_demand_profile = self.community.read(
