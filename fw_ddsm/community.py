@@ -118,7 +118,7 @@ class Community:
         f.close()
 
     def schedule(self, num_iteration, prices, scheduling_method, model=None, solver=None, search=None, households=None,
-                 num_cpus=None, timeout=time_out):
+                 num_cpus=None, timeout=time_out, print_done=False):
 
         prices = self.__convert_price(prices)
 
@@ -127,7 +127,7 @@ class Community:
         results = self.__schedule_multiple_processing(households=households, prices=prices,
                                                       scheduling_method=scheduling_method,
                                                       model=model, solver=solver, search=search,
-                                                      num_cpus=num_cpus, timeout=timeout)
+                                                      num_cpus=num_cpus, timeout=timeout, print_done=print_done)
 
         aggregate_demand_profile, weighted_total_inconvenience, time_scheduling_iteration \
             = self.__retrieve_scheduling_results(results=results, num_iteration=num_iteration)
@@ -210,14 +210,14 @@ class Community:
         return households, preferred_demand_profile
 
     def __schedule_multiple_processing(self, households, prices, scheduling_method, model, solver, search,
-                                       num_cpus=None, timeout=time_out):
+                                       num_cpus=None, timeout=time_out, print_done=False):
         if num_cpus is not None:
             pool = Pool(num_cpus)
         else:
             pool = Pool()
         results = pool.starmap(Household.schedule_household,
                                [(Household(), prices, scheduling_method, household,
-                                 self.num_intervals, model, solver, search, timeout)
+                                 self.num_intervals, model, solver, search, timeout, print_done)
                                 for household in households.values()])
         # parameter order: prices, scheduling_method, household, num_intervals, model, solver, search
         pool.close()

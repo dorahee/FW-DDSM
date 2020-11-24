@@ -68,7 +68,7 @@ def find_step_size(num_iteration, pricing_method, pricing_table, aggregate_deman
                     step = step if step > min_step_size else 1
                 if roundup_tiny_step:
                     step = ceil(step * 1000) / 1000
-                    step = max(step, min_step_size)
+                step = max(step, min_step_size)
             step_profile.append(step)
         step_size_incr = min(step_profile)
 

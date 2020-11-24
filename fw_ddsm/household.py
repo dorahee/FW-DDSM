@@ -121,7 +121,7 @@ class Household:
         return household_demand_profile, weighted_penalty_household
 
     def schedule_household(self, prices, scheduling_method, household, num_intervals=no_intervals,
-                           model=None, solver=None, search=None, timeout=time_out):
+                           model=None, solver=None, search=None, timeout=time_out, print_done=False):
 
         prices = self.__convert_price(num_intervals, prices)
 
@@ -187,6 +187,8 @@ class Household:
             = inconvenience_cost_weight * sum([abs(pst - ast) * cf
                                                for pst, ast, cf in zip(preferred_starts, actual_starts, care_factors)])
 
+        if print_done:
+            print(f"Household {key} scheduled. ")
         return {h_key: key, s_demand: household_demand_profile, s_starts: actual_starts,
                 s_penalty: weighted_penalty_household, t_time: time_scheduling}
 
