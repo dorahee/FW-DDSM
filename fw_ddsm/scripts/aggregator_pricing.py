@@ -89,7 +89,7 @@ def find_step_size(num_iteration, pricing_method, pricing_table, aggregate_deman
             num_itrs += 1
 
     print(f"{num_iteration}. "
-          f"Best step size {round(step_size_final, 3)}, "
+          f"Best step size {round(step_size_final, 6)}, "
           f"{num_itrs} iterations, cost {cost_fw}, "
           f"using {pricing_method}")
     time_fw = time() - time_begin
