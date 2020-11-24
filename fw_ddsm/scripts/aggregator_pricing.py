@@ -47,7 +47,9 @@ def find_step_size(num_iteration, pricing_method, pricing_table, aggregate_deman
     step_size_final = 0
     gradient = -999
     num_itrs = 0
-    while gradient < 0 and step_size_final < 1:
+    change_of_cost = 99
+    min_change_of_cost = 0.01
+    while gradient < 0 and step_size_final < 1 and change_of_cost > min_change_of_cost:
         step_profile = []
         for dp, dn, demand_levels_period in \
                 zip(demand_profile_fw_pre, aggregate_demand_profile, pricing_table[p_demand_table].values()):
@@ -75,12 +77,12 @@ def find_step_size(num_iteration, pricing_method, pricing_table, aggregate_deman
         price_fw_temp, cost_fw_temp = prices_and_cost(aggregate_demand_profile=demand_profile_fw_temp,
                                                       pricing_table=pricing_table,
                                                       cost_function=cost_function_type)
-        gradient = change_of_inconvenience \
-                   + sum([d_c * p_fw for d_c, p_fw in zip(demand_profile_changed, price_fw_temp)])
+        change_of_cost = sum([d_c * p_fw for d_c, p_fw in zip(demand_profile_changed, price_fw_temp)])
+        gradient = change_of_inconvenience + change_of_cost
 
         demand_profile_fw_pre = demand_profile_fw_temp[:]
         step_size_final_temp = step_size_final + step_size_incr
-        if gradient < 0 and step_size_final_temp < 1:
+        if gradient < 0 and step_size_final_temp < 1 and change_of_cost > min_change_of_cost:
             step_size_final = step_size_final_temp
             demand_profile_fw = demand_profile_fw_temp[:]
             price_fw = price_fw_temp[:]
