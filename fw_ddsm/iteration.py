@@ -26,9 +26,10 @@ class Iteration:
             inconvenience_cost_weight=care_f_weight, max_care_factor=care_f_max,
             data_folder=None, date_time=None):
 
-        if not data_folder.endswith("/"):
-            data_folder += "/"
-        self.data_folder = data_folder
+        if data_folder is not None:
+            if not data_folder.endswith("/"):
+                data_folder += "/"
+            self.data_folder = data_folder
 
         self.scheduling_method = algorithm[m_before_fw]
         self.pricing_method = algorithm[m_after_fw]
