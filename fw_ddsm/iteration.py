@@ -30,6 +30,8 @@ class Iteration:
             if not data_folder.endswith("/"):
                 data_folder += "/"
             self.data_folder = data_folder
+        else:
+            data_folder = self.data_folder
 
         self.scheduling_method = algorithm[m_before_fw]
         self.pricing_method = algorithm[m_after_fw]
