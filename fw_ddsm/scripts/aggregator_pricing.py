@@ -64,7 +64,7 @@ def find_step_size(num_iteration, pricing_method, pricing_table, aggregate_deman
                 step = (dl - dp) / dd
                 if ignore_tiny_step:
                     step = step if step > min_step_size else 1
-                elif roundup_tiny_step:
+                if roundup_tiny_step:
                     step = ceil(step * 1000) / 1000
                 step = max(step, min_step_size)
             step_profile.append(step)
