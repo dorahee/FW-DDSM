@@ -62,7 +62,7 @@ def find_step_size(num_iteration, pricing_method, pricing_table, aggregate_deman
                 step = 1
             else:
                 dd = dn - dp
-                dl = find_second_ge(d_levels, dp) if dd > 0 else find_le(d_levels, dp)
+                dl = find_second_ge(d_levels, dp) if dd > 0 else find_le(d_levels, dp) - 0.001
                 step = (dl - dp) / dd
                 if ignore_tiny_step:
                     step = step if step > min_step_size else 1
