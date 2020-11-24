@@ -1,4 +1,5 @@
 from multiprocessing import Pool, cpu_count
+import concurrent.futures
 import pickle
 from time import time
 from fw_ddsm.household import *
@@ -215,10 +216,10 @@ class Community:
             pool = Pool(num_cpus)
         else:
             pool = Pool()
-        results = pool.starmap(Household.schedule_household,
+        results = pool.starmap_async(Household.schedule_household,
                                [(Household(), prices, scheduling_method, household,
                                  self.num_intervals, model, solver, search, timeout, print_done)
-                                for household in households.values()])
+                                for household in households.values()]).get()
         # parameter order: prices, scheduling_method, household, num_intervals, model, solver, search
         pool.close()
         pool.join()
