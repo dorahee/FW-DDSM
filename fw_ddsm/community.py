@@ -171,7 +171,7 @@ class Community:
         # ---------------------------------------------------------------------- #
         # ---------------------------------------------------------------------- #
         if date_time is None:
-            file_name = f"{file_path}data/{file_community_pkl}"
+            file_name = f"{file_path}{file_community_pkl}"
         else:
             file_name = f"{file_path}data/{date_time}_{file_community_pkl}"
         with open(file_name, 'rb') as f:
