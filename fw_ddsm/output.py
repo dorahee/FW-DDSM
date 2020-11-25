@@ -9,7 +9,7 @@ from fw_ddsm.tracker import *
 
 class Output:
 
-    def __init__(self, output_root_folder="results/", output_parent_folder=None):
+    def __init__(self, output_root_folder="results/", output_parent_folder=None, date_time=None):
 
         self.output_folder = ""
         # self.aggregator_tracker = Tracker()
@@ -21,9 +21,12 @@ class Output:
             output_root_folder += "/"
         self.output_root_folder = output_root_folder
 
-        this_date = str(date.today())
-        this_time = str(datetime.now().time().strftime("%H-%M-%S"))
-        self.this_date_time = f"{this_date}_{this_time}"
+        if date_time is None:
+            this_date = str(date.today())
+            this_time = str(datetime.now().time().strftime("%H-%M-%S"))
+            self.this_date_time = f"{this_date}_{this_time}"
+        else:
+            self.this_date_time = date_time
         if output_parent_folder is not None:
             self.output_parent_folder = f"{self.output_root_folder}{output_parent_folder}/"
         else:
