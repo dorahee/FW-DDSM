@@ -188,7 +188,7 @@ class Household:
                                                for pst, ast, cf in zip(preferred_starts, actual_starts, care_factors)])
 
         if print_done:
-            print(f"Household {key}, {s_starts}. ")
+            print(f"Household {key}, {actual_starts}. ")
         return {h_key: key, s_demand: household_demand_profile, s_starts: actual_starts,
                 s_penalty: weighted_penalty_household, t_time: time_scheduling}
 
