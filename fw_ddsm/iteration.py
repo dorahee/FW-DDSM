@@ -100,7 +100,7 @@ class Iteration:
         print(f"Converged in {num_iteration - 1}")
 
         self.start_time_probability = self.aggregator.compute_start_time_probabilities()
-        return self.start_time_probability
+        return self.start_time_probability, num_iteration - 1
 
     def finalise_schedules(self, start_time_probability=None, scheduling_method=None, num_samples=1):
         if scheduling_method is None:
