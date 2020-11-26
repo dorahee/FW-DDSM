@@ -212,4 +212,4 @@ def new_household(
     household[h_incon_weight] = inconvenience_cost_weight
     household[s_demand] = household_demand_profile
 
-    return household, household_demand_profile
+    return household, household_demand_profile, preferred_starts

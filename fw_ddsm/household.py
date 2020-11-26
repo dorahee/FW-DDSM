@@ -34,7 +34,7 @@ class Household:
 
         self.household_tracker = Tracker()
         self.household_tracker.new(name=f"h{household_id}")
-        self.household_tracker.update(num_record=0, demands=self.tasks[s_demand], penalty=0)
+        self.household_tracker.update(num_record=0, starts=self.tasks[h_psts], demands=self.tasks[s_demand], penalty=0)
         self.household_final = Tracker()
         self.household_final.new(name=f"h{household_id}_final")
 
@@ -64,7 +64,7 @@ class Household:
         if list_of_devices_power_csv is not None:
             list_of_devices_power = genfromtxt(list_of_devices_power_csv, delimiter=',', dtype="float")
 
-        tasks, household_demand_profile \
+        tasks, household_demand_profile, household_preferred_starts \
             = household_generation.new_household(num_intervals=num_intervals,
                                                  preferred_demand_profile=preferred_demand_profile,
                                                  list_of_devices_power=list_of_devices_power,
@@ -86,7 +86,8 @@ class Household:
 
         self.household_tracker = Tracker()
         self.household_tracker.new(name=f"h{household_id}")
-        self.household_tracker.update(num_record=0, demands=household_demand_profile, penalty=0)
+        self.household_tracker.update(num_record=0, starts=household_preferred_starts,
+                                      demands=household_demand_profile, penalty=0)
         self.household_final = Tracker()
         self.household_final.new(name=f"h{household_id}_final")
 
@@ -114,11 +115,13 @@ class Household:
                                          model=model, solver=solver, search=search, timeout=timeout)
         household_demand_profile = result[s_demand]
         weighted_penalty_household = result[s_penalty]
+        household_start_times = result[s_starts]
         self.household_tracker.update(num_record=num_iteration,
+                                      starts=household_start_times,
                                       demands=household_demand_profile,
                                       penalty=weighted_penalty_household)
 
-        return household_demand_profile, weighted_penalty_household
+        return household_demand_profile, weighted_penalty_household, household_start_times
 
     def schedule_household(self, prices, scheduling_method, household, num_intervals=no_intervals,
                            model=None, solver=None, search=None, timeout=time_out, print_done=False):

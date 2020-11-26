@@ -245,6 +245,7 @@ class Community:
             key = res[h_key]
             demands_household = res[s_demand]
             weighted_penalty_household = res[s_penalty]
+            household_start_times = res[s_starts]
             time_household = res[t_time]
             total_demand += sum(demands_household)
 
@@ -253,7 +254,9 @@ class Community:
             time_scheduling_iteration += time_household
 
             # update each household's tracker
-            self.households[key][k_tracker].update(num_record=num_iteration, demands=demands_household,
+            self.households[key][k_tracker].update(num_record=num_iteration,
+                                                   starts=household_start_times,
+                                                   demands=demands_household,
                                                    penalty=weighted_penalty_household)
 
         return aggregate_demand_profile, total_weighted_inconvenience, time_scheduling_iteration

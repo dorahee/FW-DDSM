@@ -12,11 +12,11 @@ num_fixed_task_min = 1
 num_tasks_dependent = int((num_full_flex_task_min + num_semi_flex_task_min) / 5)
 # household 1
 household1 = Household()
-household1.new(num_intervals=no_intervals,
+household1.new(num_intervals=no_intervals, ## change this to 48
                scheduling_method=scheduling_method,
-               full_flex_task_min=num_full_flex_task_min,
-               semi_flex_task_min=num_semi_flex_task_min,
-               fixed_task_min=num_fixed_task_min,
+               full_flex_task_min=num_full_flex_task_min,  ## change this to any number you want like 1, or 5
+               semi_flex_task_min=num_semi_flex_task_min,  ## set it to 0
+               fixed_task_min=num_fixed_task_min,          ## set it to 0
                num_tasks_dependent=num_tasks_dependent,
                preferred_demand_profile_csv="data/sample_demand_profile.csv",
                list_of_devices_power_csv="data/demands_list.csv",

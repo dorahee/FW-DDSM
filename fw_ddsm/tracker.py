@@ -12,7 +12,7 @@ class Tracker:
     def new(self, name=""):
         self.name = name
 
-        for key in [s_demand, s_demand_max, s_demand_total, s_demand_reduction, s_par,
+        for key in [s_starts, s_demand, s_demand_max, s_demand_total, s_demand_reduction, s_par,
                     s_penalty, p_prices, p_cost, p_cost_reduction, p_step, t_time]:
             self.data[key] = dict()
 
@@ -21,7 +21,7 @@ class Tracker:
         self.data = existing_tracker.copy()
 
     def update(self, num_record, tracker_data=None, demands=None, prices=None, penalty=None,
-               run_time=None, cost=None, step=None, init_demand_max=None, init_cost=None):
+               run_time=None, cost=None, step=None, init_demand_max=None, init_cost=None, starts=None):
         if tracker_data is None:
             tracker_data = self.data
         if step is not None:
@@ -45,6 +45,8 @@ class Tracker:
                     = round((init_demand_max - demand_max) / init_demand_max, 2)
         if run_time is not None:
             tracker_data[t_time][num_record] = round(run_time, 4)
+        if starts is not None:
+            tracker_data[s_starts][num_record] = starts
 
         return tracker_data
 
