@@ -153,8 +153,9 @@ class Community:
             total_demand += sum(chosen_demand_profile)
 
             household_id = household[h_key]
-            self.households[household_id][k_tracker_final] = Tracker()
-            self.households[household_id][k_tracker_final].new()
+            if k_tracker_final not in self.households[household_id]:
+                self.households[household_id][k_tracker_final] = Tracker()
+                self.households[household_id][k_tracker_final].new()
             self.households[household_id][k_tracker_final].update(num_record=num_sample, starts=chosen_start_times,
                                                                   demands=chosen_demand_profile, penalty=chosen_penalty)
 
@@ -189,7 +190,7 @@ class Community:
         for key, household in households.items():
             household_tracker = Tracker()
             household_tracker.new()
-            household_tracker.update(num_record=0, starts=household[s_starts], demands=household[s_demand], penalty=0)
+            household_tracker.update(num_record=0, starts=household[h_psts], demands=household[s_demand], penalty=0)
             household[k_tracker] = household_tracker
 
             if inconvenience_cost_weight is not None:
