@@ -57,7 +57,7 @@ class Community:
         preferred_demand_profile = genfromtxt(file_preferred_demand_profile, delimiter=',', dtype="float")
         list_of_devices_power = genfromtxt(file_demand_list, delimiter=',', dtype="float")
         for h in range(num_households):
-            household, household_demand_profile \
+            household, household_demand_profile, preferred_starts \
                 = household_generation.new_household(num_intervals=num_intervals,
                                                      preferred_demand_profile=preferred_demand_profile,
                                                      list_of_devices_power=list_of_devices_power,
@@ -78,7 +78,8 @@ class Community:
             households[h] = household.copy()
             households[h][k_tracker] = Tracker()
             households[h][k_tracker].new()
-            households[h][k_tracker].update(num_record=0, demands=household_demand_profile, penalty=0)
+            households[h][k_tracker].update(num_record=0, starts=preferred_starts,
+                                            demands=household_demand_profile, penalty=0)
 
         self.households = households
         self.preferred_demand_profile = aggregate_demand_profile
@@ -182,7 +183,7 @@ class Community:
         for key, household in households.items():
             household_tracker = Tracker()
             household_tracker.new()
-            household_tracker.update(num_record=0, demands=household[s_demand], penalty=0)
+            household_tracker.update(num_record=0, starts=household[s_starts], demands=household[s_demand], penalty=0)
             household[k_tracker] = household_tracker
 
             if inconvenience_cost_weight is not None:
