@@ -144,7 +144,7 @@ class Community:
         final_total_inconvenience = 0
         total_demand = 0
         for household in self.households.values():
-            chosen_demand_profile, chosen_penalty \
+            chosen_demand_profile, chosen_penalty, chosen_start_times \
                 = Household.finalise_household(self=Household(), household_tracker_data=household[k_tracker].data,
                                                probability_distribution=start_probability_distribution)
             final_aggregate_demand_profile \

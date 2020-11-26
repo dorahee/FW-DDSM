@@ -204,10 +204,12 @@ class Household:
         chosen_iter = choice(len(probability_distribution), size=1, p=probability_distribution)[0]
         chosen_demand_profile = household_tracker_data[s_demand][chosen_iter].copy()
         chosen_penalty = household_tracker_data[s_penalty][chosen_iter]
+        chosen_start_times = household_tracker_data[s_starts][chosen_iter].copy()
 
         if household_tracker_data is None:
-            self.household_final.update(num_record=num_schedule,  demands=chosen_demand_profile, penalty=chosen_penalty)
-        return chosen_demand_profile, chosen_penalty
+            self.household_final.update(num_record=num_schedule, starts=chosen_start_times,
+                                        demands=chosen_demand_profile, penalty=chosen_penalty)
+        return chosen_demand_profile, chosen_penalty, chosen_start_times
 
     def __convert_price(self, num_intervals, prices):
         num_periods = len(prices)
