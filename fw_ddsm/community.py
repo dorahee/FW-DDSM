@@ -152,6 +152,12 @@ class Community:
             final_total_inconvenience += chosen_penalty
             total_demand += sum(chosen_demand_profile)
 
+            household_id = household[h_key]
+            self.households[household_id][k_tracker_final] = Tracker()
+            self.households[household_id][k_tracker_final].new()
+            self.households[household_id][k_tracker_final].update(num_record=num_sample, starts=chosen_start_times,
+                                                                  demands=chosen_demand_profile, penalty=chosen_penalty)
+
         self.final.update(num_record=num_sample, demands=final_aggregate_demand_profile,
                           penalty=final_total_inconvenience)
 
@@ -241,7 +247,7 @@ class Community:
         for item in concurrent.futures.as_completed(results):
             res = item.result()
 
-        # for res in results:
+            # for res in results:
             # print(res)
             key = res[h_key]
             demands_household = res[s_demand]
