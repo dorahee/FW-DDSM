@@ -148,8 +148,9 @@ def ogsa(objective_values, big_value, powers, durations, preferred_starts, lates
         # search for all feasible intervals
         feasible_intervals = []
         for j in range(num_intervals):
-            if task_costs[j] < big_value and earliest_suc_lstart_w_delay < j < earliest_suc_lstart - duration + 1 \
-                    and latest_pre_finish < j < latest_pre_finish_w_delay:
+            s = earliest_suc_lstart_w_delay < j < earliest_suc_lstart - duration + 1 if bool(tasks_successors) else True
+            p = latest_pre_finish < j < latest_pre_finish_w_delay if bool(tasks_precedents) else True
+            if task_costs[j] < big_value and s and p:
                 feasible_intervals.append(j)
 
         try:
