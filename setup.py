@@ -4,8 +4,8 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="fw_ddsm",
-    version="0.3.2",
+    name="fw-ddsm-dorahee",
+    version="0.3.3",
     author="Shan Dora He",
     author_email="dora.shan.he@gmail.com",
     description="Frank-Wolfe-based distributed demand scheduling method package",
@@ -15,7 +15,7 @@ setuptools.setup(
     packages=setuptools.find_packages(include=['fw_ddsm', 'fw_ddsm.*']),
     classifiers=[
         "Programming Language :: Python :: 3",
-        "License :: OSI Approved :: GPL-3.0 License",
+        "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
         "Operating System :: OS Independent",
     ],
     python_requires='>=3.6',
