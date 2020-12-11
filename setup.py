@@ -8,7 +8,7 @@ setuptools.setup(
     version="0.3.1",
     author="Shan Dora He",
     author_email="dora.shan.he@gmail.com",
-    description="Electricity Demand Scheduler",
+    description="Frank-Wolfe-based distributed demand scheduling method package",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/dorahee/FW-DDSM.git",
