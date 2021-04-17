@@ -18,6 +18,10 @@ maximum_demand_multiplier = 1
 care_f_max = 10
 care_f_weight = 1
 
+# battery related parameters
+battery_capacity = 5  # kWh
+battery_power = 5  # 1C battery
+
 # pricing related parameters
 pricing_table_weight = 1
 # cost_function_type = "linear"
@@ -75,6 +79,10 @@ h_tasks_no_sf_min = "no_semi_flexible_tasks_min"
 h_tasks_no_sf_max = "no_semi_flexible_tasks_max"
 h_tasks_no_fixed_min = "no_fixed_tasks_min"
 h_tasks_no_fixed_max = "no_fixed_tasks_max"
+
+b_cap = "battery_capacity"
+b_power = "battery_power"
+b_profile = "battery_profile"
 
 # demand related parameters
 k_household_key = "key"

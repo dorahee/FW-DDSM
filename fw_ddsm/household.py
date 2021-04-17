@@ -34,7 +34,8 @@ class Household:
 
         self.household_tracker = Tracker()
         self.household_tracker.new(name=f"h{household_id}")
-        self.household_tracker.update(num_record=0, starts=self.tasks[h_psts], demands=self.tasks[s_demand], penalty=0)
+        self.household_tracker.update(num_record=0, starts=self.tasks[h_psts], demands=self.tasks[s_demand], penalty=0,
+                                      battery=self.tasks[b_profile])
         self.household_final = Tracker()
         self.household_final.new(name=f"h{household_id}_final")
 
@@ -50,7 +51,7 @@ class Household:
             semi_flex_task_min=no_semi_flex_tasks_min, semi_flex_task_max=0,
             fixed_task_min=no_fixed_tasks_min, fixed_task_max=0,
             inconvenience_cost_weight=care_f_weight, max_care_factor=care_f_max,
-            write_to_folder=None, household_id=0):
+            write_to_folder=None, household_id=0, capacity=battery_capacity, power=battery_power):
 
         self.scheduling_method = scheduling_method
         self.household_id = 0
@@ -78,7 +79,9 @@ class Household:
                                                  fixed_task_max=fixed_task_max,
                                                  inconvenience_cost_weight=inconvenience_cost_weight,
                                                  max_care_factor=max_care_factor,
-                                                 household_id=household_id)
+                                                 household_id=household_id,
+                                                 capacity=capacity,
+                                                 power=power)
 
         if write_to_folder is not None:
             self.save_to_file(tasks=tasks, folder=write_to_folder, household_id=household_id)
@@ -87,7 +90,7 @@ class Household:
         self.household_tracker = Tracker()
         self.household_tracker.new(name=f"h{household_id}")
         self.household_tracker.update(num_record=0, starts=household_preferred_starts,
-                                      demands=household_demand_profile, penalty=0)
+                                      demands=household_demand_profile, penalty=0, battery=tasks[b_profile])
         self.household_final = Tracker()
         self.household_final.new(name=f"h{household_id}_final")
 

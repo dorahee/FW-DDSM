@@ -118,7 +118,7 @@ def new_household(
         semi_flex_task_min=no_semi_flex_tasks_min, semi_flex_task_max=0,
         fixed_task_min=no_fixed_tasks_min, fixed_task_max=0,
         inconvenience_cost_weight=care_f_weight, max_care_factor=care_f_max,
-        household_id=0
+        household_id=0, capacity=battery_capacity, power=battery_power
 ):
     # ---------------------------------------------------------------------- #
     # preferred_demand_profile:
@@ -136,6 +136,8 @@ def new_household(
     # num_intervals, num_periods and num_intervals_periods:
     # write_to_file:
     #       whether to write the created household data to a file
+    # capacity: battery max capacity
+    # power: battery charge and discharge rate
     # ---------------------------------------------------------------------- #
 
     pst_probabilities = [int(p) for p in preferred_demand_profile]
@@ -198,6 +200,8 @@ def new_household(
     household = dict()
     if household_id is not None:
         household[h_key] = household_id
+
+    # task related
     household[h_psts] = preferred_starts
     household[h_ests] = earliest_starts
     household[h_lfs] = latest_ends
@@ -211,5 +215,10 @@ def new_household(
     household[h_demand_limit] = maximum_demand
     household[h_incon_weight] = inconvenience_cost_weight
     household[s_demand] = household_demand_profile
+
+    # battery related
+    household[b_cap] = capacity
+    household[b_power] = power
+    household[b_profile] = [0] * num_intervals
 
     return household, household_demand_profile, preferred_starts

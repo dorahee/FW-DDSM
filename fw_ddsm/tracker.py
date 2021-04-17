@@ -13,7 +13,7 @@ class Tracker:
         self.name = name
 
         for key in [s_starts, s_demand, s_demand_max, s_demand_total, s_demand_reduction, s_par,
-                    s_penalty, p_prices, p_cost, p_cost_reduction, p_step, t_time]:
+                    s_penalty, p_prices, p_cost, p_cost_reduction, p_step, t_time, b_profile]:
             self.data[key] = dict()
 
     def read(self, existing_tracker):
@@ -21,7 +21,8 @@ class Tracker:
         self.data = existing_tracker.copy()
 
     def update(self, num_record, tracker_data=None, demands=None, prices=None, penalty=None,
-               run_time=None, cost=None, step=None, init_demand_max=None, init_cost=None, starts=None):
+               run_time=None, cost=None, step=None, init_demand_max=None, init_cost=None, starts=None,
+               battery=None):
         if tracker_data is None:
             tracker_data = self.data
         if step is not None:
@@ -47,6 +48,8 @@ class Tracker:
             tracker_data[t_time][num_record] = round(run_time, 4)
         if starts is not None:
             tracker_data[s_starts][num_record] = starts
+        if battery is not None:
+            tracker_data[b_profile][num_record] = battery
 
         return tracker_data
 
