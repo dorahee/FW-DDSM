@@ -4,7 +4,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="fw-ddsm-dorahee",
+    name="fw-ddsm",
     version="0.3.3",
     author="Shan Dora He",
     author_email="dora.shan.he@gmail.com",
