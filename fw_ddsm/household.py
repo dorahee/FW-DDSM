@@ -26,7 +26,7 @@ class Household:
 
         if not read_from_folder.endswith("/"):
             read_from_folder += "/"
-        with open(f"{read_from_folder}household{household_id}.txt", 'r') as f:
+        with open(f"{read_from_folder}h{household_id}.txt", 'r') as f:
             household = load(f)
         f.close()
         self.tasks = household

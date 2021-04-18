@@ -12,6 +12,7 @@ test_household.new(num_intervals=no_intervals,
                    scheduling_method=m_minizinc,
                    write_to_folder="households")
 
-# test_household.read(scheduling_method=k1_ogsa,
-#                     read_from_file="households/household0.txt")
+test_household.read_household(scheduling_method=m_ogsa,
+                              read_from_folder="households")
+
 print(0)
