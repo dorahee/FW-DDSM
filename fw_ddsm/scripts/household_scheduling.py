@@ -9,6 +9,7 @@ def preprocessing(
         powers, durations, max_demand, prices, preferred_starts, earliest_starts, latest_ends, care_factors,
         inconvenience_cost_weight, max_care_factor, num_intervals=no_intervals
 ):
+    num_intervals_hour = num_intervals / 24
     max_duration = max(durations)
     # this big cost and big cost * number_tasks need to be
     # smaller than the largest number that the solver can handle
@@ -23,7 +24,7 @@ def preprocessing(
             if est <= t <= lft - dur + 1:
                 rc = abs(t - pst) * cf * inconvenience_cost_weight
                 try:
-                    rc += sum([prices[j % num_intervals] for j in range(t, t + dur)]) * power
+                    rc += sum([prices[j % num_intervals] for j in range(t, t + dur)]) * power / num_intervals_hour
                 except IndexError:
                     print("Error: check the prices.")
             else:
