@@ -201,3 +201,48 @@ def ogsa(objective_values, big_value, powers, durations, preferred_starts, lates
     # obj = round(obj, 2)
 
     return actual_starts, time_scheduling_ogsa
+
+
+def minizinc_model_battery(
+        model_file, solver, preferred_starts, earliest_starts, latest_ends,
+        durations, powers, care_factors, no_precedents, precedents, successors, succ_delays,
+        max_demand, inconvenience_cost_weight, prices, num_intervals=no_intervals, timeout=time_out):
+
+    model = Model(model_file)
+    mip_solver = Solver.lookup(solver)
+    model.add_string("solve minimize obj;")
+    ins = Instance(mip_solver, model)
+
+    # time parameters
+    ins["num_intervals"] = num_intervals
+    ins["num_intervals_hour"] = int(num_intervals / 24)
+    # battery parameters
+    ins["min_energy_capacity"] = 0
+    ins["max_energy_capacity"] = 5
+    ins["max_power"] = 5
+    # task parameters
+    num_tasks = len(powers)
+    ins["num_tasks"] = num_tasks
+    ins["preferred_starts"] = [ps + 1 for ps in preferred_starts]
+    ins["earliest_starts"] = [es + 1 for es in earliest_starts]
+    ins["latest_ends"] = [le + 1 for le in latest_ends]
+    ins["durations"] = durations
+    ins["demands"] = powers
+    ins["care_factors"] = [cf * inconvenience_cost_weight for cf in care_factors]
+
+    ins["num_precedences"] = no_precedents
+    ins["predecessors"] = [p + 1 for p in precedents]
+    ins["successors"] = [s + 1 for s in successors]
+    ins["prec_delays"] = succ_delays
+    ins["max_demand"] = max_demand
+    ins["prices"] = prices
+
+    if timeout is None:
+        result = ins.solve()
+    else:
+        result = ins.solve(timeout=timedelta(seconds=timeout))
+
+    return True
+
+
+

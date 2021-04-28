@@ -39,6 +39,7 @@ solver_name = "gecode"
 parent_folder = ""
 file_cp_pre = parent_folder + 'data/Household-cp-pre.mzn'
 file_cp_ini = parent_folder + 'data/Household-cp.mzn'
+file_mip_hb = parent_folder + 'data/Household-battery-mip.mzn'
 file_pricing_table = parent_folder + 'data/pricing_table_0.csv'
 file_household_area_folder = parent_folder + 'data/'
 file_pdp = parent_folder + 'data/probability.csv'
