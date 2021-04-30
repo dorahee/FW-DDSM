@@ -19,7 +19,8 @@ care_f_max = 10
 care_f_weight = 1
 
 # battery related parameters
-battery_capacity = 5  # kWh
+battery_capacity_max = 5  # kWh
+battery_capacity_min = 0
 battery_power = 5  # 1C battery
 
 # pricing related parameters
@@ -81,7 +82,8 @@ h_tasks_no_sf_max = "no_semi_flexible_tasks_max"
 h_tasks_no_fixed_min = "no_fixed_tasks_min"
 h_tasks_no_fixed_max = "no_fixed_tasks_max"
 
-b_cap = "battery_capacity"
+b_cap_max = "battery_capacity_max"
+b_cap_min = "battery_capacity_min"
 b_power = "battery_power"
 b_profile = "battery_profile"
 
@@ -120,6 +122,7 @@ t_average = "average_run_time"
 m_algorithm = "algorithm"
 m_minizinc = "minizinc"
 m_ogsa = "ogsa"
+m_mip_battery = "mip_battery"
 m_before_fw = "scheduling"
 m_after_fw = "pricing"
 

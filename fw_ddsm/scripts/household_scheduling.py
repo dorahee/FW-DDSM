@@ -206,7 +206,8 @@ def ogsa(objective_values, big_value, powers, durations, preferred_starts, lates
 def minizinc_model_battery(
         model_file, solver, preferred_starts, earliest_starts, latest_ends,
         durations, powers, care_factors, no_precedents, precedents, successors, succ_delays,
-        max_demand, inconvenience_cost_weight, prices, num_intervals=no_intervals, timeout=time_out):
+        max_demand, inconvenience_cost_weight, capacity_max, capacity_min, power_max,
+        prices, num_intervals=no_intervals, timeout=time_out):
 
     model = Model(model_file)
     mip_solver = Solver.lookup(solver)
@@ -216,10 +217,12 @@ def minizinc_model_battery(
     # time parameters
     ins["num_intervals"] = num_intervals
     ins["num_intervals_hour"] = int(num_intervals / 24)
+
     # battery parameters
-    ins["min_energy_capacity"] = 0
-    ins["max_energy_capacity"] = 5
-    ins["max_power"] = 5
+    ins["min_energy_capacity"] = capacity_min
+    ins["max_energy_capacity"] = capacity_max
+    ins["max_power"] = power_max
+
     # task parameters
     num_tasks = len(powers)
     ins["num_tasks"] = num_tasks
@@ -242,7 +245,12 @@ def minizinc_model_battery(
     else:
         result = ins.solve(timeout=timedelta(seconds=timeout))
 
-    return True
+    actual_starts0 = result.solution.actual_starts
+    actual_starts = [sum([c * i for i, c in enumerate(r)]) for r in actual_starts0]
+    battery_profile = result.solution.battery_profile
+    time = result.statistics["time"].total_seconds()
+
+    return actual_starts, battery_profile, time
 
 
 
