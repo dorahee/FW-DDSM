@@ -19,9 +19,9 @@ care_f_max = 10
 care_f_weight = 1
 
 # battery related parameters
-battery_capacity_max = 5  # kWh
+battery_capacity_max = 5000  # Wh
 battery_capacity_min = 0
-battery_power = 5  # 1C battery
+battery_power = 5000  # 1C battery
 
 # pricing related parameters
 pricing_table_weight = 1

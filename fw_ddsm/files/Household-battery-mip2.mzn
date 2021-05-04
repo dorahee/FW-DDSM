@@ -34,12 +34,13 @@ int: max_demand;
 array[INTERVALS] of var min_energy_capacity..max_energy_capacity: battery_soc;  % stored energy per interval in kwh
 array[INTERVALS] of var -max_power..max_power: battery_profile;  % charge/discharge per interval in kw
 array[TASKS, INTERVALS] of var 0..1: actual_starts;
+array[TASKS] of var INTERVALS: actual_starts2 = [sum([actual_starts[d, i] * i | i in INTERVALS]) | d in TASKS];
 
-% variables
-array [TASKS, INTERVALS] of float: task_costs = array2d(TASKS,INTERVALS, [ 
-    care_factors[d] * abs(s - preferred_starts[d]) + 
-    sum (t in s..min(s + durations[d] - 1, num_intervals)) (prices[t] * demands[d]) / num_intervals_hour 
-    | d in TASKS, s in INTERVALS]);
+array[INTERVALS] of var float: total_demand_interval = [
+  sum(
+    [ demands[d] | d in TASKS where actual_starts2[d] <= i /\ actual_starts2[d] < actual_starts2[d] + durations[d] ]
+  ) | i in INTERVALS
+];
 
 % profile constraint
 % constraint forall (i in INTERVALS) (
@@ -57,9 +58,6 @@ constraint forall (i in 2..num_intervals) (
   battery_soc[i] = battery_soc[i - 1] + battery_profile[i] / num_intervals_hour
 );
 
-% each task must run once
-constraint forall (d in TASKS) (sum(i in INTERVALS)(actual_starts[d, i]) == 1);
-
 % start time window constraints
 constraint forall (d in TASKS) (earliest_starts[d] <= sum(s in INTERVALS) (actual_starts[d,s] * s) /\ sum(s in INTERVALS) (actual_starts[d,s] * s) + durations[d] - 1 <= latest_ends[d]);
 
@@ -72,15 +70,12 @@ constraint forall (p in PREC) (
      sum(s in INTERVALS) (actual_starts[succ,s] * s) <= sum(s in INTERVALS) (actual_starts[pre,s] * s) + durations[pre] + d); 
      
 % maximum demand constraint
-constraint forall (s in INTERVALS) (sum(d in TASKS) (actual_starts[d, s] * demands[d]) <= max_demand);
+% constraint forall (s in INTERVALS) (total_demand_interval[s] <= max_demand);
      
 
 % objectives
-var float: total_task_cost = sum (i in INTERVALS) (sum(t in TASKS) (task_costs[t, i] * actual_starts[t, i]));
-var float: battery_cost = sum (i in INTERVALS) (battery_profile[i] * prices[i]) / num_intervals_hour;
-var float: battery_degradation = 0.0001 * sum(i in INTERVALS) (battery_profile[i] * battery_profile[i]);
-% var float: obj = 0;
+var float: total_inconvenience = sum(d in TASKS) (abs(actual_starts2[d] - preferred_starts[d]) * care_factors[d]);
+var float: total_cost = sum(i in INTERVALS) ((total_demand_interval[i] + battery_profile[i]) * prices[i]) / num_intervals_hour;
+var float: obj = total_inconvenience + total_cost;
 
-solve minimize total_task_cost + battery_cost + battery_degradation;
-
-% solve minimize obj;
+solve minimize obj;
