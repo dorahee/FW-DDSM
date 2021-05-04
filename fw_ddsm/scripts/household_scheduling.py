@@ -211,7 +211,7 @@ def minizinc_model_battery(
 
     model = Model(model_file)
     mip_solver = Solver.lookup(solver)
-    # model.add_string("solve minimize obj;")
+    model.add_string("solve minimize obj;")
     ins = Instance(mip_solver, model)
 
     # time parameters
