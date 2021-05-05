@@ -202,7 +202,10 @@ class Household:
         return {h_key: key, s_demand: household_demand_profile, s_starts: actual_starts,
                 s_penalty: weighted_penalty_household, t_time: time_scheduling}
 
-    def schedule_battery(self, household, existing_demand, model, solver, num_intervals=no_intervals):
+    def schedule_battery(self, household, existing_demand, model=None, solver=None, num_intervals=no_intervals):
+
+        model = file_mip_battery if None else model
+        solver = "mip" if None else solver
 
         # read batteries
         capacity_max = household[b_cap_max]
