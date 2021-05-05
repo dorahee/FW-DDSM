@@ -1,4 +1,3 @@
-include "globals.mzn";
 
 % time
 int: num_intervals;

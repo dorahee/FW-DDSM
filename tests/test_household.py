@@ -10,20 +10,12 @@ test_household = Household()
 # test_household.read_household(scheduling_method=m_ogsa,
 #                               read_from_folder="households")
 #
-# test_household.new(num_intervals=no_intervals,
-#                    preferred_demand_profile_csv=file_pdp,
-#                    list_of_devices_power_csv=file_demand_list,
-#                    scheduling_method=m_minizinc,
-#                    write_to_folder="households")
-# test_household.read_household(scheduling_method=m_minizinc,
-#                               read_from_folder="households")
-
-# test_household.new(num_intervals=no_intervals,
-#                    preferred_demand_profile_csv=file_pdp,
-#                    list_of_devices_power_csv=file_demand_list,
-#                    scheduling_method=m_mip_battery,
-#                    write_to_folder="households")
-test_household.read_household(scheduling_method=m_mip_battery,
+test_household.new(num_intervals=no_intervals,
+                   preferred_demand_profile_csv=file_pdp,
+                   list_of_devices_power_csv=file_demand_list,
+                   scheduling_method=m_minizinc,
+                   write_to_folder="households")
+test_household.read_household(scheduling_method=m_minizinc,
                               read_from_folder="households")
 
 # prices = [141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141,
@@ -41,5 +33,5 @@ test_household.read_household(scheduling_method=m_mip_battery,
 
 prices = [1] * 16 + [1000, 1000] + [1] * 126
 
-test_household.schedule(num_iteration=no_intervals, prices=prices, solver="gurobi")
+test_household.schedule(num_iteration=no_intervals, prices=prices)
 print(0)

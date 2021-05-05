@@ -144,15 +144,10 @@ class Household:
         max_care_factor = household[h_max_cf]
         precedents = [x[0] for x in list(household[h_precs].values())]
         successors = [int(suc) for suc in list(household[h_precs].keys())]
-        succ_delays = household[h_succ_delay]  # need to change this format when sending it to the solver
+        succ_delays = household[h_succ_delay]
         no_precedents = household[h_no_precs]
         max_demand = household[h_demand_limit]
         inconvenience_cost_weight = household[h_incon_weight]
-
-        # read batteries
-        capacity_max = household[b_cap_max]
-        capacity_min = household[b_cap_min]
-        power_max = household[b_power]
 
         # begin scheduling
         objective_values, big_value \
@@ -184,26 +179,8 @@ class Household:
                                                       inconvenience_cost_weight=inconvenience_cost_weight,
                                                       num_intervals=num_intervals, timeout=timeout)
 
-        elif "mip_battery" in scheduling_method:
-            model = file_mip_hb if model is None else model
-            solver = "mip" if solver is None else solver
-            succ_delays = [x[0] for x in list(household[h_succ_delay].values())]
-            actual_starts, time_scheduling \
-                = household_scheduling.minizinc_model_battery(model_file=model, solver=solver,
-                                                              preferred_starts=preferred_starts,
-                                                              earliest_starts=earliest_starts,
-                                                              latest_ends=latest_ends, durations=durations,
-                                                              powers=powers,
-                                                              care_factors=care_factors,
-                                                              no_precedents=no_precedents, precedents=precedents,
-                                                              successors=successors, succ_delays=succ_delays,
-                                                              max_demand=max_demand,
-                                                              inconvenience_cost_weight=inconvenience_cost_weight,
-                                                              capacity_max=capacity_max, capacity_min=capacity_min,
-                                                              power_max=power_max, prices=prices,
-                                                              num_intervals=no_intervals, timeout=time_out)
-
         else:
+            succ_delays = {int(k): v for k, v in succ_delays.items()}
             actual_starts, time_scheduling \
                 = household_scheduling.ogsa(objective_values=objective_values, big_value=big_value,
                                             powers=powers, durations=durations, preferred_starts=preferred_starts,
@@ -224,6 +201,15 @@ class Household:
             print(f"Household {key}, {actual_starts}. ")
         return {h_key: key, s_demand: household_demand_profile, s_starts: actual_starts,
                 s_penalty: weighted_penalty_household, t_time: time_scheduling}
+
+    def schedule_battery(self, household, existing_demand, model, solver, num_intervals=no_intervals):
+
+        # read batteries
+        capacity_max = household[b_cap_max]
+        capacity_min = household[b_cap_min]
+        power_max = household[b_power]
+
+        return True
 
     def finalise_household(self, probability_distribution,
                            household_tracker_data=None, num_schedule=0):
