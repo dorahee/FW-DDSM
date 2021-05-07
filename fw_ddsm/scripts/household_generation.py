@@ -157,7 +157,7 @@ def new_household(
     care_factors = []
     household_demand_profile = [0] * num_intervals
 
-    # tasks in the household
+    # new tasks in a household
     def get_new_tasks(num_tasks, scheduling_window_width):
         for counter_j in range(num_tasks):
             demand, duration, p_start, e_start, l_finish, care_f \
@@ -201,7 +201,7 @@ def new_household(
     if household_id is not None:
         household[h_key] = household_id
 
-    # task related
+    # save the details of new tasks
     household[h_psts] = preferred_starts
     household[h_ests] = earliest_starts
     household[h_lfs] = latest_ends
@@ -216,10 +216,11 @@ def new_household(
     household[h_incon_weight] = inconvenience_cost_weight
     household[s_demand] = household_demand_profile
 
-    # battery related
+    # save the battery details
     household[b_cap_max] = battery_capacity_max
     household[b_cap_min] = battery_capacity_min
     household[b_power] = power
     household[b_profile] = [0] * num_intervals
 
-    return household, household_demand_profile, preferred_starts
+    # return the household details
+    return household

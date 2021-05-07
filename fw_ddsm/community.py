@@ -78,7 +78,7 @@ class Community:
             households[h] = household.copy()
             households[h][k_tracker] = Tracker()
             households[h][k_tracker].new()
-            households[h][k_tracker].update(num_record=0, starts=preferred_starts,
+            households[h][k_tracker].update(num_record=0, tasks_starts=preferred_starts,
                                             demands=household_demand_profile, penalty=0)
 
         self.households = households
@@ -156,7 +156,7 @@ class Community:
             if k_tracker_final not in self.households[household_id]:
                 self.households[household_id][k_tracker_final] = Tracker()
                 self.households[household_id][k_tracker_final].new()
-            self.households[household_id][k_tracker_final].update(num_record=num_sample, starts=chosen_start_times,
+            self.households[household_id][k_tracker_final].update(num_record=num_sample, tasks_starts=chosen_start_times,
                                                                   demands=chosen_demand_profile, penalty=chosen_penalty)
 
         self.final.update(num_record=num_sample, demands=final_aggregate_demand_profile,
@@ -190,7 +190,7 @@ class Community:
         for key, household in households.items():
             household_tracker = Tracker()
             household_tracker.new()
-            household_tracker.update(num_record=0, starts=household[h_psts], demands=household[s_demand], penalty=0)
+            household_tracker.update(num_record=0, tasks_starts=household[h_psts], demands=household[s_demand], penalty=0)
             household[k_tracker] = household_tracker
 
             if inconvenience_cost_weight is not None:
@@ -233,7 +233,7 @@ class Community:
         # pool.join()
 
         with concurrent.futures.ProcessPoolExecutor() as executor:
-            results = {executor.submit(Household.schedule_household, Household(), prices, scheduling_method, household,
+            results = {executor.submit(Household.schedule_tasks, Household(), prices, scheduling_method, household,
                                        self.num_intervals, model, solver, search, timeout, print_done):
                            household for household in households.values()}
 
@@ -263,7 +263,7 @@ class Community:
 
             # update each household's tracker
             self.households[key][k_tracker].update(num_record=num_iteration,
-                                                   starts=household_start_times,
+                                                   tasks_starts=household_start_times,
                                                    demands=demands_household,
                                                    penalty=weighted_penalty_household)
 

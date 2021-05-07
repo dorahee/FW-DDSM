@@ -5,7 +5,7 @@ from datetime import timedelta
 from fw_ddsm.parameter import *
 
 
-def preprocessing(
+def tasks_preprocessing(
         powers, durations, max_demand, prices, preferred_starts, earliest_starts, latest_ends, care_factors,
         inconvenience_cost_weight, max_care_factor, num_intervals=no_intervals
 ):
@@ -34,7 +34,7 @@ def preprocessing(
     return objective_value_matrix, big_value
 
 
-def minizinc_model(model_file, solver, search,
+def tasks_minizinc(model_file, solver, search,
                    objective_values, powers, max_demand, durations,
                    earliest_starts, preferred_starts, latest_ends,
                    successors, precedents, no_precedents, succ_delays,
@@ -60,7 +60,7 @@ def minizinc_model(model_file, solver, search,
     ins["prec_delays"] = succ_delays
     ins["max_demand"] = max_demand
 
-    if "ini" in model_type.lower():
+    if "ini" in tasks_model_type.lower():
         ins["prices"] = prices
         ins["preferred_starts"] = [ps + 1 for ps in preferred_starts]
         ins["earliest_starts"] = [es + 1 for es in earliest_starts]
@@ -89,8 +89,8 @@ def minizinc_model(model_file, solver, search,
     return actual_starts, time
 
 
-def ogsa(objective_values, big_value, powers, durations, preferred_starts, latest_ends, max_demand,
-         successors, precedents, succ_delays, randomness=True, num_intervals=no_intervals):
+def tasks_ogsa(objective_values, big_value, powers, durations, preferred_starts, latest_ends, max_demand,
+               successors, precedents, succ_delays, randomness=True, num_intervals=no_intervals):
     start_time = timeit.default_timer()
 
     def retrieve_successors_or_precedents(list0, prec_or_succ_list1, succ_prec_list2):
@@ -203,15 +203,12 @@ def ogsa(objective_values, big_value, powers, durations, preferred_starts, lates
     return actual_starts, time_scheduling_ogsa
 
 
-def minizinc_model_battery(
-        model_file, solver, preferred_starts, earliest_starts, latest_ends,
-        durations, powers, care_factors, no_precedents, precedents, successors, succ_delays,
-        max_demand, inconvenience_cost_weight, capacity_max, capacity_min, power_max,
-        prices, num_intervals=no_intervals, timeout=time_out):
+def battery_mip(model_file, solver, existing_demands, capacity_max, capacity_min, power_max,
+                prices, num_intervals=no_intervals, timeout=time_out):
 
     model = Model(model_file)
     mip_solver = Solver.lookup(solver)
-    model.add_string("solve minimize obj;")
+    # model.add_string("solve minimize obj;")
     ins = Instance(mip_solver, model)
 
     # time parameters
@@ -219,25 +216,12 @@ def minizinc_model_battery(
     ins["num_intervals_hour"] = int(num_intervals / 24)
 
     # battery parameters
-    ins["min_energy_capacity"] = capacity_min
     ins["max_energy_capacity"] = capacity_max
+    ins["min_energy_capacity"] = capacity_min
     ins["max_power"] = power_max
 
-    # task parameters
-    num_tasks = len(powers)
-    ins["num_tasks"] = num_tasks
-    ins["preferred_starts"] = [ps + 1 for ps in preferred_starts]
-    ins["earliest_starts"] = [es + 1 for es in earliest_starts]
-    ins["latest_ends"] = [le + 1 for le in latest_ends]
-    ins["durations"] = durations
-    ins["demands"] = powers
-    ins["care_factors"] = [cf * inconvenience_cost_weight for cf in care_factors]
-
-    ins["num_precedences"] = no_precedents
-    ins["predecessors"] = [p + 1 for p in precedents]
-    ins["successors"] = [s + 1 for s in successors]
-    ins["prec_delays"] = succ_delays
-    ins["max_demand"] = max_demand
+    # demands and prices
+    ins["existing_demands"] = existing_demands
     ins["prices"] = prices
 
     if timeout is None:
@@ -245,12 +229,7 @@ def minizinc_model_battery(
     else:
         result = ins.solve(timeout=timedelta(seconds=timeout))
 
-    actual_starts0 = result.solution.actual_starts
-    actual_starts = [sum([c * i for i, c in enumerate(r)]) for r in actual_starts0]
     battery_profile = result.solution.battery_profile
     time = result.statistics["time"].total_seconds()
 
-    return actual_starts, battery_profile, time
-
-
-
+    return battery_profile, time

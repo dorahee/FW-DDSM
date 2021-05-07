@@ -10,12 +10,12 @@ test_household = Household()
 # test_household.read_household(scheduling_method=m_ogsa,
 #                               read_from_folder="households")
 #
-test_household.new(num_intervals=no_intervals,
-                   preferred_demand_profile_csv=file_pdp,
-                   list_of_devices_power_csv=file_demand_list,
-                   scheduling_method=m_minizinc,
-                   write_to_folder="households")
-test_household.read_household(scheduling_method=m_minizinc,
+# test_household.new(num_intervals=no_intervals,
+#                    preferred_demand_profile_csv=file_pdp,
+#                    list_of_devices_power_csv=file_demand_list,
+#                    tasks_scheduling_method=m_minizinc,
+#                    write_to_folder="households")
+test_household.read_household(tasks_scheduling_method=m_minizinc,
                               read_from_folder="households")
 
 # prices = [141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141, 141,
@@ -33,5 +33,6 @@ test_household.read_household(scheduling_method=m_minizinc,
 
 prices = [1] * 16 + [1000, 1000] + [1] * 126
 
-test_household.schedule(num_iteration=no_intervals, prices=prices)
+# test_household.schedule(num_iteration=no_intervals, prices=prices)
+test_household.schedule(num_iteration=1, prices=prices, use_battery=True, battery_solver="gurobi")
 print(0)

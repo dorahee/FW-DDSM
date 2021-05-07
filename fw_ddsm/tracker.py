@@ -21,8 +21,8 @@ class Tracker:
         self.data = existing_tracker.copy()
 
     def update(self, num_record, tracker_data=None, demands=None, prices=None, penalty=None,
-               run_time=None, cost=None, step=None, init_demand_max=None, init_cost=None, starts=None,
-               battery=None):
+               run_time=None, cost=None, step=None, init_demand_max=None, init_cost=None, tasks_starts=None,
+               battery_profile=None):
         if tracker_data is None:
             tracker_data = self.data
         if step is not None:
@@ -46,10 +46,10 @@ class Tracker:
                     = round((init_demand_max - demand_max) / init_demand_max, 2)
         if run_time is not None:
             tracker_data[t_time][num_record] = round(run_time, 4)
-        if starts is not None:
-            tracker_data[s_starts][num_record] = starts
-        if battery is not None:
-            tracker_data[b_profile][num_record] = battery
+        if tasks_starts is not None:
+            tracker_data[s_starts][num_record] = tasks_starts
+        if battery_profile is not None:
+            tracker_data[b_profile][num_record] = battery_profile
 
         return tracker_data
 

@@ -29,18 +29,23 @@ pricing_table_weight = 1
 cost_function_type = "piece-wise"
 min_step = 0.001
 
-# solver related parameters
+# tasks solver related parameters
 variable_selection = "smallest"
 value_choice = "indomain_min"
-model_type = "pre"
-solver_type = "cp"
-solver_name = "gecode"
+tasks_model_type = "pre"
+tasks_solver_type = "cp"
+tasks_solver_name = "gecode"
+
+# battery solver related parameters
+battery_solver_type = "mip"
+battery_solver_name = "gurobi"
 
 # external file related parameters
 parent_folder = ""
 file_cp_pre = parent_folder + 'data/Household-cp-pre.mzn'
 file_cp_ini = parent_folder + 'data/Household-cp.mzn'
 file_mip_battery = parent_folder + 'data/Battery-mip.mzn'
+
 file_pricing_table = parent_folder + 'data/pricing_table_0.csv'
 file_household_area_folder = parent_folder + 'data/'
 file_pdp = parent_folder + 'data/probability.csv'
