@@ -36,7 +36,7 @@ constraint forall (i in INTERVALS) (
 
 % objectives
 var float: battery_cost = sum (i in INTERVALS) (battery_profile[i] * prices[i]) / num_intervals_hour;
-var float: battery_degradation = 0.001 * sum(i in INTERVALS) (battery_profile[i] * battery_profile[i]);
+var float: battery_degradation = 0.001 * sum(i in INTERVALS) (battery_profile[i]);
 var float: obj = battery_cost + battery_degradation;
 
 solve minimize obj;
