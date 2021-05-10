@@ -128,40 +128,75 @@ class Household:
 
         print(f"0. {folder}{file_name} written.")
 
-    def schedule(self, num_iteration, prices, tasks_model=None, tasks_solver=None, tasks_search=None,
+    def schedule(self, num_iteration, prices,
+                 num_intervals=None,
+                 household_details=None,
+                 tasks_scheduling_method=None,
+                 tasks_model=None, tasks_solver=None, tasks_search=None,
                  use_battery=False, battery_model=None, battery_solver=None,
-                 timeout=time_out):
+                 timeout=time_out, update_tracker=True,
+                 print_upon_completion=False):
+
+        if tasks_scheduling_method is None:
+            tasks_scheduling_method = self.tasks_scheduling_method
+        if household_details is None:
+            household_details = self.household_details
+        if num_intervals is None:
+            num_intervals = no_intervals
+        if use_battery:
+            battery_model = file_mip_battery if battery_model is None else battery_model
+            battery_solver = "mip" if battery_solver is None else battery_solver
+
+        # read household ID
+        key = household_details[h_key]
 
         # schedule tasks
         tasks_result = self.schedule_tasks(prices=prices,
-                                           method=self.tasks_scheduling_method,
-                                           household=self.household_details,
-                                           model=tasks_model, solver=tasks_solver,
-                                           search=tasks_search, timeout=timeout)
+                                           method=tasks_scheduling_method,
+                                           household=household_details,
+                                           num_intervals=num_intervals,
+                                           model=tasks_model,
+                                           solver=tasks_solver,
+                                           search=tasks_search,
+                                           timeout=timeout,
+                                           print_upon_completion=print_upon_completion)
         tasks_demand_profile = tasks_result[s_demand]  # check whether it is demand or consumption
         tasks_weighted_penalty = tasks_result[s_penalty]
         tasks_start_times = tasks_result[s_starts]
+        tasks_time = tasks_result[t_time]
 
         # schedule a battery if needed
         if use_battery:
-            battery_result = self.schedule_battery(household=self.household_details,
+            battery_result = self.schedule_battery(household=household_details,
                                                    existing_demands=tasks_demand_profile,
                                                    prices=prices,
-                                                   model=battery_model, solver=battery_solver)
+                                                   model=battery_model,
+                                                   solver=battery_solver,
+                                                   num_intervals=num_intervals,
+                                                   print_upon_completion=print_upon_completion)
             battery_profile = battery_result[b_profile]
             household_demand_profile = [x + y for x, y in zip(tasks_demand_profile, battery_profile)]
+            battery_time = battery_result[t_time]
         else:
             household_demand_profile = tasks_demand_profile[:]
             battery_profile = None
+            battery_time = 0
+
+        time_total = tasks_time + battery_time
 
         # update household tracker
-        self.household_tracker.update(num_record=num_iteration,
-                                      tasks_starts=tasks_start_times,
-                                      demands=household_demand_profile,
-                                      penalty=tasks_weighted_penalty,
-                                      battery_profile=battery_profile)
+        if update_tracker:
+            self.household_tracker.update(num_record=num_iteration,
+                                          tasks_starts=tasks_start_times,
+                                          demands=household_demand_profile,
+                                          penalty=tasks_weighted_penalty,
+                                          battery_profile=battery_profile)
 
-        return household_demand_profile, tasks_weighted_penalty, tasks_start_times, battery_profile
+        return {h_key: key, s_demand: household_demand_profile,
+                s_penalty: tasks_weighted_penalty,
+                s_starts: tasks_start_times,
+                b_profile: battery_profile,
+                t_time: time_total}
 
     def schedule_tasks(self, prices, method, household, num_intervals=no_intervals,
                        model=None, solver=None, search=None, timeout=time_out, print_upon_completion=False):
@@ -202,7 +237,7 @@ class Household:
             search = f"int_search(actual_starts, {variable_selection}, {value_choice}, complete)" \
                 if search is None else search
             succ_delays = [x[0] for x in list(household[h_succ_delay].values())]
-            actual_starts, time_scheduling \
+            actual_starts, time_scheduling_tasks \
                 = household_scheduling.tasks_minizinc(model_file=model, solver=solver,
                                                       search=search,
                                                       objective_values=objective_values, powers=powers,
@@ -219,7 +254,7 @@ class Household:
 
         else:
             succ_delays = {int(k): v for k, v in succ_delays.items()}
-            actual_starts, time_scheduling \
+            actual_starts, time_scheduling_tasks \
                 = household_scheduling.tasks_ogsa(objective_values=objective_values, big_value=big_value,
                                                   powers=powers, durations=durations, preferred_starts=preferred_starts,
                                                   latest_ends=latest_ends, max_demand=max_demand,
@@ -243,10 +278,10 @@ class Household:
 
         # return the key information
         return {h_key: key, s_demand: household_demand_profile, s_starts: actual_starts,
-                s_penalty: weighted_penalty_household, t_time: time_scheduling}
+                s_penalty: weighted_penalty_household, t_time: time_scheduling_tasks}
 
     def schedule_battery(self, household, existing_demands, prices, model=None, solver=None,
-                         num_intervals=no_intervals):
+                         num_intervals=no_intervals, print_upon_completion=False):
 
         model = file_mip_battery if model is None else model
         solver = "mip" if solver is None else solver
@@ -260,14 +295,17 @@ class Household:
         power_max = household[b_power]
 
         # schedule the battery
-        battery_profile, time_scheduling \
+        battery_profile, time_scheduling_battery \
             = household_scheduling.battery_mip(model_file=model, solver=solver, existing_demands=existing_demands,
                                                capacity_max=capacity_max, capacity_min=capacity_min,
                                                power_max=power_max,
                                                prices=prices, num_intervals=num_intervals, timeout=time_out)
 
+        if print_upon_completion:
+            print(f"Household {key}, {battery_profile}. ")
+
         # return key information
-        return {h_key: key, b_profile: battery_profile, t_time: time_scheduling}
+        return {h_key: key, b_profile: battery_profile, t_time: time_scheduling_battery}
 
     def finalise_household(self, probability_distribution,
                            household_tracker_data=None, num_schedule=0):
