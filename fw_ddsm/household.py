@@ -317,7 +317,10 @@ class Household:
         chosen_demand_profile = household_tracker_data[s_demand][chosen_iter].copy()
         chosen_penalty = household_tracker_data[s_penalty][chosen_iter]
         chosen_start_times = household_tracker_data[s_starts][chosen_iter].copy()
-        chosen_battery_profile = household_tracker_data[b_profile][chosen_iter].copy()
+        if 1 in household_tracker_data[b_profile]:
+            chosen_battery_profile = household_tracker_data[b_profile][chosen_iter].copy()
+        else:
+            chosen_battery_profile = [0] * len(chosen_demand_profile)
 
         if household_tracker_data is None:
             self.household_final.update(num_record=num_schedule, tasks_starts=chosen_start_times,

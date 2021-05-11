@@ -184,12 +184,12 @@ class Community:
 
         return aggregate_demand_profile, weighted_total_inconvenience, time_scheduling_iteration
 
-    def finalise_schedule(self, tasks_scheduling_method, start_probability_distribution, num_sample=0):
+    def finalise_schedule(self, start_probability_distribution, tasks_scheduling_method=None, num_sample=0):
         final_aggregate_demand_profile = [0] * self.num_intervals
         final_total_inconvenience = 0
         total_demand = 0
         for household in self.community_details.values():
-            chosen_demand_profile, chosen_penalty, chosen_start_times \
+            chosen_demand_profile, chosen_penalty, chosen_start_times, chosen_battery_profile \
                 = Household.finalise_household(self=Household(), household_tracker_data=household[k_tracker].data,
                                                probability_distribution=start_probability_distribution)
             final_aggregate_demand_profile \
@@ -204,7 +204,8 @@ class Community:
             self.community_details[household_id][k_tracker_final].update(num_record=num_sample,
                                                                          tasks_starts=chosen_start_times,
                                                                          demands=chosen_demand_profile,
-                                                                         penalty=chosen_penalty)
+                                                                         penalty=chosen_penalty,
+                                                                         battery_profile=chosen_battery_profile)
 
         self.final.update(num_record=num_sample, demands=final_aggregate_demand_profile,
                           penalty=final_total_inconvenience)
@@ -310,7 +311,7 @@ class Community:
                                 use_battery, battery_model, battery_solver,
                                 timeout, False,
                                 print_upon_completion):
-                    household_details for household_details in community_details.values()}
+                        household_details for household_details in community_details.values()}
 
         return results
 

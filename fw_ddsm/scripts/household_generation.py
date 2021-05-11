@@ -118,27 +118,10 @@ def new_household(
         semi_flex_task_min=no_semi_flex_tasks_min, semi_flex_task_max=0,
         fixed_task_min=no_fixed_tasks_min, fixed_task_max=0,
         inconvenience_cost_weight=care_f_weight, max_care_factor=care_f_max,
-        household_id=0, capacity_max=battery_capacity_max, capacity_min=battery_capacity_min, power=battery_power
+        household_id=0,
+        capacity_max=battery_capacity_max, capacity_min=battery_capacity_min,
+        power=battery_power
 ):
-    # ---------------------------------------------------------------------- #
-    # preferred_demand_profile:
-    #       the demand profile for computing the probability distribution for sampling the preferred start times
-    # list_of_devices_power:
-    #       the power of the tasks
-    # max_demand_multiplier:
-    # num_tasks_dependent:
-    # full_flex_task_min and full_flex_task_max:
-    #       the minimum and the maximum number of fully flexible tasks
-    # semi_flex_task_min and semi_flex_task_max:
-    #       the minimum and the maximum number of semi-flexible tasks
-    # fixed_task_min and care_f_weight:
-    # inconvenience_cost_weight and max_care_factor:
-    # num_intervals, num_periods and num_intervals_periods:
-    # write_to_file:
-    #       whether to write the created household data to a file
-    # capacity: battery max capacity
-    # power: battery charge and discharge rate
-    # ---------------------------------------------------------------------- #
 
     pst_probabilities = [int(p) for p in preferred_demand_profile]
     sum_pst_probabilities = sum(pst_probabilities)
@@ -217,8 +200,8 @@ def new_household(
     household[s_demand] = household_demand_profile
 
     # save the battery details
-    household[b_cap_max] = battery_capacity_max
-    household[b_cap_min] = battery_capacity_min
+    household[b_cap_max] = capacity_max
+    household[b_cap_min] = capacity_min
     household[b_power] = power
     household[b_profile] = [0] * num_intervals
 
