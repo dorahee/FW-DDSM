@@ -5,7 +5,7 @@ from fw_ddsm.aggregator import *
 class Iteration:
 
     def __init__(self):
-        self.scheduling_method = ""
+        self.tasks_scheduling_method = ""
         self.pricing_method = ""
         self.num_households = 0
         self.num_iteration = 0
@@ -17,6 +17,7 @@ class Iteration:
         self.start_time_probability = [1] * no_periods
 
     def new(self, algorithm, num_households,
+            num_intervals=no_intervals,
             file_task_power=file_demand_list, max_demand_multiplier=maximum_demand_multiplier,
             file_normalised_pricing_table=file_pricing_table, file_preferred_demand_profile=file_pdp,
             num_tasks_dependent=no_tasks_dependent, ensure_dependent=False,
@@ -24,7 +25,9 @@ class Iteration:
             semi_flex_task_min=no_semi_flex_tasks_min, semi_flex_task_max=0,
             fixed_task_min=no_fixed_tasks_min, fixed_task_max=0,
             inconvenience_cost_weight=care_f_weight, max_care_factor=care_f_max,
-            data_folder=None, date_time=None):
+            data_folder=None, date_time=None,
+            capacity_max=battery_capacity_max, capacity_min=battery_capacity_min,
+            power=battery_power):
 
         if data_folder is not None:
             if not data_folder.endswith("/"):
@@ -33,21 +36,28 @@ class Iteration:
         else:
             data_folder = self.data_folder
 
-        self.scheduling_method = algorithm[m_before_fw]
+        self.tasks_scheduling_method = algorithm[m_before_fw]
         self.pricing_method = algorithm[m_after_fw]
         self.num_households = num_households
 
         # 1. generate new households, trackers and a pricing table
-        preferred_demand_profile = self.community.new(
-            num_households=self.num_households, scheduling_method=self.scheduling_method,
-            file_preferred_demand_profile=file_preferred_demand_profile, file_demand_list=file_task_power,
-            num_tasks_dependent=num_tasks_dependent, ensure_dependent=ensure_dependent,
-            max_demand_multiplier=max_demand_multiplier,
-            full_flex_task_min=full_flex_task_min, full_flex_task_max=full_flex_task_max,
-            semi_flex_task_min=semi_flex_task_min, semi_flex_task_max=semi_flex_task_max,
-            fixed_task_min=fixed_task_min, fixed_task_max=fixed_task_max,
-            inconvenience_cost_weight=inconvenience_cost_weight, max_care_factor=max_care_factor,
-            write_to_file_path=data_folder, date_time=date_time)
+        preferred_demand_profile \
+            = self.community.new(file_preferred_demand_profile=file_preferred_demand_profile,
+                                 file_demand_list=file_task_power,
+                                 tasks_scheduling_method=self.tasks_scheduling_method,
+                                 num_intervals=num_intervals,
+                                 num_households=self.num_households,
+                                 max_demand_multiplier=max_demand_multiplier,
+                                 num_tasks_dependent=num_tasks_dependent, ensure_dependent=ensure_dependent,
+                                 full_flex_task_min=full_flex_task_min, full_flex_task_max=full_flex_task_max,
+                                 semi_flex_task_min=semi_flex_task_min, semi_flex_task_max=semi_flex_task_max,
+                                 fixed_task_min=fixed_task_min, fixed_task_max=fixed_task_max,
+                                 inconvenience_cost_weight=inconvenience_cost_weight, max_care_factor=max_care_factor,
+                                 write_to_file_path=data_folder, date_time=date_time,
+                                 capacity_max=capacity_max, capacity_min=capacity_min,
+                                 power=power
+                                 )
+
         prices, preferred_cost = self.aggregator.new_aggregator(
             normalised_pricing_table_csv=file_normalised_pricing_table,
             aggregate_preferred_demand_profile=preferred_demand_profile,
@@ -61,10 +71,10 @@ class Iteration:
         if read_from_folder is None:
             read_from_folder = self.data_folder
 
-        self.scheduling_method = algorithm[m_before_fw]
+        self.tasks_scheduling_method = algorithm[m_before_fw]
         self.pricing_method = algorithm[m_after_fw]
         preferred_demand_profile = self.community.read(
-            read_from_folder=read_from_folder, tasks_scheduling_method=self.scheduling_method,
+            read_from_folder=read_from_folder, tasks_scheduling_method=self.tasks_scheduling_method,
             inconvenience_cost_weight=inconvenience_cost_weight,
             num_dependent_tasks=new_dependent_tasks, ensure_dependent=ensure_dependent,
             date_time=date_time)
@@ -75,20 +85,31 @@ class Iteration:
 
         return preferred_demand_profile, prices
 
-    def begin_iteration(self, starting_prices, num_cpus=None, timeout=time_out,
+    def begin_iteration(self, starting_prices,
+                        use_battery=False, battery_model=None, battery_solver=None,
+                        num_cpus=None, timeout=time_out,
                         min_step_size=min_step, ignore_tiny_step=False, roundup_tiny_step=False,
                         print_done=False, print_steps=False):
-        scheduling_method = self.scheduling_method
+
+        scheduling_method = self.tasks_scheduling_method
         pricing_method = self.pricing_method
         prices = starting_prices
+
+        if use_battery:
+            battery_model = file_mip_battery if battery_model is None else battery_model
+            battery_solver = "mip" if battery_solver is None else battery_solver
 
         num_iteration = 1
         step = 1
         while step > 0:
             aggregate_demand_profile, weighted_total_inconvenience, time_scheduling_iteration \
                 = self.community.schedule(num_iteration=num_iteration, prices=prices,
-                                          tasks_scheduling_method=scheduling_method, num_cpus=num_cpus, timeout=timeout,
+                                          tasks_scheduling_method=scheduling_method,
+                                          use_battery=use_battery,
+                                          battery_model=battery_model, battery_solver=battery_solver,
+                                          num_cpus=num_cpus, timeout=timeout,
                                           print_upon_completion=print_done)
+
             prices, consumption_cost, inconvenience, step, new_aggregate_demand_profile, time_pricing \
                 = self.aggregator.pricing(num_iteration=num_iteration,
                                           aggregate_demand_profile=aggregate_demand_profile,
@@ -102,15 +123,15 @@ class Iteration:
         self.start_time_probability = self.aggregator.compute_start_time_probabilities()
         return self.start_time_probability, num_iteration - 1
 
-    def finalise_schedules(self, start_time_probability=None, scheduling_method=None, num_samples=1):
-        if scheduling_method is None:
-            scheduling_method = self.scheduling_method
+    def finalise_schedules(self, start_time_probability=None, tasks_scheduling_method=None, num_samples=1):
+        if tasks_scheduling_method is None:
+            tasks_scheduling_method = self.tasks_scheduling_method
         if start_time_probability is None:
             start_time_probability = self.start_time_probability
         for i in range(1, num_samples + 1):
             final_aggregate_demand_profile, final_total_inconvenience \
                 = self.community.finalise_schedule(num_sample=i,
-                                                   scheduling_method=scheduling_method,
+                                                   tasks_scheduling_method=tasks_scheduling_method,
                                                    start_probability_distribution=start_time_probability)
             prices, consumption_cost, inconvenience, step, new_aggregate_demand_profile, time_pricing \
                 = self.aggregator.pricing(num_iteration=i, aggregate_demand_profile=final_aggregate_demand_profile,

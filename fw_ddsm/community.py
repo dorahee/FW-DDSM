@@ -21,7 +21,8 @@ class Community:
         self.preferred_demand_profile = []
 
     def read(self, tasks_scheduling_method, read_from_folder="data/",
-             inconvenience_cost_weight=None, num_dependent_tasks=None, ensure_dependent=False,
+             inconvenience_cost_weight=None,
+             num_dependent_tasks=None, ensure_dependent=False,
              date_time=None):
         if not read_from_folder.endswith("/"):
             read_from_folder += "/"
@@ -46,7 +47,8 @@ class Community:
 
         return self.preferred_demand_profile
 
-    def new(self, file_preferred_demand_profile, file_demand_list, tasks_scheduling_method,
+    def new(self, file_preferred_demand_profile, file_demand_list,
+            tasks_scheduling_method,
             num_intervals=no_intervals, num_households=no_households,
             max_demand_multiplier=maximum_demand_multiplier,
             num_tasks_dependent=no_tasks_dependent, ensure_dependent=False,
@@ -55,7 +57,8 @@ class Community:
             fixed_task_min=no_fixed_tasks_min, fixed_task_max=0,
             inconvenience_cost_weight=care_f_weight, max_care_factor=care_f_max,
             write_to_file_path=None, date_time=None,
-            capacity_max=battery_capacity_max, capacity_min=battery_capacity_min, power=battery_power):
+            capacity_max=battery_capacity_max, capacity_min=battery_capacity_min,
+            power=battery_power):
 
         self.tasks_scheduling_method = tasks_scheduling_method
         self.num_intervals = num_intervals
@@ -131,7 +134,7 @@ class Community:
 
         if not folder.endswith("/"):
             folder += "/"
-        # folder += "data/"
+        folder += "data/"
         path = Path(folder)
         if not path.exists():
             path.mkdir(mode=0o777, parents=True, exist_ok=False)
@@ -146,7 +149,8 @@ class Community:
         del self.community_details[s_demand]
         f.close()
 
-    def schedule(self, num_iteration, prices, tasks_scheduling_method,
+    def schedule(self, num_iteration, prices,
+                 tasks_scheduling_method,
                  community_details=None, num_intervals=None,
                  model=None, solver=None, search=None,
                  use_battery=False, battery_model=None, battery_solver=None,

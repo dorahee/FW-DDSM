@@ -23,6 +23,8 @@ num_fixed_tasks = 0
 num_samples = 5
 num_repeat = 1
 ensure_dependent = True
+use_battery = False
+new_data_repeat = True
 
 
 def main(output_parent_folder=None, folder_id=1):
@@ -32,7 +34,7 @@ def main(output_parent_folder=None, folder_id=1):
     num_experiment = -1
     for r in range(num_repeat):
         for num_households in num_households_range:
-            new_data = True
+            new_data = new_data_repeat
 
             for penalty_weight in penalty_weight_range:
 
@@ -40,6 +42,7 @@ def main(output_parent_folder=None, folder_id=1):
 
                     print("----------------------------------------")
                     print(f"{num_households} households, "
+                          f"{use_battery} use battery, "
                           f"{num_tasks_dependent} dependent tasks, "
                           f"{num_full_flex_tasks} fully flexible tasks, "
                           f"{num_semi_flex_tasks} semi-flexible tasks, "
@@ -48,13 +51,15 @@ def main(output_parent_folder=None, folder_id=1):
                     print("----------------------------------------")
 
                     new_iteration = Iteration()
-                    output_folder, output_parent_folder, this_date_time = out.new_output_folder(
-                        num_households=num_households,
-                        num_dependent_tasks=num_tasks_dependent,
-                        num_full_flex_task_min=num_full_flex_tasks,
-                        num_semi_flex_task_min=num_semi_flex_tasks,
-                        inconvenience_cost_weight=penalty_weight,
-                        repeat=r, folder_id=folder_id)
+                    output_folder, output_parent_folder, this_date_time \
+                        = out.new_output_folder(
+                            num_households=num_households,
+                            num_dependent_tasks=num_tasks_dependent,
+                            num_full_flex_task_min=num_full_flex_tasks,
+                            num_semi_flex_task_min=num_semi_flex_tasks,
+                            inconvenience_cost_weight=penalty_weight,
+                            use_battery=use_battery,
+                            repeat=r, folder_id=folder_id)
                     plot_layout = []
                     plot_final_layout = []
                     for alg in algorithms.values():
@@ -78,7 +83,10 @@ def main(output_parent_folder=None, folder_id=1):
                                                   inconvenience_cost_weight=penalty_weight,
                                                   max_care_factor=care_f_max,
                                                   data_folder=out.output_parent_folder,
-                                                  date_time=out.this_date_time)
+                                                  date_time=out.this_date_time,
+                                                  capacity_max=battery_capacity_max, capacity_min=battery_capacity_min,
+                                                  power=battery_power
+                                                  )
                             new_data = False
                         else:
                             preferred_demand_profile, prices = \
@@ -87,7 +95,10 @@ def main(output_parent_folder=None, folder_id=1):
                                                    ensure_dependent=ensure_dependent,
                                                    read_from_folder=out.output_parent_folder,
                                                    date_time=out.this_date_time)
-                        start_time_probability = new_iteration.begin_iteration(starting_prices=prices, num_cpus=4)
+                        start_time_probability, total_iterations \
+                            = new_iteration.begin_iteration(starting_prices=prices, num_cpus=4,
+                                                            use_battery=use_battery,
+                                                            battery_solver="gurobi")
                         new_iteration.finalise_schedules(num_samples=num_samples,
                                                          start_time_probability=start_time_probability)
                         print("----------------------------------------")
