@@ -43,7 +43,7 @@ class Output:
 
         self.output_folder \
             = f"{self.output_parent_folder}/h{num_households}-w{inconvenience_cost_weight}-dt{num_dependent_tasks}" \
-              f"-fft{num_full_flex_task_min}-sft{num_semi_flex_task_min}-b{use_battery}"
+              f"-fft{num_full_flex_task_min}-sft{num_semi_flex_task_min}-b{int(use_battery)}"
         if repeat is not None:
             self.output_folder += f"-r{repeat}"
         if folder_id is not None:

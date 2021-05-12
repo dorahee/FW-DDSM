@@ -14,16 +14,15 @@ algorithms[m_ogsa][m_after_fw] = f"{m_ogsa}_fw"
 # num_households_range = [20]
 # penalty_weight_range = [0, 5, 50, 500, 5000, 50000]
 # num_tasks_dependent_range = [0, 3, 5]
-num_households_range = [10]
+num_households_range = [50]
 penalty_weight_range = [1]
-num_tasks_dependent_range = [1]
+num_tasks_dependent_range = [2]
 num_full_flex_tasks = 5
 num_semi_flex_tasks = 0
 num_fixed_tasks = 0
 num_samples = 5
 num_repeat = 1
 ensure_dependent = True
-use_battery = False
 new_data_repeat = True
 
 
@@ -40,91 +39,93 @@ def main(output_parent_folder=None, folder_id=1):
 
                 for num_tasks_dependent in num_tasks_dependent_range:
 
-                    print("----------------------------------------")
-                    print(f"{num_households} households, "
-                          f"{use_battery} use battery, "
-                          f"{num_tasks_dependent} dependent tasks, "
-                          f"{num_full_flex_tasks} fully flexible tasks, "
-                          f"{num_semi_flex_tasks} semi-flexible tasks, "
-                          f"{num_fixed_tasks} fixed tasks, "
-                          f"{penalty_weight} penalty weight. ")
-                    print("----------------------------------------")
+                    for use_battery in [True, False]:
 
-                    new_iteration = Iteration()
-                    output_folder, output_parent_folder, this_date_time \
-                        = out.new_output_folder(
-                            num_households=num_households,
-                            num_dependent_tasks=num_tasks_dependent,
-                            num_full_flex_task_min=num_full_flex_tasks,
-                            num_semi_flex_task_min=num_semi_flex_tasks,
-                            inconvenience_cost_weight=penalty_weight,
-                            use_battery=use_battery,
-                            repeat=r, folder_id=folder_id)
-                    plot_layout = []
-                    plot_final_layout = []
-                    for alg in algorithms.values():
-                        num_experiment += 1
-                        experiment_tracker[num_experiment] = dict()
-                        experiment_tracker[num_experiment][k_households_no] = num_households
-                        experiment_tracker[num_experiment][k_penalty_weight] = penalty_weight
-                        experiment_tracker[num_experiment][k_dependent_tasks_no] = num_tasks_dependent
-                        experiment_tracker[num_experiment][m_algorithm] = alg[m_after_fw]
-                        experiment_tracker[num_experiment]["repeat"] = r
-
-                        if new_data:
-                            preferred_demand_profile, prices = \
-                                new_iteration.new(algorithm=alg, num_households=num_households,
-                                                  max_demand_multiplier=maximum_demand_multiplier,
-                                                  num_tasks_dependent=num_tasks_dependent,
-                                                  ensure_dependent=ensure_dependent,
-                                                  full_flex_task_min=num_full_flex_tasks, full_flex_task_max=0,
-                                                  semi_flex_task_min=num_semi_flex_tasks, semi_flex_task_max=0,
-                                                  fixed_task_min=num_fixed_tasks, fixed_task_max=0,
-                                                  inconvenience_cost_weight=penalty_weight,
-                                                  max_care_factor=care_f_max,
-                                                  data_folder=out.output_parent_folder,
-                                                  date_time=out.this_date_time,
-                                                  capacity_max=battery_capacity_max, capacity_min=battery_capacity_min,
-                                                  power=battery_power
-                                                  )
-                            new_data = False
-                        else:
-                            preferred_demand_profile, prices = \
-                                new_iteration.read(algorithm=alg, inconvenience_cost_weight=penalty_weight,
-                                                   # num_dependent_tasks=num_tasks_dependent,
-                                                   ensure_dependent=ensure_dependent,
-                                                   read_from_folder=out.output_parent_folder,
-                                                   date_time=out.this_date_time)
-                        start_time_probability, total_iterations \
-                            = new_iteration.begin_iteration(starting_prices=prices, num_cpus=4,
-                                                            use_battery=use_battery,
-                                                            battery_solver="gurobi")
-                        new_iteration.finalise_schedules(num_samples=num_samples,
-                                                         start_time_probability=start_time_probability)
+                        print("----------------------------------------")
+                        print(f"{num_households} households, "
+                              f"{int(use_battery)} battery, "
+                              f"{num_tasks_dependent} dependent tasks, "
+                              f"{num_full_flex_tasks} fully flexible tasks, "
+                              f"{num_semi_flex_tasks} semi-flexible tasks, "
+                              f"{num_fixed_tasks} fixed tasks, "
+                              f"{penalty_weight} penalty weight. ")
                         print("----------------------------------------")
 
-                        plots, plots_final, overview_dict \
-                            = out.save_to_output_folder(algorithm=alg,
-                                                        aggregator_tracker=new_iteration.aggregator.tracker,
-                                                        aggregator_final=new_iteration.aggregator.final,
-                                                        community_tracker=new_iteration.community.tracker,
-                                                        community_final=new_iteration.community.final)
-                        experiment_tracker[num_experiment].update(overview_dict)
-                        plot_layout.append(plots)
-                        plot_final_layout.append(plots_final)
-                        DataFrame.from_dict(experiment_tracker).transpose() \
-                            .to_csv(r"{}{}_overview.csv".format(out.output_parent_folder, out.this_date_time))
-                        with open(f"{out.output_parent_folder}data/{out.this_date_time}_{file_experiment_pkl}",
-                                  'wb+') as f:
-                            pickle.dump(experiment_tracker, f, pickle.HIGHEST_PROTOCOL)
-                        print("----------------------------------------")
+                        new_iteration = Iteration()
+                        output_folder, output_parent_folder, this_date_time \
+                            = out.new_output_folder(
+                                num_households=num_households,
+                                num_dependent_tasks=num_tasks_dependent,
+                                num_full_flex_task_min=num_full_flex_tasks,
+                                num_semi_flex_task_min=num_semi_flex_tasks,
+                                inconvenience_cost_weight=penalty_weight,
+                                use_battery=use_battery,
+                                repeat=r, folder_id=folder_id)
+                        plot_layout = []
+                        plot_final_layout = []
+                        for alg in algorithms.values():
+                            num_experiment += 1
+                            experiment_tracker[num_experiment] = dict()
+                            experiment_tracker[num_experiment][k_households_no] = num_households
+                            experiment_tracker[num_experiment][k_penalty_weight] = penalty_weight
+                            experiment_tracker[num_experiment][k_dependent_tasks_no] = num_tasks_dependent
+                            experiment_tracker[num_experiment][m_algorithm] = alg[m_after_fw]
+                            experiment_tracker[num_experiment]["repeat"] = r
 
-                    # experiment_tracker[num_experiment].update(overview_dt)
-                    output_file(f"{output_folder}plots.html")
-                    tab1 = Panel(child=layout(plot_layout), title="FW-DDSM results")
-                    tab2 = Panel(child=layout(plot_final_layout), title="Actual schedules")
-                    save(Tabs(tabs=[tab2, tab1]))
-                    print("----------------------------------------")
+                            if new_data:
+                                preferred_demand_profile, prices = \
+                                    new_iteration.new(algorithm=alg, num_households=num_households,
+                                                      max_demand_multiplier=maximum_demand_multiplier,
+                                                      num_tasks_dependent=num_tasks_dependent,
+                                                      ensure_dependent=ensure_dependent,
+                                                      full_flex_task_min=num_full_flex_tasks, full_flex_task_max=0,
+                                                      semi_flex_task_min=num_semi_flex_tasks, semi_flex_task_max=0,
+                                                      fixed_task_min=num_fixed_tasks, fixed_task_max=0,
+                                                      inconvenience_cost_weight=penalty_weight,
+                                                      max_care_factor=care_f_max,
+                                                      data_folder=out.output_parent_folder,
+                                                      date_time=out.this_date_time,
+                                                      capacity_max=battery_capacity_max, capacity_min=battery_capacity_min,
+                                                      power=battery_power
+                                                      )
+                                new_data = False
+                            else:
+                                preferred_demand_profile, prices = \
+                                    new_iteration.read(algorithm=alg, inconvenience_cost_weight=penalty_weight,
+                                                       # num_dependent_tasks=num_tasks_dependent,
+                                                       ensure_dependent=ensure_dependent,
+                                                       read_from_folder=out.output_parent_folder,
+                                                       date_time=out.this_date_time)
+                            start_time_probability, total_iterations \
+                                = new_iteration.begin_iteration(starting_prices=prices, num_cpus=4,
+                                                                use_battery=use_battery,
+                                                                battery_solver="gurobi")
+                            new_iteration.finalise_schedules(num_samples=num_samples,
+                                                             start_time_probability=start_time_probability)
+                            print("----------------------------------------")
+
+                            plots, plots_final, overview_dict \
+                                = out.save_to_output_folder(algorithm=alg,
+                                                            aggregator_tracker=new_iteration.aggregator.tracker,
+                                                            aggregator_final=new_iteration.aggregator.final,
+                                                            community_tracker=new_iteration.community.tracker,
+                                                            community_final=new_iteration.community.final)
+                            experiment_tracker[num_experiment].update(overview_dict)
+                            plot_layout.append(plots)
+                            plot_final_layout.append(plots_final)
+                            DataFrame.from_dict(experiment_tracker).transpose() \
+                                .to_csv(r"{}{}_overview.csv".format(out.output_parent_folder, out.this_date_time))
+                            with open(f"{out.output_parent_folder}data/{out.this_date_time}_{file_experiment_pkl}",
+                                      'wb+') as f:
+                                pickle.dump(experiment_tracker, f, pickle.HIGHEST_PROTOCOL)
+                            print("----------------------------------------")
+
+                        # experiment_tracker[num_experiment].update(overview_dt)
+                        output_file(f"{output_folder}plots.html")
+                        tab1 = Panel(child=layout(plot_layout), title="FW-DDSM results")
+                        tab2 = Panel(child=layout(plot_final_layout), title="Actual schedules")
+                        save(Tabs(tabs=[tab2, tab1]))
+                        print("----------------------------------------")
 
     # print("------------------------------")
     print("Experiment is finished. ")

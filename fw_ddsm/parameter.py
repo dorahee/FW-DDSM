@@ -1,5 +1,5 @@
 # time related parameters
-no_intervals = 48
+no_intervals = 144
 no_periods = 48
 no_intervals_periods = int(no_intervals / no_periods)
 time_out = None
@@ -27,7 +27,7 @@ battery_power = 5000  # 1C battery
 pricing_table_weight = 1
 # cost_function_type = "linear"
 cost_function_type = "piece-wise"
-min_step = 0.001
+min_step = 0.0005
 
 # tasks solver related parameters
 variable_selection = "smallest"
