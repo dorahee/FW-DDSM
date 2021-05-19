@@ -155,6 +155,7 @@ class Community:
                  model=None, solver=None, search=None,
                  use_battery=False, battery_model=None, battery_solver=None,
                  num_cpus=None, timeout=time_out,
+                 fully_charge_time=fully_charge_hour,
                  print_upon_completion=False):
 
         prices = self.__convert_price(prices)
@@ -178,6 +179,7 @@ class Community:
                                          battery_model=battery_model,
                                          battery_solver=battery_solver,
                                          num_cpus=num_cpus, timeout=timeout,
+                                         fully_charge_time=fully_charge_time,
                                          print_upon_completion=print_upon_completion)
 
         aggregate_demand_profile, weighted_total_inconvenience, time_scheduling_iteration \
@@ -287,6 +289,7 @@ class Community:
                               tasks_scheduling_method, model, solver, search,
                               use_battery=False, battery_model=None, battery_solver=None,
                               num_cpus=None, timeout=time_out,
+                              fully_charge_time=fully_charge_hour,
                               print_upon_completion=False):
 
         # if num_cpus is not None:
@@ -313,7 +316,8 @@ class Community:
                                 tasks_scheduling_method,
                                 model, solver, search,
                                 use_battery, battery_model, battery_solver,
-                                timeout, False,
+                                timeout, fully_charge_time,
+                                False,
                                 print_upon_completion):
                         household_details for household_details in community_details.values()}
 

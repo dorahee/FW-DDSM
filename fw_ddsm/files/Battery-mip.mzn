@@ -8,6 +8,7 @@ set of int: INTERVALS = 1..num_intervals;
 float: min_energy_capacity;  % in kwh
 float: max_energy_capacity;  % in kwh
 float: max_power;  % in kw
+int: fully_charge_hour;
 
 % loads
 array[INTERVALS] of float: existing_demands;
@@ -21,7 +22,7 @@ array[INTERVALS] of var -max_power..max_power: battery_profile;  % charge/discha
 
 % soc constraint
 
-constraint battery_soc[4] = max_energy_capacity;
+constraint battery_soc[ceil(fully_charge_hour * num_intervals_hour)] = max_energy_capacity;
 
 % constraint battery_soc[num_intervals] = max_energy_capacity;
 

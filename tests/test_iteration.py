@@ -14,7 +14,7 @@ algorithms[m_ogsa][m_after_fw] = f"{m_ogsa}_fw"
 # num_households_range = [20]
 # penalty_weight_range = [0, 5, 50, 500, 5000, 50000]
 # num_tasks_dependent_range = [0, 3, 5]
-num_households_range = [50]
+num_households_range = [5]
 penalty_weight_range = [1]
 num_tasks_dependent_range = [2]
 num_full_flex_tasks = 5
@@ -99,7 +99,8 @@ def main(output_parent_folder=None, folder_id=1):
                             start_time_probability, total_iterations \
                                 = new_iteration.begin_iteration(starting_prices=prices, num_cpus=4,
                                                                 use_battery=use_battery,
-                                                                battery_solver="gurobi")
+                                                                battery_solver="gurobi",
+                                                                fully_charge_time=5)
                             new_iteration.finalise_schedules(num_samples=num_samples,
                                                              start_time_probability=start_time_probability)
                             print("----------------------------------------")

@@ -134,7 +134,9 @@ class Household:
                  tasks_scheduling_method=None,
                  tasks_model=None, tasks_solver=None, tasks_search=None,
                  use_battery=False, battery_model=None, battery_solver=None,
-                 timeout=time_out, update_tracker=True,
+                 timeout=time_out,
+                 fully_charge_time=fully_charge_hour,
+                 update_tracker=True,
                  print_upon_completion=False):
 
         if tasks_scheduling_method is None:
@@ -173,6 +175,7 @@ class Household:
                                                    model=battery_model,
                                                    solver=battery_solver,
                                                    num_intervals=num_intervals,
+                                                   fully_charge_time=fully_charge_time,
                                                    print_upon_completion=print_upon_completion)
             battery_profile = battery_result[b_profile]
             household_demand_profile = [x + y for x, y in zip(tasks_demand_profile, battery_profile)]
@@ -281,7 +284,8 @@ class Household:
                 s_penalty: weighted_penalty_household, t_time: time_scheduling_tasks}
 
     def schedule_battery(self, household, existing_demands, prices, model=None, solver=None,
-                         num_intervals=no_intervals, print_upon_completion=False):
+                         num_intervals=no_intervals, fully_charge_time=fully_charge_hour,
+                         print_upon_completion=False):
 
         model = file_mip_battery if model is None else model
         solver = "mip" if solver is None else solver
@@ -299,7 +303,9 @@ class Household:
             = household_scheduling.battery_mip(model_file=model, solver=solver, existing_demands=existing_demands,
                                                capacity_max=capacity_max, capacity_min=capacity_min,
                                                power_max=power_max,
-                                               prices=prices, num_intervals=num_intervals, timeout=time_out)
+                                               prices=prices,
+                                               fully_charge_time=fully_charge_time,
+                                               num_intervals=num_intervals, timeout=time_out)
 
         if print_upon_completion:
             print(f"Household {key}, {battery_profile}. ")

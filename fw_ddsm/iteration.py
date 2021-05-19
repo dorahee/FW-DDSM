@@ -87,7 +87,7 @@ class Iteration:
 
     def begin_iteration(self, starting_prices,
                         use_battery=False, battery_model=None, battery_solver=None,
-                        num_cpus=None, timeout=time_out,
+                        num_cpus=None, timeout=time_out, fully_charge_time=fully_charge_hour,
                         min_step_size=min_step, ignore_tiny_step=False, roundup_tiny_step=False,
                         print_done=False, print_steps=False):
 
@@ -108,6 +108,7 @@ class Iteration:
                                           use_battery=use_battery,
                                           battery_model=battery_model, battery_solver=battery_solver,
                                           num_cpus=num_cpus, timeout=timeout,
+                                          fully_charge_time=fully_charge_time,
                                           print_upon_completion=print_done)
 
             prices, consumption_cost, inconvenience, step, new_aggregate_demand_profile, time_pricing \
