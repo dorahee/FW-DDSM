@@ -21,9 +21,9 @@ array[INTERVALS] of var -max_power..max_power: battery_profile;  % charge/discha
 
 % soc constraint
 
-constraint battery_soc[1] = max_energy_capacity;
+constraint battery_soc[4] = max_energy_capacity;
 
-constraint battery_soc[num_intervals] = max_energy_capacity;
+% constraint battery_soc[num_intervals] = max_energy_capacity;
 
 constraint forall (i in 2..num_intervals) (
   battery_soc[i] = battery_soc[i - 1] + battery_profile[i] / num_intervals_hour
@@ -36,7 +36,6 @@ constraint forall (i in INTERVALS) (
 
 % objectives
 var float: battery_cost = sum (i in INTERVALS) (battery_profile[i] * prices[i]) / num_intervals_hour;
-var float: battery_degradation = 0.001 * sum(i in INTERVALS) (battery_profile[i]);
-var float: obj = battery_cost + battery_degradation;
+var float: obj = battery_cost;
 
 solve minimize obj;
