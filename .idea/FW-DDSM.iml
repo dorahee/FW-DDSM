@@ -10,5 +10,6 @@
     <orderEntry type="jdk" jdkName="Python 3.7 (py37)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="multiple-scheduling-3.0" />
+    <orderEntry type="module" module-name="single-scheduling" />
   </component>
 </module>

@@ -8,35 +8,52 @@ set of int: INTERVALS = 1..num_intervals;
 float: min_energy_capacity;  % in kwh
 float: max_energy_capacity;  % in kwh
 float: max_power;  % in kw
+int: fully_charge_hour;
 
-% loads
+% demands
 array[INTERVALS] of float: existing_demands;
+float: total_demand_limit = 9999999999.9;
 
 % price related
 array[INTERVALS] of float: prices;
 
-% decision variables
+% decision variables for the battery scheduling problem
 array[INTERVALS] of var min_energy_capacity..max_energy_capacity: battery_soc;  % stored energy per interval in kwh
 array[INTERVALS] of var -max_power..max_power: battery_profile;  % charge/discharge per interval in kw
+array[INTERVALS] of var 0..total_demand_limit: total_demand = array1d([existing_demands[i] + battery_profile[i] | i in INTERVALS]);  % charge/discharge per interval in kw
 
-% soc constraint
+% additional variables for PAR minimisation
+var float: max_total_demand; 
+var float: R;
+array[INTERVALS] of var 0..total_demand_limit: total_demand2 = array1d([R * (existing_demands[i] + battery_profile[i]) | i in INTERVALS]); 
 
+
+% soc constraints
 constraint battery_soc[1] = max_energy_capacity;
-
 constraint battery_soc[num_intervals] = max_energy_capacity;
-
 constraint forall (i in 2..num_intervals) (
-  battery_soc[i] = battery_soc[i - 1] + battery_profile[i] / num_intervals_hour
+  battery_soc[i] = battery_soc[i - 1] + battery_profile[i - 1] / num_intervals_hour
 );
 
-% total demand constraint
-constraint forall (i in INTERVALS) (
-  existing_demands[i] + battery_profile[i] >= 0
-);
+% PAR linearisation constraints
+constraint forall(i in INTERVALS) (max_total_demand >= total_demand[i]);
+constraint sum(total_demand2) = sum(total_demand) * R;
+constraint sum(total_demand2)/ num_intervals = 1;
+constraint forall (i in INTERVALS) (max_total_demand >= total_demand2[i]);
 
 % objectives
-var float: battery_cost = sum (i in INTERVALS) (battery_profile[i] * prices[i]) / num_intervals_hour;
-var float: battery_degradation = 0.001 * sum(i in INTERVALS) (battery_profile[i]);
-var float: obj = battery_cost + battery_degradation;
+
+var float: cost = sum (i in INTERVALS) ((battery_profile[i] + existing_demands[i]) * prices[i]) / num_intervals_hour;
+
+var float: obj = max_total_demand;
 
 solve minimize obj;
+
+% output [
+% "obj = " ++ show(obj) ++ "\n" ++
+% "existing_demand = " ++ show(existing_demands) ++ "\n" ++
+% "total_demand = " ++ show(total_demand) ++ "\n" ++
+% "total_demand2 = " ++ show(total_demand2) ++ "\n" ++
+% "R = " ++ show(R) ++ "\n" ++
+% "battery_profile = " ++ show(battery_profile)
+% ];

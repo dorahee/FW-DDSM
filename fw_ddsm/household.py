@@ -195,7 +195,8 @@ class Household:
                                           penalty=tasks_weighted_penalty,
                                           battery_profile=battery_profile)
 
-        return {h_key: key, s_demand: household_demand_profile,
+        return {h_key: key,
+                s_demand: household_demand_profile,
                 s_penalty: tasks_weighted_penalty,
                 s_starts: tasks_start_times,
                 b_profile: battery_profile,

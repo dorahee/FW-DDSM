@@ -206,14 +206,21 @@ def tasks_ogsa(objective_values, big_value, powers, durations, preferred_starts,
 def battery_mip(model_file, solver, existing_demands, capacity_max, capacity_min, power_max, prices,
                 fully_charge_time=fully_charge_hour, num_intervals=no_intervals, timeout=time_out):
 
+    def rotate_list(l_original, p):
+        if p == 0:
+            return l_original
+        else:
+            return l_original[p:] + l_original[:p]
+
     model = Model(model_file)
     mip_solver = Solver.lookup(solver)
     # model.add_string("solve minimize obj;")
     ins = Instance(mip_solver, model)
 
     # time parameters
+    num_intervals_hour = int(num_intervals / 24)
     ins["num_intervals"] = num_intervals
-    ins["num_intervals_hour"] = int(num_intervals / 24)
+    ins["num_intervals_hour"] = num_intervals_hour
 
     # battery parameters
     ins["max_energy_capacity"] = capacity_max
@@ -222,15 +229,22 @@ def battery_mip(model_file, solver, existing_demands, capacity_max, capacity_min
     ins["fully_charge_hour"] = fully_charge_time
 
     # demands and prices
-    ins["existing_demands"] = existing_demands
-    ins["prices"] = prices
+    # manipulate existing demands to start from the fully charged time
+    fully_charged_intervals = fully_charge_time * num_intervals_hour
+    existing_demands2 = rotate_list(existing_demands, fully_charged_intervals)
+    prices2 = rotate_list(prices, fully_charged_intervals)
+    ins["existing_demands"] = existing_demands2
+    ins["prices"] = prices2
 
     if timeout is None:
         result = ins.solve()
     else:
         result = ins.solve(timeout=timedelta(seconds=timeout))
 
-    battery_profile = result.solution.battery_profile
+    battery_profile2 = result.solution.battery_profile
+    # recover a battery profile that starts from 12am
+    battery_profile = rotate_list(battery_profile2, -fully_charged_intervals)
+    total_demand2 = result.solution.battery_profile
     time = result.statistics["time"].total_seconds()
 
     return battery_profile, time

@@ -124,7 +124,7 @@ class Aggregator:
                                                     pricing_table=self.pricing_table,
                                                     aggregate_demand_profile=aggregate_demand_profile,
                                                     aggregate_inconvenience=aggregate_inconvenience,
-                                                    demand_profile_fw_pre=demand_profile_fw_pre,
+                                                    aggregate_demand_profile_fw_pre=demand_profile_fw_pre,
                                                     inconvenience_fw_pre=inconvenience_fw_pre,
                                                     price_fw_pre=price_fw_pre, cost_fw_pre=cost_fw_pre,
                                                     min_step_size=min_step_size,
