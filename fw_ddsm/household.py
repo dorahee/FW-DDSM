@@ -182,7 +182,7 @@ class Household:
             battery_time = battery_result[t_time]
         else:
             household_demand_profile = tasks_demand_profile[:]
-            battery_profile = None
+            battery_profile = [0] * num_intervals
             battery_time = 0
 
         time_total = tasks_time + battery_time

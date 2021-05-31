@@ -15,4 +15,14 @@ A python package for implementing the Frank-Wolfe-based distributed demand sched
 `sudo apt-get install snapd`
 5. install minizinc bundle
 `sudo snap install minizinc --classic`
+   
+# Features of FW-DDSM
+
+1. Pricing master problem
+
+Minimise the inconvenience, consumption cost and the peak-to-average ratio of the aggregate demand profile of all households. 
+
+2. Household subproblem
+
+Scheduling both the appliances and the batteries to minmise the cost, the inconvenience and the peak-to-average ratio of the household. 
 

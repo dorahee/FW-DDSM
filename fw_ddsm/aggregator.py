@@ -38,8 +38,11 @@ class Aggregator:
                                     aggregate_preferred_demand_profile=aggregate_preferred_demand_profile)
         print("0. Aggregator is read. ")
 
-        prices, consumption_cost, inconvenience, step, new_aggregate_demand_profile, time_pricing \
-            = self.pricing(num_iteration=0, aggregate_demand_profile=aggregate_preferred_demand_profile,
+        prices, consumption_cost, inconvenience, step, \
+        new_aggregate_demand_profile, new_aggregate_battery_profile,time_pricing \
+            = self.pricing(num_iteration=0,
+                           aggregate_demand_profile=aggregate_preferred_demand_profile,
+                           aggregate_battery_profile=[0] * len(aggregate_preferred_demand_profile),
                            aggregate_inconvenience=0)
         return prices, consumption_cost
 
@@ -64,8 +67,11 @@ class Aggregator:
             self.write_to_file("data/")
         print("0. Aggregator is created. ")
 
-        prices, consumption_cost, inconvenience, step, new_aggregate_demand_profile, time_pricing \
-            = self.pricing(num_iteration=0, aggregate_demand_profile=aggregate_preferred_demand_profile,
+        prices, consumption_cost, inconvenience, step, \
+        new_aggregate_demand_profile, new_aggregate_battery_profile, time_pricing \
+            = self.pricing(num_iteration=0,
+                           aggregate_demand_profile=aggregate_preferred_demand_profile,
+                           aggregate_battery_profile=[0] * len(aggregate_preferred_demand_profile),
                            aggregate_inconvenience=0)
         return prices, consumption_cost
 
@@ -93,13 +99,17 @@ class Aggregator:
         self.final.new(name=f"{pricing_method}_agg_final")
         self.final.update(num_record=0, demands=aggregate_preferred_demand_profile)
 
-    def pricing(self, num_iteration, aggregate_demand_profile, aggregate_inconvenience=0, finalising=False,
+    def pricing(self, num_iteration, aggregate_demand_profile, aggregate_battery_profile,
+                aggregate_inconvenience=0, finalising=False,
                 min_step_size=min_step, ignore_tiny_step=False, roundup_tiny_step=False, print_steps=False):
 
         aggregate_demand_profile = self.__convert_demand_profile(aggregate_demand_profile)
+        aggregate_battery_profile = self.__convert_demand_profile(aggregate_battery_profile)
+
         step = 1
         inconvenience = aggregate_inconvenience
-        new_aggregate_demand_profile = aggregate_demand_profile
+        new_aggregate_demand_profile = aggregate_demand_profile[:]
+        new_aggregate_battery_profile = aggregate_battery_profile[:]
         time_pricing = 0
 
         if num_iteration == 0 or finalising:
@@ -111,22 +121,28 @@ class Aggregator:
                 self.init_cost = consumption_cost
                 self.init_demand_max = max(new_aggregate_demand_profile)
             self.final.update(num_record=num_iteration, penalty=inconvenience,
-                              demands=new_aggregate_demand_profile, init_demand_max=self.init_demand_max,
+                              demands=new_aggregate_demand_profile,
+                              battery_profile=new_aggregate_battery_profile,
+                              init_demand_max=self.init_demand_max,
                               prices=prices, cost=consumption_cost, init_cost=self.init_cost)
         else:
-            demand_profile_fw_pre = self.tracker.data[s_demand][num_iteration - 1][:]
+            aggregate_demand_profile_fw_pre = self.tracker.data[s_demand][num_iteration - 1][:]
+            aggregate_battery_profile_fw_pre = self.tracker.data[b_profile][num_iteration - 1][:]
             inconvenience_fw_pre = self.tracker.data[s_penalty][num_iteration - 1]
             price_fw_pre = self.tracker.data[p_prices][num_iteration - 1][:]
             cost_fw_pre = self.tracker.data[p_cost][num_iteration - 1]
-            new_aggregate_demand_profile, step, prices, consumption_cost, inconvenience, time_pricing \
+            new_aggregate_demand_profile, new_aggregate_battery_profile, \
+            step, prices, consumption_cost, inconvenience, time_pricing \
                 = aggregator_pricing.find_step_size(num_iteration=num_iteration,
                                                     pricing_method=self.pricing_method,
                                                     pricing_table=self.pricing_table,
-                                                    aggregate_demand_profile=aggregate_demand_profile,
-                                                    aggregate_inconvenience=aggregate_inconvenience,
-                                                    aggregate_demand_profile_fw_pre=demand_profile_fw_pre,
-                                                    inconvenience_fw_pre=inconvenience_fw_pre,
-                                                    price_fw_pre=price_fw_pre, cost_fw_pre=cost_fw_pre,
+                                                    aggregate_demand_profile_new=aggregate_demand_profile,
+                                                    aggregate_demand_profile_fw_pre=aggregate_demand_profile_fw_pre,
+                                                    aggregate_battery_profile_new=aggregate_battery_profile,
+                                                    aggregate_battery_profile_fw_pre=aggregate_battery_profile_fw_pre,
+                                                    total_inconvenience_new=aggregate_inconvenience,
+                                                    total_inconvenience_fw_pre=inconvenience_fw_pre,
+                                                    price_fw_pre=price_fw_pre, total_cost_fw_pre=cost_fw_pre,
                                                     min_step_size=min_step_size,
                                                     ignore_tiny_step=ignore_tiny_step,
                                                     roundup_tiny_step=roundup_tiny_step,
@@ -134,11 +150,14 @@ class Aggregator:
 
         if not finalising:
             self.tracker.update(num_record=num_iteration, penalty=inconvenience,
-                                demands=new_aggregate_demand_profile, init_demand_max=self.init_demand_max,
+                                demands=new_aggregate_demand_profile,
+                                battery_profile=new_aggregate_battery_profile,
+                                init_demand_max=self.init_demand_max,
                                 prices=prices, cost=consumption_cost, init_cost=self.init_cost,
                                 run_time=time_pricing, step=step)
 
-        return prices, consumption_cost, inconvenience, step, new_aggregate_demand_profile, time_pricing
+        return prices, consumption_cost, inconvenience, step, \
+               new_aggregate_demand_profile, new_aggregate_battery_profile, time_pricing
 
     def compute_start_time_probabilities(self):
         history_steps = list(self.tracker.data[p_step].values())

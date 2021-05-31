@@ -21,14 +21,14 @@ algorithms[m_ogsa][m_after_fw] = f"{m_ogsa}_fw"
 # num_tasks_dependent_range = [0, 3, 5]
 # num_households_range = [50, 100, 500, 1000, 2000, 4000, 6000, 8000, 10000]
 num_households_range = [1]
-penalty_weight_range = [5]
+penalty_weight_range = [100]
 # num_tasks_dependent_range = [0, 2, 4, 6, 8]
 num_tasks_dependent_range = [3]
-num_full_flex_tasks = 0
-num_semi_flex_tasks = 10
+num_full_flex_tasks = 10
+num_semi_flex_tasks = 0
 num_fixed_tasks = 0
 num_samples = 5
-num_repeat = 1
+num_repeat = 3
 id_job = 0
 battery_usages = [True, False]
 battery_solver_choice = "gurobi"
@@ -148,7 +148,8 @@ def main(num_households, num_tasks_dependent, penalty_weight, out, new_data=True
                                         aggregator_tracker=new_iteration.aggregator.tracker,
                                         aggregator_final=new_iteration.aggregator.final,
                                         community_tracker=new_iteration.community.tracker,
-                                        community_final=new_iteration.community.final)
+                                        community_final=new_iteration.community.final,
+                                        obj_par=True)
         plots_demand_layout.append(plots_demand)
         plots_demand_finalised_layout.append(plots_demand_finalised)
         experiment_tracker[num_experiment].update(overview_dict)
@@ -158,8 +159,8 @@ def main(num_households, num_tasks_dependent, penalty_weight, out, new_data=True
     output_file(f"{output_folder}{this_date_time}_plots.html")
     tab1 = Panel(child=layout(plots_demand_layout), title="FW-DDSM results")
     tab2 = Panel(child=layout(plots_demand_finalised_layout), title="Actual schedules")
-    div = Div(text=f"""{param_str}""", width=800)
-    save(layout([div], [Tabs(tabs=[tab2, tab1])]))
+    div = Div(text=f"""{param_str}""", width=1600)
+    save(layout([div], [Tabs(tabs=[tab1, tab2])]))
 
     # 6. writing experiment overview
     df_exp = DataFrame.from_dict(experiment_tracker).transpose()

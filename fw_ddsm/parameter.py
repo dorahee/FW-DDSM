@@ -1,5 +1,5 @@
 # time related parameters
-no_intervals = 144
+no_intervals = 48
 no_periods = 48
 no_intervals_periods = int(no_intervals / no_periods)
 time_out = None
