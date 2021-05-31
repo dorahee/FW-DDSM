@@ -28,6 +28,9 @@ var float: R;
 array[INTERVALS] of var 0..total_demand_limit: total_demand2 = array1d([R * (existing_demands[i] + battery_profile[i]) | i in INTERVALS]); 
 
 
+% full circle constraint
+constraint sum(battery_profile) = 0;
+
 % soc constraints
 constraint battery_soc[1] = max_energy_capacity;
 constraint battery_soc[num_intervals] = max_energy_capacity;

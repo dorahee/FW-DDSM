@@ -59,7 +59,7 @@ class Output:
                               aggregator_tracker, community_tracker,
                               aggregator_final, community_final=None,
                               params_tracker=None,
-                              obj_par=False, obj_cost=True, obj_inconvenience=True,
+                              obj_par=True, obj_cost=True, obj_inconvenience=True,
                               print_demands=True, print_batteries=True, print_prices=True, print_summary=True):
 
         agg_demands, agg_batteries, agg_prices, agg_others = aggregator_tracker.extract_data()

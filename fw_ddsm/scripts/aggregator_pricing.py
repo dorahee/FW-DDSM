@@ -40,32 +40,41 @@ def find_step_size(num_iteration, pricing_method, pricing_table,
                    min_step_size=min_step, ignore_tiny_step=False, roundup_tiny_step=False, print_steps=False):
     time_begin = time()
 
-    price_fw = price_fw_pre[:]
-    total_cost_fw = total_cost_fw_pre
-    aggregate_demand_profile_fw = aggregate_demand_profile_fw_pre[:]
-    aggregate_battery_profile_fw = aggregate_battery_profile_fw_pre[:]
-    total_inconvenience_fw = total_inconvenience_fw_pre
-    change_of_inconvenience = total_inconvenience_new - total_inconvenience_fw_pre
-    PAR_fw_pre = max(aggregate_demand_profile_fw_pre) / average(aggregate_demand_profile_fw_pre)
+    def move_profile(demands_pre, demands_new, alpha):
+        return [d_p + (d_n - d_p) * alpha for d_p, d_n in zip(demands_pre, demands_new)]
+
     changes_of_aggregate_demand_profile \
         = [d_n - d_p for d_n, d_p in zip(aggregate_demand_profile_new, aggregate_demand_profile_fw_pre)]
+    change_of_inconvenience = total_inconvenience_new - total_inconvenience_fw_pre
+    PAR_fw_pre = max(aggregate_demand_profile_fw_pre) / average(aggregate_demand_profile_fw_pre)
 
     step_size_final = 0
     step_size_final_temp = 0
+    step_size_final_temp_prev = -1
+    num_itrs = -1
     change_of_obj = -999
-    num_itrs = 0
-    min_abs_change_of_obj = 0.001
-    while change_of_obj < 0 and abs(change_of_obj) > min_abs_change_of_obj and step_size_final <= 1:
+    change_of_cost = -999
+    min_abs_change = 0.0001
+
+    # if the gradient is less than zero and the step size is not yet 1, continue the loop
+    while change_of_obj < 0 and abs(change_of_obj) > min_abs_change \
+            and step_size_final < 1 and not step_size_final_temp == step_size_final_temp_prev:
+
+        step_size_final = step_size_final_temp
+        num_itrs += 1
+
+        # search for the step per time period
         step_profile = []
         for dp, dn, demand_levels_period in \
-                zip(aggregate_demand_profile_fw_pre, aggregate_demand_profile_new, pricing_table[p_demand_table].values()):
+                zip(aggregate_demand_profile_fw_pre, aggregate_demand_profile_new,
+                    pricing_table[p_demand_table].values()):
             d_levels = list(demand_levels_period.values())[:-1]
             min_demand_level = min(d_levels)
             max_demand_level = d_levels[-1]
             second_max_demand_level = d_levels[-2]
             if dn < dp < min_demand_level or dp < dn < min_demand_level or dn > dp > second_max_demand_level \
                     or dp > dn > max_demand_level or dn == dp:
-                step = 0.1
+                step = 0.001
             else:
                 dd = dn - dp
                 dl = find_ge(d_levels, dp) + 0.01 if dd > 0 else find_le(d_levels, dp) - 0.01
@@ -76,20 +85,25 @@ def find_step_size(num_iteration, pricing_method, pricing_table,
                     step = ceil(step * 1000) / 1000
                 step = max(step, min_step_size)
             step_profile.append(step)
+
+        # find the smallest step size
         step_size_incr = min(step_profile)
         if step_size_incr == 1:
             print("step size incr is one")
         step_size_final_temp_prev = step_size_final_temp
         step_size_final_temp = step_size_final + step_size_incr
 
-        aggregate_demand_profile_fw_temp = [d_p + (d_n - d_p) * step_size_incr for d_p, d_n in
-                                            zip(aggregate_demand_profile_fw_pre, aggregate_demand_profile_new)]
-        aggregate_demand_profile_fw_pre = aggregate_demand_profile_fw_temp[:]
-
+        # update the aggregate demand profile using the current step-size
+        aggregate_demand_profile_fw_temp \
+            = move_profile(aggregate_demand_profile_fw_pre, aggregate_demand_profile_new, step_size_final_temp)
         PAR_fw_temp = max(aggregate_demand_profile_fw_temp) / average(aggregate_demand_profile_fw_temp)
+
+        # update the prices and the cost using the updated aggregated demand profile
         price_fw_temp, cost_fw_temp = prices_and_cost(aggregate_demand_profile=aggregate_demand_profile_fw_temp,
                                                       pricing_table=pricing_table,
                                                       cost_function=cost_function_type)
+
+        # calculate the gradient/change of objective
         change_of_cost = sum([d_c * p_fw for d_c, p_fw in zip(changes_of_aggregate_demand_profile, price_fw_temp)])
         change_of_PAR = PAR_fw_temp - PAR_fw_pre
         change_of_obj = change_of_inconvenience * step_size_final_temp + change_of_cost + change_of_PAR
@@ -98,44 +112,42 @@ def find_step_size(num_iteration, pricing_method, pricing_table,
             print(f"step {step_size_final_temp} at {num_itrs}, change of cost = {change_of_cost}, "
                   f"change of obj = {change_of_obj}")
 
-        if step_size_final_temp == step_size_final_temp_prev:
-            break
-
-        elif change_of_obj < 0 and abs(change_of_obj) > min_abs_change_of_obj and step_size_final_temp <= 1:
-
-            step_size_final = step_size_final_temp
-            aggregate_demand_profile_fw = aggregate_demand_profile_fw_temp[:]
-            aggregate_battery_profile_fw = [d_p + (d_n - d_p) * step_size_final for d_p, d_n in
-                                            zip(aggregate_battery_profile_fw_pre, aggregate_battery_profile_new)]
-            price_fw = price_fw_temp[:]
-            total_cost_fw = cost_fw_temp
-            total_inconvenience_fw = total_inconvenience_fw_pre + step_size_final * change_of_inconvenience
-            num_itrs += 1
-
-            if step_size_final == 1:
-                break
+    # update aggregate demand profile, aggregate battery profile, total cost, total inconvenience and total obj
+    aggregate_demand_profile_fw \
+        = move_profile(aggregate_demand_profile_fw_pre, aggregate_demand_profile_new, step_size_final)
+    aggregate_battery_profile_fw \
+        = move_profile(aggregate_battery_profile_fw_pre, aggregate_battery_profile_new, step_size_final)
+    price_fw, total_cost_fw \
+        = prices_and_cost(aggregate_demand_profile=aggregate_demand_profile_fw,
+                          pricing_table=pricing_table,
+                          cost_function=cost_function_type)
+    total_inconvenience_fw = total_inconvenience_fw_pre + step_size_final * change_of_inconvenience
+    PAR_fw = max(aggregate_demand_profile_fw) / average(aggregate_demand_profile_fw)
+    total_obj_fw = total_cost_fw + total_inconvenience_fw + PAR_fw
 
     print(f"{num_iteration}. "
           f"Best step size {round(step_size_final, 6)}, "
-          f"{num_itrs} iterations, cost {total_cost_fw}, change of obj {change_of_obj}, "
+          f"{num_itrs} iterations, "
+          f"obj {total_obj_fw}, "
+          f"change of obj {change_of_obj}, "
           f"using {pricing_method}")
     time_fw = time() - time_begin
 
-    return aggregate_demand_profile_fw, aggregate_battery_profile_fw,\
+    return aggregate_demand_profile_fw, aggregate_battery_profile_fw, \
            step_size_final, price_fw, total_cost_fw, total_inconvenience_fw, time_fw
 
 
 def compute_start_time_probabilities(history_steps):
-        prob_dist = []
-        if history_steps[0] == 0 or history_steps[0] ==1:
-            del history_steps[0]
+    prob_dist = []
+    if history_steps[0] == 0 or history_steps[0] == 1:
+        del history_steps[0]
 
-        for alpha in history_steps:
-            if not prob_dist:
-                prob_dist.append(1 - alpha)
-                prob_dist.append(alpha)
-            else:
-                prob_dist = [p_d * (1 - alpha) for p_d in prob_dist]
-                prob_dist.append(alpha)
+    for alpha in history_steps:
+        if not prob_dist:
+            prob_dist.append(1 - alpha)
+            prob_dist.append(alpha)
+        else:
+            prob_dist = [p_d * (1 - alpha) for p_d in prob_dist]
+            prob_dist.append(alpha)
 
-        return prob_dist
+    return prob_dist

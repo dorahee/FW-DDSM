@@ -13,22 +13,22 @@ algorithms = dict()
 algorithms[m_minizinc] = dict()
 algorithms[m_minizinc][m_before_fw] = m_minizinc
 algorithms[m_minizinc][m_after_fw] = f"{m_minizinc}_fw"
-algorithms[m_ogsa] = dict()
-algorithms[m_ogsa][m_before_fw] = m_ogsa
-algorithms[m_ogsa][m_after_fw] = f"{m_ogsa}_fw"
+# algorithms[m_ogsa] = dict()
+# algorithms[m_ogsa][m_before_fw] = m_ogsa
+# algorithms[m_ogsa][m_after_fw] = f"{m_ogsa}_fw"
 
 # penalty_weight_range = [0, 5, 50, 500, 5000, 50000]
 # num_tasks_dependent_range = [0, 3, 5]
 # num_households_range = [50, 100, 500, 1000, 2000, 4000, 6000, 8000, 10000]
-num_households_range = [1]
+num_households_range = [50]
 penalty_weight_range = [100]
 # num_tasks_dependent_range = [0, 2, 4, 6, 8]
 num_tasks_dependent_range = [3]
-num_full_flex_tasks = 10
-num_semi_flex_tasks = 0
+num_full_flex_tasks = 0
+num_semi_flex_tasks = 5
 num_fixed_tasks = 0
 num_samples = 5
-num_repeat = 3
+num_repeat = 1
 id_job = 0
 battery_usages = [True, False]
 battery_solver_choice = "gurobi"
@@ -42,7 +42,7 @@ cpus_nums = cpu_count()
 ensure_dependent = True
 experiment_tracker = dict()
 timeout = 120
-min_step_size = 0.0005
+min_step_size = 0.001
 ignore_tiny_step = True
 roundup_tiny_step = False
 print_done = False
@@ -224,8 +224,8 @@ if __name__ == '__main__':
     out1 = Output(output_root_folder="results", output_parent_folder=name_exp)
 
     for r in range(num_repeat):
-        new = True
         for h in num_households_range:
+            new = True
             for w in penalty_weight_range:
                 for dt in num_tasks_dependent_range:
                     for battery_use in battery_usages:
