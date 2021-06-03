@@ -106,7 +106,7 @@ def find_step_size(num_iteration, pricing_method, pricing_table,
         # calculate the gradient/change of objective
         change_of_cost = sum([d_c * p_fw for d_c, p_fw in zip(changes_of_aggregate_demand_profile, price_fw_temp)])
         change_of_PAR = PAR_fw_temp - PAR_fw_pre
-        change_of_obj = change_of_inconvenience + change_of_cost + change_of_PAR
+        change_of_obj = change_of_inconvenience + change_of_cost
 
         if print_steps:
             print(f"step {step_size_final_temp} at {num_itrs}, change of cost = {change_of_cost}, "
