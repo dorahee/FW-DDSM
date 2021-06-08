@@ -79,6 +79,8 @@ class Output:
         df_others = df.from_dict(agg_others)
         overview_dict[s_par_init] = df_others[s_par].values[0]
         overview_dict[s_par] = df_others[s_par].values[-1]
+        overview_dict[s_penalty_init] = df_others[s_penalty].values[0]
+        overview_dict[s_penalty] = df_others[s_penalty].values[-1]
         overview_dict[s_demand_max_init] = df_others[s_demand_max].values[0]
         overview_dict[s_demand_max] = df_others[s_demand_max].values[-1]
         overview_dict[s_demand_total] = df_others[s_demand_total].values[-1]

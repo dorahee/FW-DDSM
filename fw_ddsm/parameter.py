@@ -105,6 +105,7 @@ s_par = "PAR"
 s_par_init = "init_PAR"
 s_final = "final"
 s_penalty = "inconvenient"
+s_penalty_init = "init_inconvenient"
 s_obj = "objective"
 
 # step size
