@@ -57,8 +57,9 @@ def find_step_size(num_iteration, pricing_method, pricing_table,
     min_abs_change = 0.0001
 
     # if the gradient is less than zero and the step size is not yet 1, continue the loop
-    while change_of_obj < 0 and abs(change_of_obj) > min_abs_change \
-            and step_size_final < 1 and not step_size_final_temp == step_size_final_temp_prev:
+    # ! test the step_size_final_temp for termination condition instead of step_size_final !
+    while change_of_obj < 0 and abs(change_of_obj) > min_abs_change and step_size_final_temp < 1 \
+            and not step_size_final_temp == step_size_final_temp_prev:
 
         step_size_final = step_size_final_temp
         num_itrs += 1
@@ -74,7 +75,7 @@ def find_step_size(num_iteration, pricing_method, pricing_table,
             second_max_demand_level = d_levels[-2]
             if dn < dp < min_demand_level or dp < dn < min_demand_level or dn > dp > second_max_demand_level \
                     or dp > dn > max_demand_level or dn == dp:
-                step = 1
+                step = 0.1
             else:
                 dd = dn - dp
                 dl = find_ge(d_levels, dp) + 0.01 if dd > 0 else find_le(d_levels, dp) - 0.01
@@ -106,11 +107,12 @@ def find_step_size(num_iteration, pricing_method, pricing_table,
         # calculate the gradient/change of objective
         change_of_cost = sum([d_c * p_fw for d_c, p_fw in zip(changes_of_aggregate_demand_profile, price_fw_temp)])
         change_of_PAR = PAR_fw_temp - PAR_fw_pre
-        change_of_obj = change_of_inconvenience + change_of_cost
+        change_of_obj = change_of_inconvenience + change_of_cost + change_of_PAR * 0
 
         if print_steps:
             print(f"step {step_size_final_temp} at {num_itrs}, change of cost = {change_of_cost}, "
                   f"change of obj = {change_of_obj}")
+
 
     # update aggregate demand profile, aggregate battery profile, total cost, total inconvenience and total obj
     aggregate_demand_profile_fw \

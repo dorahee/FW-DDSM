@@ -20,12 +20,12 @@ algorithms[m_minizinc][m_after_fw] = f"{m_minizinc}_fw"
 # penalty_weight_range = [0, 5,pol 50, 500, 5000, 50000]
 # num_tasks_dependent_range = [0, 3, 5]
 # num_households_range = [50, 100, 500, 1000, 2000, 4000, 6000, 8000, 10000]
-num_households_range = [1]
+num_households_range = [50]
 penalty_weight_range = [10]
 # num_tasks_dependent_range = [0, 2, 4, 6, 8]
 num_tasks_dependent_range = [3]
-num_full_flex_tasks = 6
-num_semi_flex_tasks = 0
+num_full_flex_tasks = 0
+num_semi_flex_tasks = 6
 num_fixed_tasks = 0
 num_samples = 5
 num_repeat = 1
@@ -34,7 +34,8 @@ battery_usages = [True, False]
 battery_solver_choice = "gurobi"
 battery_fully_charged_hour = 2
 
-# read_from_date_time = "2020-11-25_23-16-39"
+read_from_date_time = "2021-06-08_23-20-47"
+read_from_date_time = None
 name_exp = None
 # cpus_nums = None
 
@@ -47,11 +48,12 @@ ignore_tiny_step = True
 roundup_tiny_step = False
 print_done = False
 print_steps = False
+# print_steps = True
 email_results = True
 
 
 def main(num_households, num_tasks_dependent, penalty_weight, out, new_data=True, num_cpus=None, job_id=0,
-         use_battery=False, hour_fully_charge=fully_charge_hour):
+         use_battery=False, hour_fully_charge=fully_charge_hour, read_from_dt=read_from_date_time):
     num_experiment = 0
     # read_from_date_time = "2020-11-25_23-16-39"
     print("----------------------------------------")
@@ -61,7 +63,8 @@ def main(num_households, num_tasks_dependent, penalty_weight, out, new_data=True
                 f"{num_full_flex_tasks} fully flexible tasks, " \
                 f"{num_semi_flex_tasks} semi-flexible tasks, " \
                 f"{num_fixed_tasks} fixed tasks, " \
-                f"{penalty_weight} penalty weight. "
+                f"{penalty_weight} penalty weight, " \
+                f"read from {read_from_dt}. "
     print(param_str)
     print("----------------------------------------")
 
@@ -74,6 +77,7 @@ def main(num_households, num_tasks_dependent, penalty_weight, out, new_data=True
                                 inconvenience_cost_weight=penalty_weight,
                                 folder_id=job_id,
                                 use_battery=use_battery)
+
     plots_demand_layout = []
     plots_demand_finalised_layout = []
     for alg in algorithms.values():
@@ -116,13 +120,18 @@ def main(num_households, num_tasks_dependent, penalty_weight, out, new_data=True
                 penalty_weight = None
 
             # read_from_date_time = read_from_date_time
-            read_from_date_time = this_date_time
+            if read_from_dt is not None:
+                input_date_time = read_from_dt
+                intput_parent_folder = out1.output_root_folder + input_date_time
+            else:
+                input_date_time = this_date_time
+                intput_parent_folder = output_parent_folder
             preferred_demand_profile, prices = \
                 new_iteration.read(algorithm=alg, inconvenience_cost_weight=penalty_weight,
                                    new_dependent_tasks=num_tasks_dependent,
                                    ensure_dependent=ensure_dependent,
-                                   read_from_folder=output_parent_folder,
-                                   date_time=read_from_date_time)
+                                   read_from_folder=intput_parent_folder,
+                                   date_time=input_date_time)
 
         # 2. iteration begins
         start_time_probability, num_iterations = \
@@ -166,9 +175,9 @@ def main(num_households, num_tasks_dependent, penalty_weight, out, new_data=True
     df_exp = DataFrame.from_dict(experiment_tracker).transpose()
     # df_exp[s_obj] = df_exp[s_penalty] + df_exp[p_cost]
     df_exp.to_csv(r"{}{}_overview.csv".format(output_parent_folder, this_date_time))
-    with open(f"{out.output_parent_folder}data/{this_date_time}_{file_experiment_pkl}",
-              'wb+') as f:
-        pickle.dump(experiment_tracker, f, pickle.HIGHEST_PROTOCOL)
+    # with open(f"{out.output_parent_folder}data/{this_date_time}_{file_experiment_pkl}",
+    #           'wb+') as f:
+    #     pickle.dump(experiment_tracker, f, pickle.HIGHEST_PROTOCOL)
     print("----------------------------------------")
 
     print("----------------------------------------")
@@ -225,7 +234,10 @@ if __name__ == '__main__':
 
     for r in range(num_repeat):
         for h in num_households_range:
-            new = True
+            if read_from_date_time is None:
+                new = True
+            else:
+                new = False
             for w in penalty_weight_range:
                 for dt in num_tasks_dependent_range:
                     for battery_use in battery_usages:
@@ -237,7 +249,8 @@ if __name__ == '__main__':
                              num_cpus=cpus_nums,
                              job_id=r,
                              use_battery=battery_use,
-                             hour_fully_charge=battery_fully_charged_hour)
+                             hour_fully_charge=battery_fully_charged_hour,
+                             read_from_dt=read_from_date_time)
                         new = False
     # except Exception as e:
     #     print(e.args)
