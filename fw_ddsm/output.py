@@ -59,11 +59,12 @@ class Output:
                               aggregator_tracker, community_tracker,
                               aggregator_final, community_final=None,
                               params_tracker=None,
-                              print_demands=True, print_prices=True, print_summary=True):
+                              obj_par=True, obj_cost=True, obj_inconvenience=True,
+                              print_demands=True, print_batteries=True, print_prices=True, print_summary=True):
 
-        agg_demands, agg_prices, agg_others = aggregator_tracker.extract_data()
-        agg_demands_final, agg_prices_final, agg_others_final = aggregator_final.extract_data()
-        community_demands, community_prices, community_others = community_tracker.extract_data()
+        agg_demands, agg_batteries, agg_prices, agg_others = aggregator_tracker.extract_data()
+        agg_demands_final, agg_batteries_final, agg_prices_final, agg_others_final = aggregator_final.extract_data()
+        community_demands, community_batteries, community_prices, community_others = community_tracker.extract_data()
 
         plot_layout = []
         plot_final_layout = []
@@ -75,6 +76,7 @@ class Output:
 
         # ------------------------------ FW results ------------------------------
         df_demands = df.from_dict(agg_demands).div(1000)
+        df_batteries = df.from_dict(agg_batteries).div(1000)
         df_prices = df.from_dict(agg_prices)
         df_others = df.from_dict(agg_others)
         overview_dict[s_par_init] = df_others[s_par].values[0]
@@ -94,7 +96,7 @@ class Output:
 
         # draw graphs
         p_demands = df_demands.iloc[:, [0, df_demands.columns[-1]]] \
-            .plot_bokeh(kind="line", xlabel="Time period", ylabel="Demand (kWh)",
+            .plot_bokeh(kind="line", xlabel="Time period", ylabel="Demand (kW)",
                         title=algorithm_full_names[pricing_method],
                         plot_data_points=True,
                         xticks=x_ticks,
@@ -107,24 +109,41 @@ class Output:
                         xticks=x_ticks,
                         show_figure=False
                         )
+        p_batteries = df_batteries.iloc[:, [0, df_demands.columns[-1]]] \
+            .plot_bokeh(kind="line", xlabel="Time period", ylabel="Charge/Discharge (kW)",
+                        title=algorithm_full_names[pricing_method],
+                        plot_data_points=True,
+                        xticks=x_ticks,
+                        show_figure=False
+                        )
         p_demands.y_range.start = 0
         p_prices.y_range.start = 0
+        # p_batteries.y_range.start = -battery_power
 
         # data table
-        df_others[s_obj] = df_others[p_cost] + df_others[s_penalty]
+        df_others[s_obj] = df_others[p_cost] * int(obj_cost) + df_others[s_penalty] * int(obj_inconvenience) + \
+                           df_others[s_par] * int(obj_par)
         source = ColumnDataSource(df_others)
         columns = [TableColumn(field=x, title=x.replace("_", " "), formatter=NumberFormatter(format="0.00"))
                    for x in df_others.columns]
         data_table = DataTable(source=source, columns=columns)
-        plots = [p_demands, p_prices, data_table]
+        plots = [data_table, p_demands, p_batteries, p_prices]
 
         # ------------------------------ final schedules ------------------------------
         df_demands_final = df.from_dict(agg_demands_final).div(1000)
+        df_batteries_final = df.from_dict(agg_batteries_final).div(1000)
         df_prices_final = df.from_dict(agg_prices_final)
         df_others_final = df.from_dict(agg_others_final)
 
         p_demands_final = df_demands_final \
-            .plot_bokeh(kind="line", xlabel="Time period", ylabel="Demand (kWh)",
+            .plot_bokeh(kind="line", xlabel="Time period", ylabel="Demand (kW)",
+                        title=algorithm_full_names[pricing_method],
+                        plot_data_points=True,
+                        xticks=x_ticks,
+                        show_figure=False
+                        )
+        p_batteries_final = df_batteries_final \
+            .plot_bokeh(kind="line", xlabel="Time period", ylabel="Charge/Discharge (kW)",
                         title=algorithm_full_names[pricing_method],
                         plot_data_points=True,
                         xticks=x_ticks,
@@ -138,21 +157,27 @@ class Output:
                         show_figure=False
                         )
         p_demands_final.y_range.start = 0
+        # p_batteries_final.y_range.start = -battery_power
         p_prices_final.y_range.start = 0
 
         # data table
-        df_others_final[s_obj] = df_others_final[p_cost] + df_others_final[s_penalty]
+        df_others_final[s_obj] = df_others_final[p_cost] * int(obj_cost) + \
+                                 df_others_final[s_penalty] * int(obj_inconvenience) + \
+                                 df_others_final[s_par] * int(obj_par)
         source_final = ColumnDataSource(df_others_final)
         columns_final = [TableColumn(field=x, title=x.replace("_", " "), formatter=NumberFormatter(format="0.00"))
                          for x in df_others_final.columns]
         data_table_final = DataTable(source=source_final, columns=columns_final)
-        plots_final = [p_demands_final, p_prices_final, data_table_final]
+        plots_final = [data_table_final, p_demands_final, p_batteries_final, p_prices_final]
 
         # ------------------------------ write all to CSV ------------------------------
 
         if print_demands:
             df_demands.to_csv(r"{}{}_aggregator_demands.csv".format(self.output_folder, pricing_method))
             df_demands_final.to_csv(r"{}{}_aggregator_demands_final.csv".format(self.output_folder, pricing_method))
+        if print_batteries:
+            df_batteries.to_csv(r"{}{}_aggregator_batteries.csv".format(self.output_folder, pricing_method))
+            df_batteries_final.to_csv(r"{}{}_aggregator_batteries_final.csv".format(self.output_folder, pricing_method))
         if print_prices:
             df_prices.to_csv(r"{}{}_aggregator_prices.csv".format(self.output_folder, pricing_method))
             df_prices_final.to_csv(r"{}{}_aggregator_prices_final.csv".format(self.output_folder, pricing_method))

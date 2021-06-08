@@ -100,9 +100,11 @@ class Iteration:
             battery_solver = "mip" if battery_solver is None else battery_solver
 
         num_iteration = 1
-        step = 1
+        step = 0.9
+        step_pre = 1
         while step > 0:
-            aggregate_demand_profile, weighted_total_inconvenience, time_scheduling_iteration \
+            aggregate_demand_profile, aggregate_battery_profile, \
+            weighted_total_inconvenience, time_scheduling_iteration \
                 = self.community.schedule(num_iteration=num_iteration, prices=prices,
                                           tasks_scheduling_method=scheduling_method,
                                           use_battery=use_battery,
@@ -111,13 +113,19 @@ class Iteration:
                                           fully_charge_time=fully_charge_time,
                                           print_upon_completion=print_done)
 
-            prices, consumption_cost, inconvenience, step, new_aggregate_demand_profile, time_pricing \
+            step_pre = step
+            prices, consumption_cost, inconvenience, step, \
+            new_aggregate_demand_profile, new_aggregate_battery_profile, time_pricing \
                 = self.aggregator.pricing(num_iteration=num_iteration,
                                           aggregate_demand_profile=aggregate_demand_profile,
+                                          aggregate_battery_profile=aggregate_battery_profile,
                                           aggregate_inconvenience=weighted_total_inconvenience,
                                           min_step_size=min_step_size, ignore_tiny_step=ignore_tiny_step,
                                           roundup_tiny_step=roundup_tiny_step, print_steps=print_steps)
             num_iteration += 1
+
+            if step == 1 and step == step_pre:
+                break
 
         print(f"Converged in {num_iteration - 1}")
 
@@ -130,11 +138,14 @@ class Iteration:
         if start_time_probability is None:
             start_time_probability = self.start_time_probability
         for i in range(1, num_samples + 1):
-            final_aggregate_demand_profile, final_total_inconvenience \
+            final_aggregate_demand_profile, final_battery_profile, final_total_inconvenience \
                 = self.community.finalise_schedule(num_sample=i,
                                                    tasks_scheduling_method=tasks_scheduling_method,
                                                    start_probability_distribution=start_time_probability)
-            prices, consumption_cost, inconvenience, step, new_aggregate_demand_profile, time_pricing \
-                = self.aggregator.pricing(num_iteration=i, aggregate_demand_profile=final_aggregate_demand_profile,
+            prices, consumption_cost, inconvenience, step, \
+            new_aggregate_demand_profile, new_aggregate_battery_profile, time_pricing \
+                = self.aggregator.pricing(num_iteration=i,
+                                          aggregate_demand_profile=final_aggregate_demand_profile,
+                                          aggregate_battery_profile=final_battery_profile,
                                           finalising=True)
         # return consumption_cost, inconvenience

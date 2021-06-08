@@ -182,16 +182,18 @@ class Community:
                                          fully_charge_time=fully_charge_time,
                                          print_upon_completion=print_upon_completion)
 
-        aggregate_demand_profile, weighted_total_inconvenience, time_scheduling_iteration \
+        aggregate_demand_profile, aggregate_battery_profile, weighted_total_inconvenience, time_scheduling_iteration \
             = self.__retrieve_scheduling_results(results=results, num_iteration=num_iteration)
 
         self.tracker.update(num_record=num_iteration, penalty=weighted_total_inconvenience,
                             run_time=time_scheduling_iteration)
 
-        return aggregate_demand_profile, weighted_total_inconvenience, time_scheduling_iteration
+        return aggregate_demand_profile, aggregate_battery_profile, \
+               weighted_total_inconvenience, time_scheduling_iteration
 
     def finalise_schedule(self, start_probability_distribution, tasks_scheduling_method=None, num_sample=0):
         final_aggregate_demand_profile = [0] * self.num_intervals
+        final_battery_profile = [0] * self.num_intervals
         final_total_inconvenience = 0
         total_demand = 0
         for household in self.community_details.values():
@@ -200,6 +202,8 @@ class Community:
                                                probability_distribution=start_probability_distribution)
             final_aggregate_demand_profile \
                 = [x + y for x, y in zip(chosen_demand_profile, final_aggregate_demand_profile)]
+            final_battery_profile \
+                = [x + y for x, y in zip(chosen_battery_profile, final_battery_profile)]
             final_total_inconvenience += chosen_penalty
             total_demand += sum(chosen_demand_profile)
 
@@ -214,9 +218,10 @@ class Community:
                                                                          battery_profile=chosen_battery_profile)
 
         self.final.update(num_record=num_sample, demands=final_aggregate_demand_profile,
+                          battery_profile=final_battery_profile,
                           penalty=final_total_inconvenience)
 
-        return final_aggregate_demand_profile, final_total_inconvenience
+        return final_aggregate_demand_profile, final_battery_profile, final_total_inconvenience
 
     def __convert_price(self, prices):
         num_periods = len(prices)
@@ -325,6 +330,7 @@ class Community:
 
     def __retrieve_scheduling_results(self, results, num_iteration):
         aggregate_demand_profile = [0] * self.num_intervals
+        aggregate_battery_profile = [0] * self.num_intervals
         total_weighted_inconvenience = 0
         time_scheduling_iteration = 0
         total_demand = 0
@@ -337,20 +343,22 @@ class Community:
             key = res[h_key]
             demands_household = res[s_demand]
             weighted_penalty_household = res[s_penalty]
-            household_start_times = res[s_starts]
-            battery_profile = res[b_profile]
+            start_times_jobs = res[s_starts]
+            battery_profile_household = res[b_profile]
             time_household = res[t_time]
             total_demand += sum(demands_household)
 
             aggregate_demand_profile = [x + y for x, y in zip(demands_household, aggregate_demand_profile)]
+            aggregate_battery_profile = [x + y for x, y in zip(battery_profile_household, aggregate_battery_profile)]
             total_weighted_inconvenience += weighted_penalty_household
             time_scheduling_iteration += time_household
 
             # update each household's tracker
             self.community_details[key][k_tracker].update(num_record=num_iteration,
-                                                          tasks_starts=household_start_times,
+                                                          tasks_starts=start_times_jobs,
                                                           demands=demands_household,
                                                           penalty=weighted_penalty_household,
-                                                          battery_profile=battery_profile)
+                                                          battery_profile=battery_profile_household)
 
-        return aggregate_demand_profile, total_weighted_inconvenience, time_scheduling_iteration
+        return aggregate_demand_profile, aggregate_battery_profile, \
+               total_weighted_inconvenience, time_scheduling_iteration

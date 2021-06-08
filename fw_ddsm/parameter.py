@@ -1,5 +1,5 @@
 # time related parameters
-no_intervals = 144
+no_intervals = 48
 no_periods = 48
 no_intervals_periods = int(no_intervals / no_periods)
 time_out = None
@@ -22,7 +22,7 @@ care_f_weight = 1
 battery_capacity_max = 5000  # Wh
 battery_capacity_min = 0
 battery_power = 5000  # 1C battery
-fully_charge_hour = 5
+fully_charge_hour = 0
 
 # pricing related parameters
 pricing_table_weight = 1

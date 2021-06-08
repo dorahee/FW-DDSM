@@ -56,14 +56,15 @@ class Tracker:
     def extract_data(self):
 
         demands = self.data[s_demand]
+        batteries = self.data[b_profile]
         prices = self.data[p_prices]
         others = {k: self.data[k]
                   for k in [s_par, s_demand_reduction, p_cost_reduction, s_penalty,
                             s_demand_total, s_demand_max, p_cost, t_time]}
-        return demands, prices, others
+        return demands, batteries, prices, others
 
-    def write_to_file(self, folder, print_demands=True, print_prices=True, print_others=True):
-        demands, prices, others = self.extract_data()
+    def write_to_file(self, folder, print_demands=True, print_prices=True, print_others=True, print_batteries=True):
+        demands, batteries, prices, others = self.extract_data()
         if print_demands:
             df_demands = df.from_dict(demands).div(1000)
             df_demands.to_csv(r"{}{}_demands.csv".format(folder, self.name))
@@ -73,3 +74,6 @@ class Tracker:
         if print_others:
             df_others = df.from_dict(others)
             df_others.to_csv(r"{}{}_others.csv".format(folder, self.name))
+        if print_batteries:
+            df_batteries = df.from_dict(batteries)
+            df_batteries.to_csv(r"{}{}_batteries.csv".format(folder, self.name))
