@@ -20,7 +20,7 @@ algorithms[m_minizinc][m_after_fw] = f"{m_minizinc}_fw"
 # penalty_weight_range = [0, 5,pol 50, 500, 5000, 50000]
 # num_tasks_dependent_range = [0, 3, 5]
 # num_households_range = [50, 100, 500, 1000, 2000, 4000, 6000, 8000, 10000]
-num_households_range = [50]
+num_households_range = [20]
 penalty_weight_range = [10]
 # num_tasks_dependent_range = [0, 2, 4, 6, 8]
 num_tasks_dependent_range = [3]
@@ -34,7 +34,7 @@ battery_usages = [True, False]
 battery_solver_choice = "gurobi"
 battery_fully_charged_hour = 2
 
-read_from_date_time = "2021-06-08_23-20-47"
+# read_from_date_time = "2021-06-08_23-20-47"
 read_from_date_time = None
 name_exp = None
 # cpus_nums = None
@@ -234,9 +234,8 @@ if __name__ == '__main__':
 
     for r in range(num_repeat):
         for h in num_households_range:
-            if read_from_date_time is None:
-                new = True
-            else:
+            new = True
+            if read_from_date_time is not None:
                 new = False
             for w in penalty_weight_range:
                 for dt in num_tasks_dependent_range:
