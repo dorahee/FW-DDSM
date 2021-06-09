@@ -37,7 +37,8 @@ def find_step_size(num_iteration, pricing_method, pricing_table,
                    aggregate_battery_profile_new, aggregate_battery_profile_fw_pre,
                    total_inconvenience_new, total_inconvenience_fw_pre,
                    total_cost_fw_pre, price_fw_pre,
-                   min_step_size=min_step, ignore_tiny_step=False, roundup_tiny_step=False, print_steps=False):
+                   min_step_size=min_step, ignore_tiny_step=False, roundup_tiny_step=False, print_steps=False,
+                   obj_par=False):
     time_begin = time()
 
     def move_profile(demands_pre, demands_new, alpha):
@@ -74,8 +75,10 @@ def find_step_size(num_iteration, pricing_method, pricing_table,
             max_demand_level = d_levels[-1]
             second_max_demand_level = d_levels[-2]
             if dn < dp < min_demand_level or dp < dn < min_demand_level or dn > dp > second_max_demand_level \
-                    or dp > dn > max_demand_level or dn == dp:
+                    or dp > dn > max_demand_level:
                 step = 0.1
+            elif dn == dp:
+                step = 1
             else:
                 dd = dn - dp
                 dl = find_ge(d_levels, dp) + 0.01 if dd > 0 else find_le(d_levels, dp) - 0.01
@@ -107,7 +110,7 @@ def find_step_size(num_iteration, pricing_method, pricing_table,
         # calculate the gradient/change of objective
         change_of_cost = sum([d_c * p_fw for d_c, p_fw in zip(changes_of_aggregate_demand_profile, price_fw_temp)])
         change_of_PAR = PAR_fw_temp - PAR_fw_pre
-        change_of_obj = change_of_inconvenience + change_of_cost + change_of_PAR * 0
+        change_of_obj = change_of_inconvenience + change_of_cost + change_of_PAR * int(obj_par)
 
         if print_steps:
             print(f"step {step_size_final_temp} at {num_itrs}, change of cost = {change_of_cost}, "
@@ -125,7 +128,7 @@ def find_step_size(num_iteration, pricing_method, pricing_table,
                           cost_function=cost_function_type)
     total_inconvenience_fw = total_inconvenience_fw_pre + step_size_final * change_of_inconvenience
     PAR_fw = max(aggregate_demand_profile_fw) / average(aggregate_demand_profile_fw)
-    total_obj_fw = total_cost_fw + total_inconvenience_fw + PAR_fw
+    total_obj_fw = total_cost_fw + total_inconvenience_fw + PAR_fw * int(obj_par)
 
     print(f"{num_iteration}. "
           f"Best step size {round(step_size_final, 6)}, "
