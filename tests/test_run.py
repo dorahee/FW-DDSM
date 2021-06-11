@@ -17,11 +17,11 @@ algorithms[m_minizinc][m_after_fw] = f"{m_minizinc}_fw"
 # algorithms[m_ogsa][m_before_fw] = m_ogsa
 # algorithms[m_ogsa][m_after_fw] = f"{m_ogsa}_fw"
 
-# penalty_weight_range = [0, 5,pol 50, 500, 5000, 50000]
+# penalty_weight_range = [0, 5, 50, 500, 5000, 50000]
 # num_tasks_dependent_range = [0, 3, 5]
-# num_households_range = [50, 100, 500, 1000, 2000, 4000, 6000, 8000, 10000]
-num_households_range = [10]
-penalty_weight_range = [0, 1, 10, 50, 100, 500]
+num_households_range = [10, 100]
+# num_households_range = [50, 80, 100]
+penalty_weight_range = [1, 50]
 # num_tasks_dependent_range = [0, 2, 4, 6, 8]
 num_tasks_dependent_range = [3]
 num_full_flex_tasks = 0
@@ -32,9 +32,9 @@ num_repeat = 1
 id_job = 0
 battery_usages = [True, False]
 battery_solver_choice = "gurobi"
-battery_fully_charged_hour = 2
+battery_fully_charged_hour = 0
 
-# read_from_date_time = "2021-06-09_23-30-35"
+# read_from_date_time = "2021-06-09_22-37-24"
 read_from_date_time = None
 name_exp = None
 # cpus_nums = None
@@ -115,9 +115,11 @@ def main(num_households, num_tasks_dependent, penalty_weight, out, new_data=True
                                   power=battery_power)
             new_data = False
         else:
-            if m_ogsa in alg:
+            if m_ogsa in alg or use_battery == battery_usages[1]:
                 num_tasks_dependent = None
                 penalty_weight = None
+                print("Same dependent tasks. ")
+                print("----------------------------------------")
 
             # read_from_date_time = read_from_date_time
             if read_from_dt is not None:

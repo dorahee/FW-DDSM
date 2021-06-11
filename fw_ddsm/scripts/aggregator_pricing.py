@@ -59,7 +59,8 @@ def find_step_size(num_iteration, pricing_method, pricing_table,
 
     # if the gradient is less than zero and the step size is not yet 1, continue the loop
     # ! test the step_size_final_temp for termination condition instead of step_size_final !
-    while change_of_obj < 0 and abs(change_of_obj) > min_abs_change and step_size_final_temp < 1 \
+    while change_of_obj < 0 and abs(change_of_obj) > min_abs_change and change_of_cost < 0 \
+            and step_size_final_temp < 1 \
             and not step_size_final_temp == step_size_final_temp_prev:
 
         step_size_final = step_size_final_temp
@@ -80,7 +81,7 @@ def find_step_size(num_iteration, pricing_method, pricing_table,
                 step = 1
             else:
                 dd = dn - dp
-                dl = find_ge(d_levels, dp) + 0.001 if dd > 0 else find_le(d_levels, dp) - 0.001
+                dl = find_ge(d_levels, dp) + 0.01 if dd > 0 else find_le(d_levels, dp) - 0.01
                 step = (dl - dp) / dd
                 if ignore_tiny_step:
                     step = step if step > min_step_size else 1
