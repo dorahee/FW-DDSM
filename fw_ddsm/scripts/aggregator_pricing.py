@@ -75,9 +75,10 @@ def find_step_size(num_iteration, pricing_method, pricing_table,
             min_demand_level = min(d_levels)
             max_demand_level = d_levels[-1]
             second_max_demand_level = d_levels[-2]
-            if dn < dp < min_demand_level or dn > dp > second_max_demand_level:
+            if dn < dp < min_demand_level or dn > dp > second_max_demand_level \
+                    or dp < dn < min_demand_level or dp > dn > max_demand_level:
                 step = 0.001
-            elif dn == dp or dp < dn < min_demand_level or dp > dn > max_demand_level:
+            elif dn == dp:
                 step = 1
             else:
                 dd = dn - dp
