@@ -102,7 +102,7 @@ class Iteration:
         num_iteration = 1
         step = 0.9
         step_pre = 1
-        while step > 0:
+        while 0 < step < 1 and not step == step_pre:
             aggregate_demand_profile, aggregate_battery_profile, \
             weighted_total_inconvenience, time_scheduling_iteration \
                 = self.community.schedule(num_iteration=num_iteration, prices=prices,
@@ -123,9 +123,6 @@ class Iteration:
                                           min_step_size=min_step_size, ignore_tiny_step=ignore_tiny_step,
                                           roundup_tiny_step=roundup_tiny_step, print_steps=print_steps)
             num_iteration += 1
-
-            if step == 1 and step == step_pre:
-                break
 
         print(f"Converged in {num_iteration - 1}")
 
