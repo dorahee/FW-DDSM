@@ -28,14 +28,14 @@ num_full_flex_tasks = 0
 num_semi_flex_tasks = 6
 num_fixed_tasks = 0
 num_samples = 5
-num_repeat = 3
+num_repeat = 5
 id_job = 0
 battery_usages = [True, False]
 battery_solver_choice = "gurobi"
 battery_fully_charged_hour = 0
 
 read_from_date_time = None
-# read_from_date_time = "2021-06-12_03-29-50"
+# read_from_date_time = "2021-06-12_08-21-19"
 name_exp = None
 # cpus_nums = None
 
@@ -43,8 +43,7 @@ cpus_nums = cpu_count()
 ensure_dependent = True
 experiment_tracker = dict()
 timeout = 120
-min_step_size = 0.001
-ignore_tiny_step = True
+min_step_size = 0.0001
 roundup_tiny_step = True
 print_done = False
 print_steps = False
@@ -144,7 +143,6 @@ def main(num_households, num_tasks_dependent, penalty_weight, out, new_data=True
                                           timeout=timeout,
                                           fully_charge_time=hour_fully_charge,
                                           min_step_size=min_step_size,
-                                          ignore_tiny_step=ignore_tiny_step,
                                           roundup_tiny_step=roundup_tiny_step,
                                           print_done=print_done, print_steps=print_steps)
         experiment_tracker[num_experiment][k_iteration_no] = num_iterations

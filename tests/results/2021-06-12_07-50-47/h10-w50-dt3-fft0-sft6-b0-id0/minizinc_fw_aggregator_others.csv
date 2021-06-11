@@ -1,0 +1,3 @@
+,PAR,demand_reduction,cost_reduction,inconvenient,total_demand,max_demand,cost,run_time,step_size,objective
+0,6.49,0.0,0.0,0,70225,9500,1131175.5,0.0,1,1131181.99
+1,6.56,-0.01,-0.2,850,70225,9600,1355640.0,0.0006,1,1356496.56

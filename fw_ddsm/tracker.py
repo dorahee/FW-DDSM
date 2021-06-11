@@ -13,7 +13,7 @@ class Tracker:
         self.name = name
 
         for key in [s_starts, s_demand, s_demand_max, s_demand_total, s_demand_reduction, s_par,
-                    s_penalty, p_prices, p_cost, p_cost_reduction, p_step, t_time, b_profile]:
+                    s_penalty, s_obj, p_prices, p_cost, p_cost_reduction, p_step, t_time, b_profile]:
             self.data[key] = dict()
 
     def read(self, existing_tracker):
@@ -22,7 +22,8 @@ class Tracker:
 
     def update(self, num_record, tracker_data=None, demands=None, prices=None, penalty=None,
                run_time=None, cost=None, step=None, init_demand_max=None, init_cost=None, tasks_starts=None,
-               battery_profile=None):
+               battery_profile=None, obj_par=False):
+        obj = 0
         if tracker_data is None:
             tracker_data = self.data
         if step is not None:
@@ -30,17 +31,23 @@ class Tracker:
         if prices is not None:
             tracker_data[p_prices][num_record] = prices
         if cost is not None:
-            tracker_data[p_cost][num_record] = round(cost, 2)
+            cost2 = round(cost, 2)
+            tracker_data[p_cost][num_record] = cost2
+            obj += cost2
             if init_cost is not None:
                 tracker_data[p_cost_reduction][num_record] = round((init_cost - cost) / init_cost, 2)
         if penalty is not None:
-            tracker_data[s_penalty][num_record] = round(penalty, 2)
+            penalty2 = round(penalty, 2)
+            tracker_data[s_penalty][num_record] = penalty2
+            obj += penalty2
         if demands is not None:
             demand_max = round(max(demands), 2)
             tracker_data[s_demand][num_record] = demands
             tracker_data[s_demand_max][num_record] = demand_max
             tracker_data[s_demand_total][num_record] = round(sum(demands), 2)
-            tracker_data[s_par][num_record] = round(demand_max / average(demands), 2)
+            par = round(demand_max / average(demands), 2)
+            tracker_data[s_par][num_record] = par
+            obj += int(obj_par) * par
             if init_demand_max is not None:
                 tracker_data[s_demand_reduction][num_record] \
                     = round((init_demand_max - demand_max) / init_demand_max, 2)
@@ -50,6 +57,7 @@ class Tracker:
             tracker_data[s_starts][num_record] = tasks_starts
         if battery_profile is not None:
             tracker_data[b_profile][num_record] = battery_profile
+        tracker_data[s_obj][num_record] = obj
 
         return tracker_data
 

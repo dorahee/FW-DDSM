@@ -100,8 +100,9 @@ class Aggregator:
         self.final.update(num_record=0, demands=aggregate_preferred_demand_profile)
 
     def pricing(self, num_iteration, aggregate_demand_profile, aggregate_battery_profile,
+                total_obj=None,
                 aggregate_inconvenience=0, finalising=False,
-                min_step_size=min_step, ignore_tiny_step=False, roundup_tiny_step=False, print_steps=False):
+                min_step_size=min_step, roundup_tiny_step=False, print_steps=False):
 
         aggregate_demand_profile = self.__convert_demand_profile(aggregate_demand_profile)
         aggregate_battery_profile = self.__convert_demand_profile(aggregate_battery_profile)
@@ -129,8 +130,8 @@ class Aggregator:
             aggregate_demand_profile_fw_pre = self.tracker.data[s_demand][num_iteration - 1][:]
             aggregate_battery_profile_fw_pre = self.tracker.data[b_profile][num_iteration - 1][:]
             inconvenience_fw_pre = self.tracker.data[s_penalty][num_iteration - 1]
-            price_fw_pre = self.tracker.data[p_prices][num_iteration - 1][:]
-            cost_fw_pre = self.tracker.data[p_cost][num_iteration - 1]
+            # price_fw_pre = self.tracker.data[p_prices][num_iteration - 1][:]
+            # cost_fw_pre = self.tracker.data[p_cost][num_iteration - 1]
             new_aggregate_demand_profile, new_aggregate_battery_profile, \
             step, prices, consumption_cost, inconvenience, time_pricing \
                 = aggregator_pricing.find_step_size(num_iteration=num_iteration,
@@ -142,11 +143,15 @@ class Aggregator:
                                                     aggregate_battery_profile_fw_pre=aggregate_battery_profile_fw_pre,
                                                     total_inconvenience_new=aggregate_inconvenience,
                                                     total_inconvenience_fw_pre=inconvenience_fw_pre,
-                                                    price_fw_pre=price_fw_pre, total_cost_fw_pre=cost_fw_pre,
+                                                    total_obj_new=total_obj,
                                                     min_step_size=min_step_size,
-                                                    ignore_tiny_step=ignore_tiny_step,
                                                     roundup_tiny_step=roundup_tiny_step,
                                                     print_steps=print_steps)
+
+            obj_fw = consumption_cost + inconvenience
+
+            if total_obj is not None and obj_fw > total_obj:
+                print("obj fw > total_obj")
 
         if not finalising:
             self.tracker.update(num_record=num_iteration, penalty=inconvenience,

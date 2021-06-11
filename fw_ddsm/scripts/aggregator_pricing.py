@@ -36,8 +36,8 @@ def find_step_size(num_iteration, pricing_method, pricing_table,
                    aggregate_demand_profile_new, aggregate_demand_profile_fw_pre,
                    aggregate_battery_profile_new, aggregate_battery_profile_fw_pre,
                    total_inconvenience_new, total_inconvenience_fw_pre,
-                   total_cost_fw_pre, price_fw_pre,
-                   min_step_size=min_step, ignore_tiny_step=False, roundup_tiny_step=False, print_steps=False,
+                   total_obj_new=None,
+                   min_step_size=min_step, roundup_tiny_step=False, print_steps=False,
                    obj_par=False):
     time_begin = time()
 
@@ -64,8 +64,8 @@ def find_step_size(num_iteration, pricing_method, pricing_table,
             and step_size_final_temp <= 1 \
             and not step_size_final_temp == step_size_final_temp_prev:
 
-        step_size_final = step_size_final_temp
         num_itrs += 1
+        step_size_final = step_size_final_temp
 
         # search for the step per time period
         step_profile = []
@@ -84,17 +84,15 @@ def find_step_size(num_iteration, pricing_method, pricing_table,
                 dd = dn - dp
                 dl = find_ge(d_levels, dp) + 0.01 if dd > 0 else find_le(d_levels, dp) - 0.01
                 step = (dl - dp) / dd
-                if ignore_tiny_step:
-                    step = step if step > min_step_size else 1
                 if roundup_tiny_step:
-                    step = ceil(step * 1000) / 1000
+                    step = ceil(step * 10000) / 10000
                 step = max(step, min_step_size)
             step_profile.append(step)
 
         # find the smallest step size
         step_size_incr = min(step_profile)
-        if step_size_incr == 1:
-            print("step size incr is one")
+        # if step_size_incr == 1:
+        #     print("step size incr is one")
         step_size_final_temp_prev = step_size_final_temp
         step_size_final_temp = step_size_final + step_size_incr
 
@@ -109,6 +107,8 @@ def find_step_size(num_iteration, pricing_method, pricing_table,
                                                       cost_function=cost_function_type)
 
         # calculate the gradient/change of objective
+        changes_of_aggregate_demand_profile \
+            = [d_n - d_p for d_n, d_p in zip(aggregate_demand_profile_new, aggregate_demand_profile_fw_temp)]
         change_of_cost = sum([d_c * p_fw for d_c, p_fw in zip(changes_of_aggregate_demand_profile, price_fw_temp)])
         change_of_PAR = PAR_fw_temp - PAR_fw_pre
         change_of_obj = change_of_inconvenience + change_of_cost + change_of_PAR * int(obj_par)
@@ -116,7 +116,6 @@ def find_step_size(num_iteration, pricing_method, pricing_table,
         if print_steps:
             print(f"step {step_size_final_temp} at {num_itrs}, change of cost = {change_of_cost}, "
                   f"change of obj = {change_of_obj}")
-
 
     # update aggregate demand profile, aggregate battery profile, total cost, total inconvenience and total obj
     aggregate_demand_profile_fw \
@@ -130,6 +129,17 @@ def find_step_size(num_iteration, pricing_method, pricing_table,
     total_inconvenience_fw = total_inconvenience_fw_pre + step_size_final * change_of_inconvenience
     PAR_fw = max(aggregate_demand_profile_fw) / average(aggregate_demand_profile_fw)
     total_obj_fw = total_cost_fw + total_inconvenience_fw + PAR_fw * int(obj_par)
+
+    if total_obj_new is not None and total_obj_fw > total_obj_new:
+        print("obj fw > total_obj")
+        step_size_final = 1
+        aggregate_demand_profile_fw = aggregate_demand_profile_new
+        aggregate_battery_profile_fw = aggregate_battery_profile_new
+        price_fw, total_cost_fw \
+            = prices_and_cost(aggregate_demand_profile=aggregate_demand_profile_fw,
+                              pricing_table=pricing_table,
+                              cost_function=cost_function_type)
+        total_inconvenience_fw = total_inconvenience_new
 
     print(f"{num_iteration}. "
           f"Best step size {round(step_size_final, 6)}, "

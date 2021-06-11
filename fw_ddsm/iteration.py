@@ -88,7 +88,7 @@ class Iteration:
     def begin_iteration(self, starting_prices,
                         use_battery=False, battery_model=None, battery_solver=None,
                         num_cpus=None, timeout=time_out, fully_charge_time=fully_charge_hour,
-                        min_step_size=min_step, ignore_tiny_step=False, roundup_tiny_step=False,
+                        min_step_size=min_step, roundup_tiny_step=False,
                         print_done=False, print_steps=False):
 
         scheduling_method = self.tasks_scheduling_method
@@ -101,10 +101,9 @@ class Iteration:
 
         num_iteration = 1
         step = 0.9
-        step_pre = 1
-        while 0 < step < 1 and not step == step_pre:
+        while step > 0.0005:
             aggregate_demand_profile, aggregate_battery_profile, \
-            weighted_total_inconvenience, time_scheduling_iteration \
+            weighted_total_inconvenience, time_scheduling_iteration, obj \
                 = self.community.schedule(num_iteration=num_iteration, prices=prices,
                                           pricing_table=self.aggregator.pricing_table,
                                           tasks_scheduling_method=scheduling_method,
@@ -114,14 +113,14 @@ class Iteration:
                                           fully_charge_time=fully_charge_time,
                                           print_upon_completion=print_done)
 
-            step_pre = step
             prices, consumption_cost, inconvenience, step, \
             new_aggregate_demand_profile, new_aggregate_battery_profile, time_pricing \
                 = self.aggregator.pricing(num_iteration=num_iteration,
                                           aggregate_demand_profile=aggregate_demand_profile,
                                           aggregate_battery_profile=aggregate_battery_profile,
+                                          total_obj=obj,
                                           aggregate_inconvenience=weighted_total_inconvenience,
-                                          min_step_size=min_step_size, ignore_tiny_step=ignore_tiny_step,
+                                          min_step_size=min_step_size,
                                           roundup_tiny_step=roundup_tiny_step, print_steps=print_steps)
             num_iteration += 1
 

@@ -41,6 +41,7 @@ class Community:
 
         # generate a new tracker for the results at each iteration
         self.new_community_tracker(tasks_scheduling_method=tasks_scheduling_method)
+        self.tracker.update(num_record=0, demands=self.preferred_demand_profile)
 
         # print a message when done
         print("0. The community is read. ")
@@ -116,6 +117,7 @@ class Community:
 
         # generate a new tracker for the aggregate results of the community at each iteration
         self.new_community_tracker(tasks_scheduling_method=tasks_scheduling_method)
+        self.tracker.update(num_record=0, demands=aggregate_demand_profile)
 
         # print a message when done
         print("0. The community is created. ")
@@ -189,13 +191,15 @@ class Community:
             = aggregator_pricing.prices_and_cost(aggregate_demand_profile=aggregate_demand_profile,
                                                  pricing_table=pricing_table,
                                                  cost_function=cost_function_type)
+        obj = total_cost + weighted_total_inconvenience
 
         self.tracker.update(num_record=num_iteration, penalty=weighted_total_inconvenience,
                             cost=total_cost,
-                            run_time=time_scheduling_iteration)
+                            run_time=time_scheduling_iteration,
+                            demands=aggregate_demand_profile)
 
         return aggregate_demand_profile, aggregate_battery_profile, \
-               weighted_total_inconvenience, time_scheduling_iteration
+               weighted_total_inconvenience, time_scheduling_iteration, obj
 
     def finalise_schedule(self, start_probability_distribution, tasks_scheduling_method=None, num_sample=0):
         final_aggregate_demand_profile = [0] * self.num_intervals
