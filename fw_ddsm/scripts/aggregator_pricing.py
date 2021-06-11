@@ -56,11 +56,12 @@ def find_step_size(num_iteration, pricing_method, pricing_table,
     change_of_obj = -999
     change_of_cost = -999
     min_abs_change = 0.0001
+    aggregate_demand_profile_fw_temp = aggregate_demand_profile_fw_pre[:]
 
     # if the gradient is less than zero and the step size is not yet 1, continue the loop
     # ! test the step_size_final_temp for termination condition instead of step_size_final !
-    while change_of_obj < 0 and abs(change_of_obj) > min_abs_change and change_of_cost < 0 \
-            and step_size_final_temp < 1 \
+    while change_of_obj < 0 and abs(change_of_obj) > min_abs_change \
+            and step_size_final_temp <= 1 \
             and not step_size_final_temp == step_size_final_temp_prev:
 
         step_size_final = step_size_final_temp
@@ -69,7 +70,7 @@ def find_step_size(num_iteration, pricing_method, pricing_table,
         # search for the step per time period
         step_profile = []
         for dp, dn, demand_levels_period in \
-                zip(aggregate_demand_profile_fw_pre, aggregate_demand_profile_new,
+                zip(aggregate_demand_profile_fw_temp, aggregate_demand_profile_new,
                     pricing_table[p_demand_table].values()):
             d_levels = list(demand_levels_period.values())[:-1]
             min_demand_level = min(d_levels)

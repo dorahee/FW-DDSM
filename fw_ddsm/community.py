@@ -4,7 +4,7 @@ import pickle
 from time import time
 from fw_ddsm.household import *
 from fw_ddsm.tracker import *
-from fw_ddsm.scripts import household_generation, household_scheduling
+from fw_ddsm.scripts import household_generation, household_scheduling, aggregator_pricing
 
 
 class Community:
@@ -149,7 +149,7 @@ class Community:
         del self.community_details[s_demand]
         f.close()
 
-    def schedule(self, num_iteration, prices,
+    def schedule(self, num_iteration, prices, pricing_table,
                  tasks_scheduling_method,
                  community_details=None, num_intervals=None,
                  model=None, solver=None, search=None,
@@ -185,7 +185,13 @@ class Community:
         aggregate_demand_profile, aggregate_battery_profile, weighted_total_inconvenience, time_scheduling_iteration \
             = self.__retrieve_scheduling_results(results=results, num_iteration=num_iteration)
 
+        prices, total_cost \
+            = aggregator_pricing.prices_and_cost(aggregate_demand_profile=aggregate_demand_profile,
+                                                 pricing_table=pricing_table,
+                                                 cost_function=cost_function_type)
+
         self.tracker.update(num_record=num_iteration, penalty=weighted_total_inconvenience,
+                            cost=total_cost,
                             run_time=time_scheduling_iteration)
 
         return aggregate_demand_profile, aggregate_battery_profile, \
@@ -324,7 +330,7 @@ class Community:
                                 timeout, fully_charge_time,
                                 False,
                                 print_upon_completion):
-                        household_details for household_details in community_details.values()}
+                    household_details for household_details in community_details.values()}
 
         return results
 

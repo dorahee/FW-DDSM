@@ -106,6 +106,7 @@ class Iteration:
             aggregate_demand_profile, aggregate_battery_profile, \
             weighted_total_inconvenience, time_scheduling_iteration \
                 = self.community.schedule(num_iteration=num_iteration, prices=prices,
+                                          pricing_table=self.aggregator.pricing_table,
                                           tasks_scheduling_method=scheduling_method,
                                           use_battery=use_battery,
                                           battery_model=battery_model, battery_solver=battery_solver,
