@@ -75,12 +75,12 @@ def find_step_size(num_iteration, pricing_method, pricing_table,
             max_demand_level = d_levels[-1]
             second_max_demand_level = d_levels[-2]
             if dn < dp < min_demand_level or dn > dp > second_max_demand_level:
-                step = 0.01
+                step = 0.001
             elif dn == dp or dp < dn < min_demand_level or dp > dn > max_demand_level:
                 step = 1
             else:
                 dd = dn - dp
-                dl = find_ge(d_levels, dp) + 0.01 if dd > 0 else find_le(d_levels, dp) - 0.01
+                dl = find_ge(d_levels, dp) + 0.001 if dd > 0 else find_le(d_levels, dp) - 0.001
                 step = (dl - dp) / dd
                 if ignore_tiny_step:
                     step = step if step > min_step_size else 1
