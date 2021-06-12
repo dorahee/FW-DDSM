@@ -187,6 +187,9 @@ class Output:
             df_others_final.to_csv(r"{}{}_aggregator_others_final.csv".format(self.output_folder, pricing_method))
             df.from_dict([overview_dict]).to_csv(r"{}aggregator_overview.csv".format(self.output_folder))
 
+        print("----------------------------------------")
+        print("Data are written and graphs are painted. ")
+
         # ------------------------------ save input data ------------------------------
         src = self.output_parent_folder + "/data"
         dest = self.output_folder + "/data"
@@ -199,6 +202,8 @@ class Output:
             if os.path.isfile(full_file_name):
                 shutil.copy(full_file_name, dest)
 
-        print("Data are written and graphs are painted. ")
+        print("----------------------------------------")
+        print("Input data are backed up. ")
+
         return plots, plots_final, overview_dict
         # return df.from_dict(overview_dict)

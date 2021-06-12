@@ -178,7 +178,6 @@ def main(num_households, num_tasks_dependent, penalty_weight, out, new_data=True
     # with open(f"{out.output_parent_folder}data/{this_date_time}_{file_experiment_pkl}",
     #           'wb+') as f:
     #     pickle.dump(experiment_tracker, f, pickle.HIGHEST_PROTOCOL)
-    print("----------------------------------------")
 
     print("----------------------------------------")
     print("Experiment is finished. ")
