@@ -121,6 +121,13 @@ class Aggregator:
             if num_iteration == 0:
                 self.init_cost = consumption_cost
                 self.init_demand_max = max(new_aggregate_demand_profile)
+                print(f"{num_iteration}. "
+                      f"Best step size {round(1, 6)}, "
+                      f"{0} iterations, "
+                      f"obj {consumption_cost}, "
+                      f"change of obj {consumption_cost}, "
+                      f"using {self.pricing_method}")
+
             self.final.update(num_record=num_iteration, penalty=inconvenience,
                               demands=new_aggregate_demand_profile,
                               battery_profile=new_aggregate_battery_profile,
@@ -130,8 +137,8 @@ class Aggregator:
             aggregate_demand_profile_fw_pre = self.tracker.data[s_demand][num_iteration - 1][:]
             aggregate_battery_profile_fw_pre = self.tracker.data[b_profile][num_iteration - 1][:]
             inconvenience_fw_pre = self.tracker.data[s_penalty][num_iteration - 1]
-            # price_fw_pre = self.tracker.data[p_prices][num_iteration - 1][:]
-            # cost_fw_pre = self.tracker.data[p_cost][num_iteration - 1]
+            price_fw_pre = self.tracker.data[p_prices][num_iteration - 1][:]
+            total_cost_fw_pre = self.tracker.data[p_cost][num_iteration - 1]
             new_aggregate_demand_profile, new_aggregate_battery_profile, \
             step, prices, consumption_cost, inconvenience, time_pricing \
                 = aggregator_pricing.find_step_size(num_iteration=num_iteration,
@@ -144,6 +151,8 @@ class Aggregator:
                                                     total_inconvenience_new=aggregate_inconvenience,
                                                     total_inconvenience_fw_pre=inconvenience_fw_pre,
                                                     total_obj_new=total_obj,
+                                                    price_fw_pre=price_fw_pre,
+                                                    total_cost_fw_pre=total_cost_fw_pre,
                                                     min_step_size=min_step_size,
                                                     roundup_tiny_step=roundup_tiny_step,
                                                     print_steps=print_steps)

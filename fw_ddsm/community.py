@@ -4,7 +4,7 @@ import pickle
 from time import time
 from fw_ddsm.household import *
 from fw_ddsm.tracker import *
-from fw_ddsm.scripts import household_generation, household_scheduling, aggregator_pricing
+from fw_ddsm.scripts import household_generation, aggregator_pricing
 
 
 class Community:
@@ -20,7 +20,8 @@ class Community:
         self.tasks_scheduling_method = ""
         self.preferred_demand_profile = []
 
-    def read(self, tasks_scheduling_method, read_from_folder="data/",
+    def read(self, tasks_scheduling_method,
+             read_from_folder="data/",
              inconvenience_cost_weight=None,
              num_dependent_tasks=None, ensure_dependent=False,
              date_time=None):
@@ -38,6 +39,11 @@ class Community:
         # read the number of households in this community
         if s_demand in self.community_details:
             self.num_households = len(self.community_details) - 1
+
+        # prices, total_cost \
+        #     = aggregator_pricing.prices_and_cost(aggregate_demand_profile=self.preferred_demand_profile,
+        #                                          pricing_table=pricing_table,
+        #                                          cost_function=cost_function_type)
 
         # generate a new tracker for the results at each iteration
         self.new_community_tracker(tasks_scheduling_method=tasks_scheduling_method)
@@ -116,6 +122,10 @@ class Community:
             self.save_to_file("data/")
 
         # generate a new tracker for the aggregate results of the community at each iteration
+        # prices, total_cost \
+        #     = aggregator_pricing.prices_and_cost(aggregate_demand_profile=self.preferred_demand_profile,
+        #                                          pricing_table=pricing_table,
+        #                                          cost_function=cost_function_type)
         self.new_community_tracker(tasks_scheduling_method=tasks_scheduling_method)
         self.tracker.update(num_record=0, demands=aggregate_demand_profile)
 

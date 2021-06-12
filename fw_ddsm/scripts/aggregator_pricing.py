@@ -36,42 +36,16 @@ def find_step_size(num_iteration, pricing_method, pricing_table,
                    aggregate_demand_profile_new, aggregate_demand_profile_fw_pre,
                    aggregate_battery_profile_new, aggregate_battery_profile_fw_pre,
                    total_inconvenience_new, total_inconvenience_fw_pre,
-                   total_obj_new=None,
+                   total_obj_new, price_fw_pre, total_cost_fw_pre,
                    min_step_size=min_step, roundup_tiny_step=False, print_steps=False,
                    obj_par=False):
-    time_begin = time()
-
     def move_profile(demands_pre, demands_new, alpha):
         return [d_p + (d_n - d_p) * alpha for d_p, d_n in zip(demands_pre, demands_new)]
 
-    changes_of_aggregate_demand_profile \
-        = [d_n - d_p for d_n, d_p in zip(aggregate_demand_profile_new, aggregate_demand_profile_fw_pre)]
-    change_of_inconvenience = total_inconvenience_new - total_inconvenience_fw_pre
-    PAR_fw_pre = max(aggregate_demand_profile_fw_pre) / average(aggregate_demand_profile_fw_pre)
-
-    step_size_final = 0
-    step_size_final_temp = 0
-    step_size_final_temp_prev = -1
-    num_itrs = -1
-    change_of_obj = -999
-    change_of_cost = -999
-    min_abs_change = 0.0001
-    aggregate_demand_profile_fw_temp = aggregate_demand_profile_fw_pre[:]
-
-    # if the gradient is less than zero and the step size is not yet 1, continue the loop
-    # ! test the step_size_final_temp for termination condition instead of step_size_final !
-    while change_of_obj < 0 and abs(change_of_obj) > min_abs_change \
-            and step_size_final_temp <= 1 \
-            and not step_size_final_temp == step_size_final_temp_prev:
-
-        num_itrs += 1
-        step_size_final = step_size_final_temp
-
-        # search for the step per time period
+    def find_smallest_step_increment(demands_temp, demands_new):
         step_profile = []
         for dp, dn, demand_levels_period in \
-                zip(aggregate_demand_profile_fw_temp, aggregate_demand_profile_new,
-                    pricing_table[p_demand_table].values()):
+                zip(demands_temp, demands_new, pricing_table[p_demand_table].values()):
             d_levels = list(demand_levels_period.values())[:-1]
             min_demand_level = min(d_levels)
             max_demand_level = d_levels[-1]
@@ -89,68 +63,112 @@ def find_step_size(num_iteration, pricing_method, pricing_table,
                 step = max(step, min_step_size)
             step_profile.append(step)
 
-        # find the smallest step size
         step_size_incr = min(step_profile)
-        # if step_size_incr == 1:
-        #     print("step size incr is one")
-        step_size_final_temp_prev = step_size_final_temp
-        step_size_final_temp = step_size_final + step_size_incr
 
-        # update the aggregate demand profile using the current step-size
+        return step_size_incr
+
+    # start the timer
+    time_begin = time()
+
+    # by default, the FW outputs are the same as the inputs
+    total_obj_fw_pre = total_cost_fw_pre + total_inconvenience_fw_pre
+    step_size_fw = 0
+    aggregate_demand_profile_fw = aggregate_demand_profile_fw_pre[:]
+    price_fw = price_fw_pre[:]
+    total_cost_fw = total_cost_fw_pre
+    total_inconvenience_fw = total_inconvenience_fw_pre
+    total_obj_fw = total_obj_fw_pre
+    change_of_inconvenience = total_inconvenience_new - total_inconvenience_fw_pre
+    change_of_obj_fw = total_obj_new - total_obj_fw_pre
+
+    # initialise temporary variables for the FW iteration
+    step_size_fw_temp = 0.0001
+    aggregate_demand_profile_fw_temp = aggregate_demand_profile_fw_pre[:]
+    price_fw_temp = price_fw_pre[:]
+    total_cost_fw_temp = total_cost_fw_pre
+    total_inconvenience_fw_temp = total_inconvenience_fw_pre
+    total_obj_fw_temp = total_obj_fw_pre
+    change_of_obj_temp = -999
+
+    # set counters for the FW iteration
+    num_itrs = -1
+    while change_of_obj_temp <= 0 < step_size_fw_temp <= 1:
+
+        # start the counter
+        num_itrs += 1
+
+        # update the FW outcomes from the second iteration
+        if num_itrs > 0:
+            step_size_fw = step_size_fw_temp
+            aggregate_demand_profile_fw = aggregate_demand_profile_fw_temp
+            price_fw = price_fw_temp
+            total_cost_fw = total_cost_fw_temp
+            total_inconvenience_fw = total_inconvenience_fw_temp
+            total_obj_fw = total_obj_fw_temp
+            change_of_obj_fw = total_obj_fw - total_obj_fw_pre
+
+        if change_of_obj_temp == 0:
+            break
+
+        # search for the smallest step size from all time periods
+        step_size_incr = find_smallest_step_increment(aggregate_demand_profile_fw_temp, aggregate_demand_profile_new)
+
+        # update the temporary FW step size
+        step_size_fw_temp = step_size_fw + step_size_incr
+
+        # update the temporary aggregate demand profile using the current step-size
         aggregate_demand_profile_fw_temp \
-            = move_profile(aggregate_demand_profile_fw_pre, aggregate_demand_profile_new, step_size_final_temp)
+            = move_profile(aggregate_demand_profile_fw_pre, aggregate_demand_profile_new, step_size_fw_temp)
+
+        # update the temporary PAR
         PAR_fw_temp = max(aggregate_demand_profile_fw_temp) / average(aggregate_demand_profile_fw_temp)
 
-        # update the prices and the cost using the updated aggregated demand profile
-        price_fw_temp, cost_fw_temp = prices_and_cost(aggregate_demand_profile=aggregate_demand_profile_fw_temp,
-                                                      pricing_table=pricing_table,
-                                                      cost_function=cost_function_type)
+        # update the temporary prices and total cost using the updated aggregated demand profile
+        price_fw_temp, total_cost_fw_temp = prices_and_cost(aggregate_demand_profile=aggregate_demand_profile_fw_temp,
+                                                            pricing_table=pricing_table,
+                                                            cost_function=cost_function_type)
 
-        # calculate the gradient/change of objective
-        changes_of_aggregate_demand_profile \
-            = [d_n - d_p for d_n, d_p in zip(aggregate_demand_profile_new, aggregate_demand_profile_fw_temp)]
-        change_of_cost = sum([d_c * p_fw for d_c, p_fw in zip(changes_of_aggregate_demand_profile, price_fw_temp)])
-        change_of_PAR = PAR_fw_temp - PAR_fw_pre
-        change_of_obj = change_of_inconvenience + change_of_cost + change_of_PAR * int(obj_par)
+        # update the temporary total inconvenience
+        total_inconvenience_fw_temp = total_inconvenience_fw_pre + step_size_fw_temp * change_of_inconvenience
 
+        # update the temporary total objective
+        total_obj_fw_temp = total_cost_fw_temp + total_inconvenience_fw_temp
+
+        # update the temporary change of obj
+        change_of_obj_temp = total_obj_fw_temp - total_obj_fw_pre
+
+        # print intermediate results for debugging purpose
         if print_steps:
-            print(f"step {step_size_final_temp} at {num_itrs}, change of cost = {change_of_cost}, "
-                  f"change of obj = {change_of_obj}")
+            print(f"step {step_size_fw_temp} at {num_itrs}, change of obj = {change_of_obj_temp}")
 
-    # update aggregate demand profile, aggregate battery profile, total cost, total inconvenience and total obj
-    aggregate_demand_profile_fw \
-        = move_profile(aggregate_demand_profile_fw_pre, aggregate_demand_profile_new, step_size_final)
+    # if total_obj_fw > total_obj_new and step_size_fw > 0:
+    #     print("New solution is better.")
+    #     step_size_fw = 1
+    #     aggregate_demand_profile_fw = aggregate_demand_profile_new[:]
+    #     price_fw, total_cost_fw = prices_and_cost(aggregate_demand_profile=aggregate_demand_profile_fw,
+    #                                               pricing_table=pricing_table,
+    #                                               cost_function=cost_function_type)
+    #     total_inconvenience_fw = total_inconvenience_new
+    #     total_obj_fw = total_cost_fw + total_inconvenience_fw
+
+    # update the final FW battery profile
     aggregate_battery_profile_fw \
-        = move_profile(aggregate_battery_profile_fw_pre, aggregate_battery_profile_new, step_size_final)
-    price_fw, total_cost_fw \
-        = prices_and_cost(aggregate_demand_profile=aggregate_demand_profile_fw,
-                          pricing_table=pricing_table,
-                          cost_function=cost_function_type)
-    total_inconvenience_fw = total_inconvenience_fw_pre + step_size_final * change_of_inconvenience
-    PAR_fw = max(aggregate_demand_profile_fw) / average(aggregate_demand_profile_fw)
-    total_obj_fw = total_cost_fw + total_inconvenience_fw + PAR_fw * int(obj_par)
+        = move_profile(aggregate_battery_profile_fw_pre, aggregate_battery_profile_new, step_size_fw)
 
-    if total_obj_new is not None and total_obj_fw > total_obj_new:
-        print("obj fw > total_obj")
-        step_size_final = 1
-        aggregate_demand_profile_fw = aggregate_demand_profile_new
-        aggregate_battery_profile_fw = aggregate_battery_profile_new
-        price_fw, total_cost_fw \
-            = prices_and_cost(aggregate_demand_profile=aggregate_demand_profile_fw,
-                              pricing_table=pricing_table,
-                              cost_function=cost_function_type)
-        total_inconvenience_fw = total_inconvenience_new
-
+    # print the FW outputs for debugging purpose
     print(f"{num_iteration}. "
-          f"Best step size {round(step_size_final, 6)}, "
+          f"Step size = {round(step_size_fw, 6)}, "
           f"{num_itrs} iterations, "
-          f"obj {total_obj_fw}, "
-          f"change of obj {change_of_obj}, "
+          f"obj {round(total_obj_fw, 3)}, "
+          f"incon {round(total_inconvenience_fw, 2)}, "
+          f"change of obj {round(change_of_obj_fw, 3)}, "
           f"using {pricing_method}")
+
+    # stop the timer
     time_fw = time() - time_begin
 
     return aggregate_demand_profile_fw, aggregate_battery_profile_fw, \
-           step_size_final, price_fw, total_cost_fw, total_inconvenience_fw, time_fw
+           step_size_fw, price_fw, total_cost_fw, total_inconvenience_fw, time_fw
 
 
 def compute_start_time_probabilities(history_steps):

@@ -5,6 +5,8 @@ from pandas_bokeh import *
 from bokeh.layouts import layout
 from bokeh.models import *
 from fw_ddsm.tracker import *
+import os
+import shutil
 
 
 class Output:
@@ -184,6 +186,18 @@ class Output:
             df_others.to_csv(r"{}{}_aggregator_others.csv".format(self.output_folder, pricing_method))
             df_others_final.to_csv(r"{}{}_aggregator_others_final.csv".format(self.output_folder, pricing_method))
             df.from_dict([overview_dict]).to_csv(r"{}aggregator_overview.csv".format(self.output_folder))
+
+        # ------------------------------ save input data ------------------------------
+        src = self.output_parent_folder + "/data"
+        dest = self.output_folder + "/data"
+        path = Path(dest)
+        if not path.exists():
+            path.mkdir(mode=0o777, parents=True, exist_ok=False)
+        src_files = os.listdir(src)
+        for file_name in src_files:
+            full_file_name = os.path.join(src, file_name)
+            if os.path.isfile(full_file_name):
+                shutil.copy(full_file_name, dest)
 
         print("Data are written and graphs are painted. ")
         return plots, plots_final, overview_dict

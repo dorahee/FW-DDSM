@@ -101,9 +101,10 @@ class Iteration:
 
         num_iteration = 1
         step = 0.9
-        while step > 0.0005:
+        step_pre = 1
+        while step > 0.0005 and not step_pre == step:
             aggregate_demand_profile, aggregate_battery_profile, \
-            weighted_total_inconvenience, time_scheduling_iteration, obj \
+            weighted_total_inconvenience, time_scheduling_iteration, total_obj \
                 = self.community.schedule(num_iteration=num_iteration, prices=prices,
                                           pricing_table=self.aggregator.pricing_table,
                                           tasks_scheduling_method=scheduling_method,
@@ -113,12 +114,13 @@ class Iteration:
                                           fully_charge_time=fully_charge_time,
                                           print_upon_completion=print_done)
 
+            step_pre = step
             prices, consumption_cost, inconvenience, step, \
             new_aggregate_demand_profile, new_aggregate_battery_profile, time_pricing \
                 = self.aggregator.pricing(num_iteration=num_iteration,
                                           aggregate_demand_profile=aggregate_demand_profile,
                                           aggregate_battery_profile=aggregate_battery_profile,
-                                          total_obj=obj,
+                                          total_obj=total_obj,
                                           aggregate_inconvenience=weighted_total_inconvenience,
                                           min_step_size=min_step_size,
                                           roundup_tiny_step=roundup_tiny_step, print_steps=print_steps)
