@@ -19,16 +19,16 @@ algorithms[m_minizinc][m_after_fw] = f"{m_minizinc}_fw"
 
 # penalty_weight_range = [0, 5, 50, 500, 5000, 50000]
 # num_tasks_dependent_range = [0, 3, 5]
-num_households_range = [10]
+num_households_range = [5]
 # num_households_range = [50, 80, 100]
-penalty_weight_range = [1, 10, 50]
+penalty_weight_range = [50]
 # num_tasks_dependent_range = [0, 2, 4, 6, 8]
 num_tasks_dependent_range = [3]
 num_full_flex_tasks = 0
 num_semi_flex_tasks = 6
 num_fixed_tasks = 0
 num_samples = 5
-num_repeat = 5
+num_repeat = 1
 id_job = 0
 battery_usages = [True, False]
 battery_solver_choice = "gurobi"
@@ -109,6 +109,7 @@ def main(num_households, num_tasks_dependent, penalty_weight, out, new_data=True
                                   inconvenience_cost_weight=penalty_weight,
                                   max_care_factor=care_f_max,
                                   data_folder=output_parent_folder,
+                                  backup_data_folder=output_folder,
                                   date_time=this_date_time,
                                   capacity_max=battery_capacity_max, capacity_min=battery_capacity_min,
                                   power=battery_power)

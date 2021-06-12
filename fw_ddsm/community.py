@@ -63,7 +63,7 @@ class Community:
             semi_flex_task_min=no_semi_flex_tasks_min, semi_flex_task_max=0,
             fixed_task_min=no_fixed_tasks_min, fixed_task_max=0,
             inconvenience_cost_weight=care_f_weight, max_care_factor=care_f_max,
-            write_to_file_path=None, date_time=None,
+            write_to_file_path=None, backup_file_path=None, date_time=None,
             capacity_max=battery_capacity_max, capacity_min=battery_capacity_min,
             power=battery_power):
 
@@ -120,6 +120,10 @@ class Community:
             self.save_to_file(write_to_file_path, date_time=date_time)
         else:
             self.save_to_file("data/")
+
+        # backup the new community details to a folder if needed
+        if backup_file_path is not None:
+            self.save_to_file(backup_file_path, date_time=date_time)
 
         # generate a new tracker for the aggregate results of the community at each iteration
         # prices, total_cost \

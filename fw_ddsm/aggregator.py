@@ -47,7 +47,8 @@ class Aggregator:
         return prices, consumption_cost
 
     def new_aggregator(self, normalised_pricing_table_csv, aggregate_preferred_demand_profile, pricing_method,
-                       max_scale=0, num_periods=no_periods, weight=pricing_table_weight, write_to_file_path=None, 
+                       max_scale=0, num_periods=no_periods, weight=pricing_table_weight,
+                       write_to_file_path=None, backup_file_path=None,
                        date_time=None):
         self.pricing_table = dict()
         self.pricing_method = pricing_method
@@ -65,6 +66,8 @@ class Aggregator:
             self.write_to_file(folder=write_to_file_path, date_time=date_time)
         else:
             self.write_to_file("data/")
+        if backup_file_path is not None:
+            self.write_to_file(folder=backup_file_path, date_time=date_time)
         print("0. Aggregator is created. ")
 
         prices, consumption_cost, inconvenience, step, \

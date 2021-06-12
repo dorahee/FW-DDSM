@@ -190,20 +190,20 @@ class Output:
         print("----------------------------------------")
         print("Data are written and graphs are painted. ")
 
-        # ------------------------------ save input data ------------------------------
-        src = self.output_parent_folder + "/data"
-        dest = self.output_folder + "/data"
-        path = Path(dest)
-        if not path.exists():
-            path.mkdir(mode=0o777, parents=True, exist_ok=False)
-        src_files = os.listdir(src)
-        for file_name in src_files:
-            full_file_name = os.path.join(src, file_name)
-            if os.path.isfile(full_file_name):
-                shutil.copy(full_file_name, dest)
-
-        print("----------------------------------------")
-        print("Input data are backed up. ")
+        # # ------------------------------ save input data ------------------------------
+        # src = self.output_parent_folder + "/data"
+        # dest = self.output_folder + "/data"
+        # path = Path(dest)
+        # if not path.exists():
+        #     path.mkdir(mode=0o777, parents=True, exist_ok=False)
+        # src_files = os.listdir(src)
+        # for file_name in src_files:
+        #     full_file_name = os.path.join(src, file_name)
+        #     if os.path.isfile(full_file_name):
+        #         shutil.copy(full_file_name, dest)
+        #
+        # print("----------------------------------------")
+        # print("Input data are backed up. ")
 
         return plots, plots_final, overview_dict
         # return df.from_dict(overview_dict)

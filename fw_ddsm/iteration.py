@@ -25,7 +25,8 @@ class Iteration:
             semi_flex_task_min=no_semi_flex_tasks_min, semi_flex_task_max=0,
             fixed_task_min=no_fixed_tasks_min, fixed_task_max=0,
             inconvenience_cost_weight=care_f_weight, max_care_factor=care_f_max,
-            data_folder=None, date_time=None,
+            data_folder=None, backup_data_folder=None,
+            date_time=None,
             capacity_max=battery_capacity_max, capacity_min=battery_capacity_min,
             power=battery_power):
 
@@ -53,15 +54,18 @@ class Iteration:
                                  semi_flex_task_min=semi_flex_task_min, semi_flex_task_max=semi_flex_task_max,
                                  fixed_task_min=fixed_task_min, fixed_task_max=fixed_task_max,
                                  inconvenience_cost_weight=inconvenience_cost_weight, max_care_factor=max_care_factor,
-                                 write_to_file_path=data_folder, date_time=date_time,
+                                 write_to_file_path=data_folder, backup_file_path=backup_data_folder,
+                                 date_time=date_time,
                                  capacity_max=capacity_max, capacity_min=capacity_min,
                                  power=power
                                  )
 
-        prices, preferred_cost = self.aggregator.new_aggregator(
-            normalised_pricing_table_csv=file_normalised_pricing_table,
-            aggregate_preferred_demand_profile=preferred_demand_profile,
-            pricing_method=self.pricing_method, write_to_file_path=data_folder, date_time=date_time)
+        prices, preferred_cost \
+            = self.aggregator.new_aggregator(normalised_pricing_table_csv=file_normalised_pricing_table,
+                                             aggregate_preferred_demand_profile=preferred_demand_profile,
+                                             pricing_method=self.pricing_method,
+                                             write_to_file_path=data_folder, backup_file_path=backup_data_folder,
+                                             date_time=date_time)
 
         return preferred_demand_profile, prices
 
