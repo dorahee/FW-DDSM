@@ -105,9 +105,8 @@ def find_step_size(num_iteration, pricing_method, pricing_table,
             total_cost_fw = total_cost_fw_temp
             total_inconvenience_fw = total_inconvenience_fw_temp
             total_obj_fw = total_obj_fw_temp
-            change_of_obj_fw = total_obj_fw - total_obj_fw_pre
 
-        if change_of_obj_temp == 0:
+        if change_of_obj_temp == 0 or step_size_fw_temp == 1:
             break
 
         # search for the smallest step size from all time periods
@@ -135,11 +134,17 @@ def find_step_size(num_iteration, pricing_method, pricing_table,
         total_obj_fw_temp = total_cost_fw_temp + total_inconvenience_fw_temp
 
         # update the temporary change of obj
-        change_of_obj_temp = total_obj_fw_temp - total_obj_fw_pre
+        change_of_obj_temp = total_obj_fw_temp - total_obj_fw
+
+        # check if the change of obj is negative but step size is more than one
+        if change_of_obj_temp < 0 and step_size_fw_temp > 1:
+            step_size_fw_temp = 1
 
         # print intermediate results for debugging purpose
         if print_steps:
-            print(f"step {step_size_fw_temp} at {num_itrs}, change of obj = {change_of_obj_temp}")
+            print(f"--- {num_itrs}) step = {round(step_size_fw_temp, 4)}, "
+                  f"obj = {round(total_obj_fw_temp, 4)}, change of obj = {round(change_of_obj_temp, 4)}, "
+                  f"{int(change_of_obj_temp < 0)}")
 
     # if total_obj_fw > total_obj_new and step_size_fw > 0:
     #     print("New solution is better.")
@@ -161,8 +166,11 @@ def find_step_size(num_iteration, pricing_method, pricing_table,
           f"{num_itrs} iterations, "
           f"obj {round(total_obj_fw, 3)}, "
           f"incon {round(total_inconvenience_fw, 2)}, "
-          f"change of obj {round(change_of_obj_fw, 3)}, "
+          f"total change of obj {round(total_obj_fw - total_obj_fw_pre, 3)}, "
           f"using {pricing_method}")
+
+    if total_obj_fw > total_obj_new:
+        print("error")
 
     # stop the timer
     time_fw = time() - time_begin

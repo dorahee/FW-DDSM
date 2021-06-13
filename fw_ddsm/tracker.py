@@ -68,7 +68,7 @@ class Tracker:
         prices = self.data[p_prices]
         others = {k: self.data[k]
                   for k in [s_par, s_demand_reduction, p_cost_reduction, s_penalty,
-                            s_demand_total, s_demand_max, p_cost, t_time, p_step]}
+                            s_demand_total, s_demand_max, p_cost, s_obj, t_time, p_step]}
         return demands, batteries, prices, others
 
     def write_to_file(self, folder, print_demands=True, print_prices=True, print_others=True, print_batteries=True):

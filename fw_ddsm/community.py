@@ -19,6 +19,7 @@ class Community:
         self.final = Tracker()
         self.tasks_scheduling_method = ""
         self.preferred_demand_profile = []
+        self.pricing_table = dict()
 
     def read(self, tasks_scheduling_method,
              read_from_folder="data/",
@@ -211,6 +212,11 @@ class Community:
                             cost=total_cost,
                             run_time=time_scheduling_iteration,
                             demands=aggregate_demand_profile)
+        print(f"{num_iteration}. "
+              f"cost = {round(total_cost, 6)}, "
+              f"obj {round(obj, 3)}, "
+              f"incon {round(weighted_total_inconvenience, 2)}, "
+              f"using {tasks_scheduling_method}.")
 
         return aggregate_demand_profile, aggregate_battery_profile, \
                weighted_total_inconvenience, time_scheduling_iteration, obj

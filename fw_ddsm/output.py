@@ -89,6 +89,8 @@ class Output:
         overview_dict[s_demand_reduction] = df_others[s_demand_reduction].values[-1]
         overview_dict[p_cost_reduction] = df_others[p_cost_reduction].values[-1]
         overview_dict[s_penalty] = df_others[s_penalty].values[-1]
+        overview_dict[p_cost] = df_others[p_cost].values[-1]
+        overview_dict[s_obj] = df_others[s_obj].values[-1]
         overview_dict[t_pricing] = average(list(agg_times.values()))
         overview_dict[t_scheduling] = average(list(community_times.values()))
 
