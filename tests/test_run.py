@@ -19,16 +19,16 @@ algorithms[m_minizinc][m_after_fw] = f"{m_minizinc}_fw"
 
 # penalty_weight_range = [0, 5, 50, 500, 5000, 50000]
 # num_tasks_dependent_range = [0, 3, 5]
-num_households_range = [100]
+num_households_range = [10]
 # num_households_range = [50, 80, 100]
-penalty_weight_range = [1,50]
+penalty_weight_range = [50]
 # num_tasks_dependent_range = [0, 2, 4, 6, 8]
 num_tasks_dependent_range = [3]
 num_full_flex_tasks = 0
 num_semi_flex_tasks = 6
 num_fixed_tasks = 0
 num_samples = 5
-num_repeat = 2
+num_repeat = 1
 id_job = 0
 battery_usages = [True, False]
 battery_solver_choice = "gurobi"
@@ -36,6 +36,8 @@ battery_fully_charged_hour = 0
 
 read_from_date_time = None
 # read_from_date_time = "2021-06-12_20-14-46"
+# read_from_date_time = "2021-06-13_17-06-35"
+read_from_date_time = "2021-06-15_07-09-39"
 name_exp = None
 # cpus_nums = None
 
@@ -45,6 +47,7 @@ experiment_tracker = dict()
 timeout = 120
 min_step_size = 0.0001
 roundup_tiny_step = False
+roundup_tiny_step = True
 print_done = False
 print_steps = False
 # print_steps = True

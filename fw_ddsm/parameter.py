@@ -29,6 +29,7 @@ pricing_table_weight = 1
 # cost_function_type = "linear"
 cost_function_type = "piece-wise"
 min_step = 0.0005
+roundup_step_digits = 10000
 
 # tasks solver related parameters
 variable_selection = "smallest"
@@ -107,6 +108,7 @@ s_final = "final"
 s_penalty = "inconvenient"
 s_penalty_init = "init_inconvenient"
 s_obj = "objective"
+s_debugger = "debugger"
 
 # step size
 p_step = "step_size"

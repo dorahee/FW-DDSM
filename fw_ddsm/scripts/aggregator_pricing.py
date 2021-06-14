@@ -59,7 +59,7 @@ def find_step_size(num_iteration, pricing_method, pricing_table,
                 dl = find_ge(d_levels, dp) + 0.01 if dd > 0 else find_le(d_levels, dp) - 0.01
                 step = (dl - dp) / dd
                 if roundup_tiny_step:
-                    step = ceil(step * 10000) / 10000
+                    step = ceil(step * roundup_step_digits) / roundup_step_digits
                 step = max(step, min_step_size)
             step_profile.append(step)
 
@@ -79,7 +79,6 @@ def find_step_size(num_iteration, pricing_method, pricing_table,
     total_inconvenience_fw = total_inconvenience_fw_pre
     total_obj_fw = total_obj_fw_pre
     change_of_inconvenience = total_inconvenience_new - total_inconvenience_fw_pre
-    change_of_obj_fw = total_obj_new - total_obj_fw_pre
 
     # initialise temporary variables for the FW iteration
     step_size_fw_temp = 0.0001
@@ -89,6 +88,7 @@ def find_step_size(num_iteration, pricing_method, pricing_table,
     total_inconvenience_fw_temp = total_inconvenience_fw_pre
     total_obj_fw_temp = total_obj_fw_pre
     change_of_obj_temp = -999
+    # change_of_cost_temp = -9999
 
     # set counters for the FW iteration
     num_itrs = -1
@@ -135,26 +135,18 @@ def find_step_size(num_iteration, pricing_method, pricing_table,
 
         # update the temporary change of obj
         change_of_obj_temp = total_obj_fw_temp - total_obj_fw
+        change_of_cost_temp = total_cost_fw_temp - total_cost_fw
 
         # check if the change of obj is negative but step size is more than one
-        if change_of_obj_temp < 0 and step_size_fw_temp > 1:
+        if change_of_obj_temp <= 0 and step_size_fw_temp > 1:
             step_size_fw_temp = 1
 
         # print intermediate results for debugging purpose
         if print_steps:
             print(f"--- {num_itrs}) step = {round(step_size_fw_temp, 4)}, "
+                  f"cost = {round(total_cost_fw_temp, 4)}, change of cost = {round(change_of_cost_temp, 4)}, "
                   f"obj = {round(total_obj_fw_temp, 4)}, change of obj = {round(change_of_obj_temp, 4)}, "
                   f"{int(change_of_obj_temp < 0)}")
-
-    # if total_obj_fw > total_obj_new and step_size_fw > 0:
-    #     print("New solution is better.")
-    #     step_size_fw = 1
-    #     aggregate_demand_profile_fw = aggregate_demand_profile_new[:]
-    #     price_fw, total_cost_fw = prices_and_cost(aggregate_demand_profile=aggregate_demand_profile_fw,
-    #                                               pricing_table=pricing_table,
-    #                                               cost_function=cost_function_type)
-    #     total_inconvenience_fw = total_inconvenience_new
-    #     total_obj_fw = total_cost_fw + total_inconvenience_fw
 
     # update the final FW battery profile
     aggregate_battery_profile_fw \
@@ -164,6 +156,9 @@ def find_step_size(num_iteration, pricing_method, pricing_table,
     print(f"{num_iteration}. "
           f"Step size = {round(step_size_fw, 6)}, "
           f"{num_itrs} iterations, "
+          f"par {round(max(aggregate_demand_profile_fw)/average(aggregate_demand_profile_fw), 3)}, "
+          f"total {round(sum(aggregate_demand_profile_fw), 3)}, "
+          f"cost {round(total_cost_fw, 3)}, "
           f"obj {round(total_obj_fw, 3)}, "
           f"incon {round(total_inconvenience_fw, 2)}, "
           f"total change of obj {round(total_obj_fw - total_obj_fw_pre, 3)}, "

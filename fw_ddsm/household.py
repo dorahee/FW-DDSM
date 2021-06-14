@@ -166,6 +166,7 @@ class Household:
         tasks_weighted_penalty = tasks_result[s_penalty]
         tasks_start_times = tasks_result[s_starts]
         tasks_time = tasks_result[t_time]
+        tasks_preferred_times = tasks_result[h_psts]
 
         # schedule a battery if needed
         if use_battery:
@@ -199,6 +200,7 @@ class Household:
                 s_demand: household_demand_profile,
                 s_penalty: tasks_weighted_penalty,
                 s_starts: tasks_start_times,
+                h_psts: tasks_preferred_times,
                 b_profile: battery_profile,
                 t_time: time_total}
 
@@ -281,7 +283,8 @@ class Household:
             print(f"Household {key}, {actual_starts}. ")
 
         # return the key information
-        return {h_key: key, s_demand: household_demand_profile, s_starts: actual_starts,
+        return {h_key: key, s_demand: household_demand_profile,
+                h_psts: preferred_starts, s_starts: actual_starts,
                 s_penalty: weighted_penalty_household, t_time: time_scheduling_tasks}
 
     def schedule_battery(self, household, existing_demands, prices, model=None, solver=None,

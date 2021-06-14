@@ -199,8 +199,14 @@ class Community:
                                          fully_charge_time=fully_charge_time,
                                          print_upon_completion=print_upon_completion)
 
-        aggregate_demand_profile, aggregate_battery_profile, weighted_total_inconvenience, time_scheduling_iteration \
+        retrieved_results \
             = self.__retrieve_scheduling_results(results=results, num_iteration=num_iteration)
+
+        aggregate_demand_profile = retrieved_results[s_demand]
+        aggregate_battery_profile = retrieved_results[b_profile]
+        weighted_total_inconvenience = retrieved_results[s_penalty]
+        time_scheduling_iteration = retrieved_results[t_time]
+        debugger_data = retrieved_results[s_debugger]
 
         prices, total_cost \
             = aggregator_pricing.prices_and_cost(aggregate_demand_profile=aggregate_demand_profile,
@@ -208,10 +214,14 @@ class Community:
                                                  cost_function=cost_function_type)
         obj = total_cost + weighted_total_inconvenience
 
-        self.tracker.update(num_record=num_iteration, penalty=weighted_total_inconvenience,
+        self.tracker.update(num_record=num_iteration,
+                            penalty=weighted_total_inconvenience,
                             cost=total_cost,
                             run_time=time_scheduling_iteration,
-                            demands=aggregate_demand_profile)
+                            demands=aggregate_demand_profile,
+                            debugger=debugger_data,
+                            battery_profile=aggregate_battery_profile)
+
         print(f"{num_iteration}. "
               f"cost = {round(total_cost, 6)}, "
               f"obj {round(obj, 3)}, "
@@ -364,19 +374,23 @@ class Community:
         total_weighted_inconvenience = 0
         time_scheduling_iteration = 0
         total_demand = 0
+        debugger_data = []
 
         for item in concurrent.futures.as_completed(results):
             res = item.result()
 
-            # for res in results:
             # print(res)
             key = res[h_key]
             demands_household = res[s_demand]
             weighted_penalty_household = res[s_penalty]
             start_times_jobs = res[s_starts]
+            preferred_times_jobs = res[h_psts]
             battery_profile_household = res[b_profile]
             time_household = res[t_time]
             total_demand += sum(demands_household)
+
+            # for debugging purpose
+            debugger_data.append([weighted_penalty_household, start_times_jobs, preferred_times_jobs])
 
             aggregate_demand_profile = [x + y for x, y in zip(demands_household, aggregate_demand_profile)]
             aggregate_battery_profile = [x + y for x, y in zip(battery_profile_household, aggregate_battery_profile)]
@@ -390,5 +404,13 @@ class Community:
                                                           penalty=weighted_penalty_household,
                                                           battery_profile=battery_profile_household)
 
-        return aggregate_demand_profile, aggregate_battery_profile, \
-               total_weighted_inconvenience, time_scheduling_iteration
+        # for debugging purpose
+
+        # return aggregate_demand_profile, aggregate_battery_profile, \
+        #        total_weighted_inconvenience, time_scheduling_iteration
+
+        return {s_demand: aggregate_demand_profile,
+                s_penalty: total_weighted_inconvenience,
+                b_profile: aggregate_battery_profile,
+                t_time: time_scheduling_iteration,
+                s_debugger: debugger_data}
