@@ -138,8 +138,8 @@ def find_step_size(num_iteration, pricing_method, pricing_table,
         change_of_cost_temp = total_cost_fw_temp - total_cost_fw
 
         # check if the change of obj is negative but step size is more than one
-        if change_of_obj_temp <= 0 and step_size_fw_temp > 1:
-            step_size_fw_temp = 1
+        # if change_of_obj_temp <= 0 and step_size_fw_temp > 1:
+        #     step_size_fw_temp = 1
 
         # print intermediate results for debugging purpose
         if print_steps:
