@@ -28,7 +28,7 @@ num_full_flex_tasks = 0
 num_semi_flex_tasks = 6
 num_fixed_tasks = 0
 num_samples = 5
-num_repeat = 1
+num_repeat = 5
 id_job = 0
 battery_usages = [True, False]
 battery_solver_choice = "gurobi"
@@ -37,7 +37,7 @@ battery_fully_charged_hour = 0
 read_from_date_time = None
 # read_from_date_time = "2021-06-12_20-14-46"
 # read_from_date_time = "2021-06-13_17-06-35"
-read_from_date_time = "2021-06-14_22-48-20"
+# read_from_date_time = "2021-06-14_22-48-20"
 name_exp = None
 # cpus_nums = None
 
