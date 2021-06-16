@@ -29,7 +29,7 @@ pricing_table_weight = 1
 # cost_function_type = "linear"
 cost_function_type = "piece-wise"
 min_step = 0.0005
-roundup_step_digits = 10000
+roundup_step_digits = 1000
 
 # tasks solver related parameters
 variable_selection = "smallest"
