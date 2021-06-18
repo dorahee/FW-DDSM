@@ -19,7 +19,7 @@ algorithms[m_minizinc][m_after_fw] = f"{m_minizinc}_fw"
 
 # penalty_weight_range = [0, 5, 50, 500, 5000, 50000]
 # num_tasks_dependent_range = [0, 3, 5]
-num_households_range = [100, 500, 1000, 3000, 6000, 9000]
+num_households_range = [1000, 3000]
 # num_households_range = [50, 80, 100]
 penalty_weight_range = [10]
 
@@ -46,7 +46,7 @@ cpus_nums = cpu_count()
 ensure_dependent = True
 experiment_tracker = dict()
 timeout = 120
-min_step_size = 0.0001
+min_step_size = 0.001
 # roundup_tiny_step = False
 roundup_tiny_step = True
 print_done = False
