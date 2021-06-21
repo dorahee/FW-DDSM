@@ -40,7 +40,7 @@ read_from_date_time = None
 # read_from_date_time = "2021-06-13_17-06-35"
 # read_from_date_time = "2021-06-14_22-48-20"
 name_exp = None
-# cpus_nums = None
+cpus_nums = 64
 
 cpus_nums = cpu_count()
 ensure_dependent = True

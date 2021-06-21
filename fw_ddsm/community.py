@@ -347,12 +347,13 @@ class Community:
         #                               for household in households.values()]).get()
         # pool.close()
         # pool.join()
+        print("num of cpus", num_cpus)
 
         if use_battery:
             battery_model = file_mip_battery if battery_model is None else battery_model
             battery_solver = "mip" if battery_solver is None else battery_solver
-
-        with concurrent.futures.ProcessPoolExecutor() as executor:
+        
+        with concurrent.futures.ProcessPoolExecutor(max_workers=num_cpus) as executor:
             results = {
                 executor.submit(Household.schedule, Household(),
                                 num_iteration, prices,
