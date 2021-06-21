@@ -32,8 +32,8 @@ array[INTERVALS] of var 0..total_demand_limit: total_demand2 = array1d([R * (exi
 constraint sum(battery_profile) = 0;
 
 % soc constraints
-constraint battery_soc[1] <= max_energy_capacity;
-constraint battery_soc[num_intervals] <= max_energy_capacity;
+% constraint battery_soc[1] <= max_energy_capacity;
+% constraint battery_soc[num_intervals] <= max_energy_capacity;
 constraint forall (i in 2..num_intervals) (
   battery_soc[i] = battery_soc[i - 1] + battery_profile[i - 1] / num_intervals_hour
 );
