@@ -352,7 +352,11 @@ class Community:
         if use_battery:
             battery_model = file_mip_battery if battery_model is None else battery_model
             battery_solver = "mip" if battery_solver is None else battery_solver
+<<<<<<< HEAD
         
+=======
+
+>>>>>>> da439b308ea54bdbb7db87f58026eead9ebdb9ac
         with concurrent.futures.ProcessPoolExecutor(max_workers=num_cpus) as executor:
             results = {
                 executor.submit(Household.schedule, Household(),
