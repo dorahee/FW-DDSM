@@ -59,7 +59,7 @@ def main(output_parent_folder=None, folder_id=1):
                                 num_full_flex_task_min=num_full_flex_tasks,
                                 num_semi_flex_task_min=num_semi_flex_tasks,
                                 inconvenience_cost_weight=penalty_weight,
-                                use_battery=use_battery,
+                                battery_size=use_battery,
                                 repeat=r, folder_id=folder_id)
                         plot_layout = []
                         plot_final_layout = []

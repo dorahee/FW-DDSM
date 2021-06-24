@@ -19,8 +19,8 @@ algorithms[m_minizinc][m_after_fw] = f"{m_minizinc}_fw"
 
 # penalty_weight_range = [0, 5, 50, 500, 5000, 50000]
 # num_tasks_dependent_range = [0, 3, 5]
-num_households_range = [100, 300, 600, 900, 1000, 3000, 6000, 9000]
-# num_households_range = [50, 80, 100]
+# num_households_range = [100, 300, 600, 900, 1000, 3000, 6000, 9000]
+num_households_range = [50]
 penalty_weight_range = [10]
 
 # num_tasks_dependent_range = [0, 2, 4, 6, 8]
@@ -31,14 +31,21 @@ num_fixed_tasks = 0
 num_samples = 5
 num_repeat = 1
 id_job = 0
+
 battery_usages = [True, False]
+battery_usages = [True]
 battery_solver_choice = "gurobi"
 battery_fully_charged_hour = 0
+battery_max_capacity_rate = 5000
+battery_min_capacity_rate = 0
+battery_power_rate = 5000
+battery_sizes = [100, 500, 1000, 2000, 3000, 4000, 5000]
+# battery_sizes = [100, 500]
 
 read_from_date_time = None
 # read_from_date_time = "2021-06-12_20-14-46"
 # read_from_date_time = "2021-06-13_17-06-35"
-# read_from_date_time = "2021-06-14_22-48-20"
+# read_from_date_time = "2021-06-25_03-17-35"
 name_exp = None
 
 cpus_nums = 64
@@ -56,12 +63,13 @@ email_results = True
 
 
 def main(num_households, num_tasks_dependent, penalty_weight, out, new_data=True, num_cpus=None, job_id=0,
-         use_battery=False, hour_fully_charge=fully_charge_hour, read_from_dt=read_from_date_time):
+         use_battery=False, capacity_max=battery_capacity_max, capacity_min=battery_capacity_min, power=battery_power,
+         hour_fully_charge=fully_charge_hour, read_from_dt=read_from_date_time):
 
     num_experiment = 0
     print("----------------------------------------")
     param_str = f"{num_households} households, " \
-                f"{int(use_battery)} battery (fully charged at {hour_fully_charge}), " \
+                f"{capacity_max * int(use_battery)}kWh battery (fully charged at {hour_fully_charge}), " \
                 f"{num_tasks_dependent} dependent tasks, " \
                 f"{num_full_flex_tasks} fully flexible tasks, " \
                 f"{num_semi_flex_tasks} semi-flexible tasks, " \
@@ -79,7 +87,7 @@ def main(num_households, num_tasks_dependent, penalty_weight, out, new_data=True
                                 num_semi_flex_task_min=num_semi_flex_tasks,
                                 inconvenience_cost_weight=penalty_weight,
                                 folder_id=job_id,
-                                use_battery=use_battery)
+                                battery_size=int(use_battery)*capacity_max)
 
     plots_demand_layout = []
     plots_demand_finalised_layout = []
@@ -97,9 +105,9 @@ def main(num_households, num_tasks_dependent, penalty_weight, out, new_data=True
         experiment_tracker[num_experiment]["id"] = job_id
 
         if use_battery:
-            experiment_tracker[num_experiment][b_cap_max] = battery_capacity_max
-            experiment_tracker[num_experiment][b_cap_min] = battery_capacity_min
-            experiment_tracker[num_experiment][b_power] = battery_power
+            experiment_tracker[num_experiment][b_cap_max] = capacity_max
+            experiment_tracker[num_experiment][b_cap_min] = capacity_min
+            experiment_tracker[num_experiment][b_power] = power
 
         # 1. iteration data
         if new_data:
@@ -115,11 +123,10 @@ def main(num_households, num_tasks_dependent, penalty_weight, out, new_data=True
                                   data_folder=output_parent_folder,
                                   backup_data_folder=output_folder,
                                   date_time=this_date_time,
-                                  capacity_max=battery_capacity_max, capacity_min=battery_capacity_min,
-                                  power=battery_power)
+                                  capacity_max=capacity_max, capacity_min=capacity_min, power=power)
             new_data = False
         else:
-            if m_ogsa in alg or use_battery == battery_usages[1]:
+            if m_ogsa in alg or new_data is False:
                 num_tasks_dependent = None
                 print("Same dependent tasks. ")
                 print("----------------------------------------")
@@ -136,7 +143,8 @@ def main(num_households, num_tasks_dependent, penalty_weight, out, new_data=True
                                    new_dependent_tasks=num_tasks_dependent,
                                    ensure_dependent=ensure_dependent,
                                    read_from_folder=intput_parent_folder,
-                                   date_time=input_date_time)
+                                   date_time=input_date_time,
+                                   capacity_max=capacity_max, capacity_min=capacity_min, power=power)
 
         # 2. iteration begins
         start_time_probability, num_iterations = \
@@ -243,17 +251,21 @@ if __name__ == '__main__':
             for w in penalty_weight_range:
                 for dt in num_tasks_dependent_range:
                     for battery_use in battery_usages:
-                        main(new_data=new,
-                             num_households=h,
-                             num_tasks_dependent=dt,
-                             penalty_weight=w,
-                             out=out1,
-                             num_cpus=cpus_nums,
-                             job_id=r,
-                             use_battery=battery_use,
-                             hour_fully_charge=battery_fully_charged_hour,
-                             read_from_dt=read_from_date_time)
-                        new = False
+                        for battery_size in battery_sizes:
+                            main(new_data=new,
+                                 num_households=h,
+                                 num_tasks_dependent=dt,
+                                 penalty_weight=w,
+                                 out=out1,
+                                 num_cpus=cpus_nums,
+                                 job_id=r,
+                                 use_battery=battery_use,
+                                 capacity_max=battery_size,
+                                 capacity_min=battery_min_capacity_rate,
+                                 power=battery_size,
+                                 hour_fully_charge=battery_fully_charged_hour,
+                                 read_from_dt=read_from_date_time)
+                            new = False
     # except Exception as e:
     #     print(e.args)
     #     print()

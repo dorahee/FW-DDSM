@@ -25,6 +25,7 @@ class Community:
              read_from_folder="data/",
              inconvenience_cost_weight=None,
              num_dependent_tasks=None, ensure_dependent=False,
+             capacity_max=battery_capacity_max, capacity_min=battery_capacity_min, power=battery_power,
              date_time=None):
         if not read_from_folder.endswith("/"):
             read_from_folder += "/"
@@ -35,7 +36,8 @@ class Community:
         self.community_details, self.preferred_demand_profile \
             = self.__existing_households(file_path=read_from_folder, date_time=date_time,
                                          inconvenience_cost_weight=inconvenience_cost_weight,
-                                         num_dependent_tasks=num_dependent_tasks, ensure_dependent=ensure_dependent)
+                                         num_dependent_tasks=num_dependent_tasks, ensure_dependent=ensure_dependent,
+                                         capacity_max=capacity_max, capacity_min=capacity_min, power=power,)
 
         # read the number of households in this community
         if s_demand in self.community_details:
@@ -274,7 +276,9 @@ class Community:
         return prices
 
     def __existing_households(self, file_path, date_time=None, inconvenience_cost_weight=None,
-                              num_dependent_tasks=None, ensure_dependent=False):
+                              num_dependent_tasks=None, ensure_dependent=False,
+                              capacity_max=battery_capacity_max, capacity_min=battery_capacity_min,
+                              power=battery_power):
         # ---------------------------------------------------------------------- #
         # ---------------------------------------------------------------------- #
         if date_time is None:
@@ -303,6 +307,11 @@ class Community:
             # update the inconvenience cost weight if applicable
             if inconvenience_cost_weight is not None:
                 household_details[h_incon_weight] = inconvenience_cost_weight
+
+            # update the battery size
+            household_details[b_cap_max] = capacity_max
+            household_details[b_cap_min] = capacity_min
+            household_details[b_power] = power
 
             # generate new dependent tasks for this household if applicable
             if num_dependent_tasks is not None:
@@ -347,7 +356,6 @@ class Community:
         #                               for household in households.values()]).get()
         # pool.close()
         # pool.join()
-        print("num of cpus", num_cpus)
 
         if use_battery:
             battery_model = file_mip_battery if battery_model is None else battery_model

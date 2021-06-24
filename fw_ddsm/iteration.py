@@ -70,6 +70,7 @@ class Iteration:
         return preferred_demand_profile, prices
 
     def read(self, algorithm, inconvenience_cost_weight=None, new_dependent_tasks=None, ensure_dependent=False,
+             capacity_max=battery_capacity_max, capacity_min=battery_capacity_min, power=battery_power,
              read_from_folder="data/", date_time=None):
 
         if read_from_folder is None:
@@ -81,6 +82,7 @@ class Iteration:
             = self.community.read(read_from_folder=read_from_folder,
                                   tasks_scheduling_method=self.tasks_scheduling_method,
                                   inconvenience_cost_weight=inconvenience_cost_weight,
+                                  capacity_max=capacity_max, capacity_min=capacity_min, power=power,
                                   num_dependent_tasks=new_dependent_tasks, ensure_dependent=ensure_dependent,
                                   date_time=date_time)
         prices, preferred_cost \
