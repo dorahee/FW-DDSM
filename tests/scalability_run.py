@@ -17,10 +17,9 @@ algorithms[m_minizinc][m_after_fw] = f"{m_minizinc}_fw"
 # algorithms[m_ogsa][m_before_fw] = m_ogsa
 # algorithms[m_ogsa][m_after_fw] = f"{m_ogsa}_fw"
 
-# penalty_weight_range = [0, 5, 50, 500, 5000, 50000]
 # num_tasks_dependent_range = [0, 3, 5]
-# num_households_range = [100, 300, 600, 900, 1000, 3000, 6000, 9000]
-num_households_range = [50]
+num_households_range = [200, 400, 600, 800, 1000, 2000, 4000, 6000, 8000, 10000]
+# num_households_range = [1, 10, 50]
 penalty_weight_range = [10]
 
 # num_tasks_dependent_range = [0, 2, 4, 6, 8]
@@ -29,7 +28,7 @@ num_full_flex_tasks = 0
 num_semi_flex_tasks = 6
 num_fixed_tasks = 0
 num_samples = 5
-num_repeat = 1
+num_repeat = 5
 id_job = 0
 
 battery_usages = [True, False]
@@ -38,8 +37,8 @@ battery_fully_charged_hour = 0
 battery_max_capacity_rate = 5000
 battery_min_capacity_rate = 0
 battery_power_rate = 5000
-battery_sizes = [100, 500, 1000, 2000, 3000, 4000, 5000]
-# battery_sizes = [100, 500]
+# battery_sizes = [100, 500, 1000, 2000, 3000, 4000, 5000]
+battery_sizes = [2000]
 
 read_from_date_time = None
 # read_from_date_time = "2021-06-12_20-14-46"
@@ -47,7 +46,7 @@ read_from_date_time = None
 # read_from_date_time = "2021-06-25_03-17-35"
 name_exp = None
 
-cpus_nums = 64
+cpus_nums = 128
 # cpus_nums = cpu_count()
 ensure_dependent = True
 experiment_tracker = dict()
