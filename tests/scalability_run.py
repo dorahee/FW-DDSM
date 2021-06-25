@@ -46,7 +46,7 @@ read_from_date_time = None
 # read_from_date_time = "2021-06-25_03-17-35"
 name_exp = None
 
-cpus_nums = 64
+cpus_nums = 128
 # cpus_nums = cpu_count()
 ensure_dependent = True
 experiment_tracker = dict()
