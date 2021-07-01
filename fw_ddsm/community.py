@@ -238,7 +238,7 @@ class Community:
         final_battery_profile = [0] * self.num_intervals
         final_total_inconvenience = 0
         total_demand = 0
-        for household_details in self.community_details.values():
+        for household_id, household_details in self.community_details.items():
 
             household = household_details[k_tracker].data
             chosen_iter = choice(len(start_probability_distribution), size=1, p=start_probability_distribution)[0]
@@ -261,7 +261,7 @@ class Community:
             final_total_inconvenience += chosen_penalty
             total_demand += sum(chosen_demand_profile)
 
-            household_id = household_details[h_key]
+            # print(f"actual household {household_id}: ", chosen_penalty)
             if k_tracker_final not in self.community_details[household_id]:
                 self.community_details[household_id][k_tracker_final] = Tracker()
                 self.community_details[household_id][k_tracker_final].new()
@@ -270,10 +270,14 @@ class Community:
                                                                          demands=chosen_demand_profile,
                                                                          penalty=chosen_penalty,
                                                                          battery_profile=chosen_battery_profile)
+            # print(f"actual total2: ",
+            # self.community_details[household_id][k_tracker_final].data[s_penalty][num_sample])
 
+        # print(f"actual total: ", final_total_inconvenience)
         self.final.update(num_record=num_sample, demands=final_aggregate_demand_profile,
                           battery_profile=final_battery_profile,
                           penalty=final_total_inconvenience)
+        # print(f"actual total2: ", self.final.data[s_penalty])
 
         return final_aggregate_demand_profile, final_battery_profile, final_total_inconvenience
 
@@ -419,13 +423,13 @@ class Community:
             time_scheduling_iteration += time_household
 
             # update each household's tracker
+            # print(f"household {key}:", res[s_penalty])
             self.community_details[key][k_tracker].update(num_record=num_iteration,
                                                           tasks_starts=start_times_jobs,
                                                           demands=demands_household,
                                                           penalty=weighted_penalty_household,
                                                           battery_profile=battery_profile_household)
-
-        # for debugging purpose
+            # print(self.community_details[key][k_tracker].data[s_penalty][num_iteration])
 
         # return aggregate_demand_profile, aggregate_battery_profile, \
         #        total_weighted_inconvenience, time_scheduling_iteration
