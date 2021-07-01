@@ -153,5 +153,6 @@ class Iteration:
                 = self.aggregator.pricing(num_iteration=i,
                                           aggregate_demand_profile=final_aggregate_demand_profile,
                                           aggregate_battery_profile=final_battery_profile,
+                                          aggregate_inconvenience=final_total_inconvenience,
                                           finalising=True)
         # return consumption_cost, inconvenience

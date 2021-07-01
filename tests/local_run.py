@@ -18,8 +18,8 @@ algorithms[m_minizinc][m_after_fw] = f"{m_minizinc}_fw"
 # algorithms[m_ogsa][m_after_fw] = f"{m_ogsa}_fw"
 
 # num_tasks_dependent_range = [0, 3, 5]
+num_households_range = [200, 400, 600, 800, 1000, 2000, 4000, 6000, 8000, 10000]
 num_households_range = [10]
-# num_households_range = [1, 10, 50]
 penalty_weight_range = [10]
 
 # num_tasks_dependent_range = [0, 2, 4, 6, 8]
@@ -28,10 +28,11 @@ num_full_flex_tasks = 0
 num_semi_flex_tasks = 6
 num_fixed_tasks = 0
 num_samples = 5
-num_repeat = 5
+num_repeat = 1
 id_job = 0
 
 battery_usages = [True, False]
+battery_usages = [False]
 battery_solver_choice = "gurobi"
 battery_fully_charged_hour = 0
 battery_max_capacity_rate = 5000

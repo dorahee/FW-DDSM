@@ -37,7 +37,7 @@ class Community:
             = self.__existing_households(file_path=read_from_folder, date_time=date_time,
                                          inconvenience_cost_weight=inconvenience_cost_weight,
                                          num_dependent_tasks=num_dependent_tasks, ensure_dependent=ensure_dependent,
-                                         capacity_max=capacity_max, capacity_min=capacity_min, power=power,)
+                                         capacity_max=capacity_max, capacity_min=capacity_min, power=power, )
 
         # read the number of households in this community
         if s_demand in self.community_details:
@@ -238,10 +238,22 @@ class Community:
         final_battery_profile = [0] * self.num_intervals
         final_total_inconvenience = 0
         total_demand = 0
-        for household in self.community_details.values():
-            chosen_demand_profile, chosen_penalty, chosen_start_times, chosen_battery_profile \
-                = Household.finalise_household(self=Household(), household_tracker_data=household[k_tracker].data,
-                                               probability_distribution=start_probability_distribution)
+        for household_id, household_details in self.community_details.items():
+
+            household = household_details[k_tracker].data
+            chosen_iter = choice(len(start_probability_distribution), size=1, p=start_probability_distribution)[0]
+            chosen_demand_profile = household[s_demand][chosen_iter].copy()
+            chosen_penalty = household[s_penalty][chosen_iter]
+            chosen_start_times = household[s_starts][chosen_iter].copy()
+            if 1 in household[b_profile]:
+                chosen_battery_profile = household[b_profile][chosen_iter].copy()
+            else:
+                chosen_battery_profile = [0] * len(chosen_demand_profile)
+
+            # chosen_demand_profile, chosen_penalty, chosen_start_times, chosen_battery_profile \
+            #     = Household.finalise_household(self=Household(), household_tracker_data=household[k_tracker].data,
+            #                                    probability_distribution=start_probability_distribution)
+
             final_aggregate_demand_profile \
                 = [x + y for x, y in zip(chosen_demand_profile, final_aggregate_demand_profile)]
             final_battery_profile \
@@ -249,7 +261,7 @@ class Community:
             final_total_inconvenience += chosen_penalty
             total_demand += sum(chosen_demand_profile)
 
-            household_id = household[h_key]
+            # print(f"actual household {household_id}: ", chosen_penalty)
             if k_tracker_final not in self.community_details[household_id]:
                 self.community_details[household_id][k_tracker_final] = Tracker()
                 self.community_details[household_id][k_tracker_final].new()
@@ -258,10 +270,14 @@ class Community:
                                                                          demands=chosen_demand_profile,
                                                                          penalty=chosen_penalty,
                                                                          battery_profile=chosen_battery_profile)
+            # print(f"actual total2: ",
+            # self.community_details[household_id][k_tracker_final].data[s_penalty][num_sample])
 
+        # print(f"actual total: ", final_total_inconvenience)
         self.final.update(num_record=num_sample, demands=final_aggregate_demand_profile,
                           battery_profile=final_battery_profile,
                           penalty=final_total_inconvenience)
+        # print(f"actual total2: ", self.final.data[s_penalty])
 
         return final_aggregate_demand_profile, final_battery_profile, final_total_inconvenience
 
@@ -323,11 +339,11 @@ class Community:
                 latest_ends = household_details[h_lfs]
                 no_precedences, precedors, succ_delays \
                     = household_generation.new_dependent_tasks(
-                    num_intervals=num_intervals, num_tasks_dependent=num_dependent_tasks,
-                    ensure_dependent=ensure_dependent,
-                    num_total_tasks=num_total_tasks,
-                    preferred_starts=preferred_starts, durations=durations, earliest_starts=earliest_starts,
-                    latest_ends=latest_ends)
+                        num_intervals=num_intervals, num_tasks_dependent=num_dependent_tasks,
+                        ensure_dependent=ensure_dependent,
+                        num_total_tasks=num_total_tasks,
+                        preferred_starts=preferred_starts, durations=durations, earliest_starts=earliest_starts,
+                        latest_ends=latest_ends)
                 household_details[h_no_precs] = no_precedences
                 household_details[h_precs] = precedors.copy()
                 household_details[h_succ_delay] = succ_delays.copy()
@@ -407,13 +423,13 @@ class Community:
             time_scheduling_iteration += time_household
 
             # update each household's tracker
+            # print(f"household {key}:", res[s_penalty])
             self.community_details[key][k_tracker].update(num_record=num_iteration,
                                                           tasks_starts=start_times_jobs,
                                                           demands=demands_household,
                                                           penalty=weighted_penalty_household,
                                                           battery_profile=battery_profile_household)
-
-        # for debugging purpose
+            # print(self.community_details[key][k_tracker].data[s_penalty][num_iteration])
 
         # return aggregate_demand_profile, aggregate_battery_profile, \
         #        total_weighted_inconvenience, time_scheduling_iteration
