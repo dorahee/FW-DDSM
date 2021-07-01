@@ -37,7 +37,7 @@ battery_fully_charged_hour = 0
 battery_max_capacity_rate = 5000
 battery_min_capacity_rate = 0
 battery_power_rate = 5000
-battery_sizes = [100, 500, 1000, 2000, 3000, 4000, 5000]
+battery_sizes = [500, 1000, 2000, 4000, 6000, 8000, 1000]
 # battery_sizes = [2000]
 
 read_from_date_time = None
