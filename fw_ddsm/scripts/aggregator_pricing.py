@@ -156,7 +156,7 @@ def find_step_size(num_iteration, pricing_method, pricing_table,
     print(f"{num_iteration}. "
           f"Step size = {round(step_size_fw, 6)}, "
           f"{num_itrs} iterations, "
-          f"par {round(max(aggregate_demand_profile_fw)/average(aggregate_demand_profile_fw), 3)}, "
+          f"par {round(max(aggregate_demand_profile_fw) / average(aggregate_demand_profile_fw), 3)}, "
           f"total {round(sum(aggregate_demand_profile_fw), 3)}, "
           f"cost {round(total_cost_fw, 3)}, "
           f"obj {round(total_obj_fw, 3)}, "
@@ -166,6 +166,13 @@ def find_step_size(num_iteration, pricing_method, pricing_table,
 
     if total_obj_fw > total_obj_new:
         print("error")
+        aggregate_demand_profile_fw = aggregate_demand_profile_new
+        aggregate_battery_profile_fw = aggregate_battery_profile_new
+        step_size_fw = 1
+        price_fw, total_cost_fw = prices_and_cost(aggregate_demand_profile=aggregate_demand_profile_fw,
+                                                  pricing_table=pricing_table,
+                                                  cost_function=cost_function_type)
+        total_inconvenience_fw = total_inconvenience_new
 
     # stop the timer
     time_fw = time() - time_begin

@@ -3,7 +3,6 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/FW-DDSM.iml" filepath="$PROJECT_DIR$/.idea/FW-DDSM.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../multiple-scheduling-3.0/.idea/multiple-scheduling-3.0.iml" filepath="$PROJECT_DIR$/../multiple-scheduling-3.0/.idea/multiple-scheduling-3.0.iml" />
       <module fileurl="file://$PROJECT_DIR$/../Projects/single-household-demand-scheduling/.idea/single-scheduling.iml" filepath="$PROJECT_DIR$/../Projects/single-household-demand-scheduling/.idea/single-scheduling.iml" />
     </modules>
   </component>
