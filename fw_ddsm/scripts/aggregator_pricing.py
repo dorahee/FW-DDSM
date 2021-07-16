@@ -165,7 +165,7 @@ def find_step_size(num_iteration, pricing_method, pricing_table,
           f"using {pricing_method}")
 
     if total_obj_fw > total_obj_new:
-        print("error")
+        # print("error")
         aggregate_demand_profile_fw = aggregate_demand_profile_new
         aggregate_battery_profile_fw = aggregate_battery_profile_new
         step_size_fw = 1

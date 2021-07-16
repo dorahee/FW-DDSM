@@ -17,7 +17,7 @@ algorithms[m_minizinc][m_after_fw] = f"{m_minizinc}_fw"
 # algorithms[m_ogsa][m_before_fw] = m_ogsa
 # algorithms[m_ogsa][m_after_fw] = f"{m_ogsa}_fw"
 
-num_households_range = [10]
+num_households_range = [2000]
 penalty_weight_range = [10]
 
 num_tasks_dependent_range = [3]
@@ -86,7 +86,8 @@ def main(num_households, num_tasks_dependent, penalty_weight, out, new_data=True
                                 num_semi_flex_task_min=num_semi_flex_tasks,
                                 inconvenience_cost_weight=penalty_weight,
                                 folder_id=job_id,
-                                battery_size=int(use_battery)*capacity_max)
+                                battery_size=int(use_battery)*capacity_max,
+                                efficiency=efficiency)
 
     plots_demand_layout = []
     plots_demand_finalised_layout = []

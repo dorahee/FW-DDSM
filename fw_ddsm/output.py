@@ -41,11 +41,12 @@ class Output:
                           num_dependent_tasks=no_tasks_dependent,
                           num_full_flex_task_min=no_full_flex_tasks_min,
                           num_semi_flex_task_min=no_semi_flex_tasks_min,
-                          battery_size=False,
+                          battery_size=False, efficiency=0,
                           repeat=None, folder_id=None):
 
         self.subfolder_name = f"h{num_households}-w{inconvenience_cost_weight}-dt{num_dependent_tasks}" \
-                              f"-fft{num_full_flex_task_min}-sft{num_semi_flex_task_min}-b{int(battery_size)}"
+            f"-fft{num_full_flex_task_min}-sft{num_semi_flex_task_min}-b{int(battery_size)}" \
+            f"-e{efficiency}"
         if repeat is not None:
             self.subfolder_name += f"-r{repeat}"
         if folder_id is not None:

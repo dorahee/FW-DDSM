@@ -226,7 +226,7 @@ def battery_mip(model_file, solver, existing_demands, capacity_max, capacity_min
     ins["max_energy_capacity"] = capacity_max
     ins["min_energy_capacity"] = capacity_min
     ins["max_power"] = power_max
-    int["efficiency"] = efficiency
+    ins["efficiency"] = efficiency
     ins["fully_charge_hour"] = fully_charge_time
 
     # demands and prices
@@ -242,10 +242,14 @@ def battery_mip(model_file, solver, existing_demands, capacity_max, capacity_min
     else:
         result = ins.solve(timeout=timedelta(seconds=timeout))
 
-    battery_profile2 = result.solution.battery_profile
-    # recover a battery profile that starts from 12am
-    battery_profile = rotate_list(battery_profile2, -fully_charged_intervals)
-    total_demand2 = result.solution.battery_profile
+    # battery_profile2 = result.solution.battery_profile
+    # battery_profile = rotate_list(battery_profile2, -fully_charged_intervals)
+
+    battery_charge2 = result.solution.battery_charge
+    battery_charge = rotate_list(battery_charge2, -fully_charged_intervals)
+    battery_discharge2 = result.solution.battery_discharge
+    battery_discharge = rotate_list(battery_discharge2, -fully_charged_intervals)
+    battery_profile = [x + y for x, y in zip(battery_charge, battery_discharge)]
     time = result.statistics["time"].total_seconds()
 
     return battery_profile, time
