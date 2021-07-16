@@ -17,7 +17,7 @@ algorithms[m_minizinc][m_after_fw] = f"{m_minizinc}_fw"
 # algorithms[m_ogsa][m_before_fw] = m_ogsa
 # algorithms[m_ogsa][m_after_fw] = f"{m_ogsa}_fw"
 
-num_households_range = [2000]
+num_households_range = [1000]
 penalty_weight_range = [10]
 
 num_tasks_dependent_range = [3]
@@ -38,7 +38,7 @@ battery_power_rate = 5000
 # battery_sizes = [0, 2000, 4000, 6000, 8000, 10000]
 battery_sizes = [2000]
 battery_efficiencies = [1, 0.99, 0.97, 0.95, 0.9, 0.75, 0.5]
-# battery_sizes = [1, 2, 3]
+# battery_efficiencies = [1]
 
 read_from_date_time = None
 # read_from_date_time = "2021-06-12_20-14-46"
@@ -68,7 +68,7 @@ def main(num_households, num_tasks_dependent, penalty_weight, out, new_data=True
     num_experiment = 0
     print("----------------------------------------")
     param_str = f"{num_households} households, " \
-                f"{capacity_max * int(use_battery)}Wh battery (fully charged at {hour_fully_charge}), " \
+                f"{capacity_max * int(use_battery)}Wh battery (fully charged at {hour_fully_charge}, {efficiency}), " \
                 f"{num_tasks_dependent} dependent tasks, " \
                 f"{num_full_flex_tasks} fully flexible tasks, " \
                 f"{num_semi_flex_tasks} semi-flexible tasks, " \
