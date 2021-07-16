@@ -35,13 +35,13 @@ constraint sum(battery_profile) = 0;
 % constraint battery_soc[1] <= max_energy_capacity;
 % constraint battery_soc[num_intervals] <= max_energy_capacity;
 constraint forall (i in 2..num_intervals) (
-  battery_soc[i] = battery_soc[i - 1] + battery_profile[i - 1] / num_intervals_hour
+  battery_soc[i] * num_intervals_hour = battery_soc[i - 1] * num_intervals_hour + battery_profile[i - 1]
 );
 
 % PAR linearisation constraints
 constraint forall(i in INTERVALS) (max_total_demand >= total_demand[i]);
 constraint sum(total_demand2) = sum(total_demand) * R;
-constraint sum(total_demand2)/ num_intervals = 1;
+constraint sum(total_demand2) = num_intervals;
 constraint forall (i in INTERVALS) (max_total_demand >= total_demand2[i]);
 
 % objectives
