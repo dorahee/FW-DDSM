@@ -28,7 +28,7 @@ class Iteration:
             data_folder=None, backup_data_folder=None,
             date_time=None,
             capacity_max=battery_capacity_max, capacity_min=battery_capacity_min,
-            power=battery_power):
+            power=battery_power, efficiency=battery_efficiency):
 
         if data_folder is not None:
             if not data_folder.endswith("/"):
@@ -57,7 +57,7 @@ class Iteration:
                                  write_to_file_path=data_folder, backup_file_path=backup_data_folder,
                                  date_time=date_time,
                                  capacity_max=capacity_max, capacity_min=capacity_min,
-                                 power=power
+                                 power=power, efficiency=efficiency
                                  )
 
         prices, preferred_cost \
@@ -71,6 +71,7 @@ class Iteration:
 
     def read(self, algorithm, inconvenience_cost_weight=None, new_dependent_tasks=None, ensure_dependent=False,
              capacity_max=battery_capacity_max, capacity_min=battery_capacity_min, power=battery_power,
+             efficiency=battery_efficiency,
              read_from_folder="data/", date_time=None):
 
         if read_from_folder is None:
@@ -83,6 +84,7 @@ class Iteration:
                                   tasks_scheduling_method=self.tasks_scheduling_method,
                                   inconvenience_cost_weight=inconvenience_cost_weight,
                                   capacity_max=capacity_max, capacity_min=capacity_min, power=power,
+                                  efficiency=efficiency,
                                   num_dependent_tasks=new_dependent_tasks, ensure_dependent=ensure_dependent,
                                   date_time=date_time)
         prices, preferred_cost \

@@ -25,7 +25,8 @@ class Community:
              read_from_folder="data/",
              inconvenience_cost_weight=None,
              num_dependent_tasks=None, ensure_dependent=False,
-             capacity_max=battery_capacity_max, capacity_min=battery_capacity_min, power=battery_power,
+             capacity_max=battery_capacity_max, capacity_min=battery_capacity_min,
+             power=battery_power, efficiency=battery_efficiency,
              date_time=None):
         if not read_from_folder.endswith("/"):
             read_from_folder += "/"
@@ -37,7 +38,8 @@ class Community:
             = self.__existing_households(file_path=read_from_folder, date_time=date_time,
                                          inconvenience_cost_weight=inconvenience_cost_weight,
                                          num_dependent_tasks=num_dependent_tasks, ensure_dependent=ensure_dependent,
-                                         capacity_max=capacity_max, capacity_min=capacity_min, power=power, )
+                                         capacity_max=capacity_max, capacity_min=capacity_min,
+                                         power=power, efficiency=efficiency)
 
         # read the number of households in this community
         if s_demand in self.community_details:
@@ -68,7 +70,7 @@ class Community:
             inconvenience_cost_weight=care_f_weight, max_care_factor=care_f_max,
             write_to_file_path=None, backup_file_path=None, date_time=None,
             capacity_max=battery_capacity_max, capacity_min=battery_capacity_min,
-            power=battery_power):
+            power=battery_power, efficiency=battery_efficiency):
 
         self.tasks_scheduling_method = tasks_scheduling_method
         self.num_intervals = num_intervals
@@ -98,7 +100,8 @@ class Community:
                                                      household_id=h,
                                                      capacity_max=capacity_max,
                                                      capacity_min=capacity_min,
-                                                     power=power)
+                                                     power=power,
+                                                     efficiency=efficiency)
 
             # save the details of this household
             community_details[h] = household_details.copy()
@@ -294,7 +297,7 @@ class Community:
     def __existing_households(self, file_path, date_time=None, inconvenience_cost_weight=None,
                               num_dependent_tasks=None, ensure_dependent=False,
                               capacity_max=battery_capacity_max, capacity_min=battery_capacity_min,
-                              power=battery_power):
+                              power=battery_power, efficiency=battery_efficiency):
         # ---------------------------------------------------------------------- #
         # ---------------------------------------------------------------------- #
         if date_time is None:
@@ -328,6 +331,7 @@ class Community:
             household_details[b_cap_max] = capacity_max
             household_details[b_cap_min] = capacity_min
             household_details[b_power] = power
+            household_details[b_eff] = efficiency
 
             # generate new dependent tasks for this household if applicable
             if num_dependent_tasks is not None:

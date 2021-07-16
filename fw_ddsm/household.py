@@ -60,7 +60,8 @@ class Household:
             fixed_task_min=no_fixed_tasks_min, fixed_task_max=0,
             inconvenience_cost_weight=care_f_weight, max_care_factor=care_f_max,
             write_to_folder=None, household_id=0,
-            capacity_max=battery_capacity_max, capacity_min=battery_capacity_min, power=battery_power):
+            capacity_max=battery_capacity_max, capacity_min=battery_capacity_min,
+            power=battery_power, efficiency=battery_efficiency):
 
         self.tasks_scheduling_method = tasks_scheduling_method
         self.household_id = 0
@@ -93,7 +94,8 @@ class Household:
                                                  household_id=household_id,
                                                  capacity_max=capacity_max,
                                                  capacity_min=capacity_min,
-                                                 power=power)
+                                                 power=power,
+                                                 efficiency=efficiency)
 
         # write the new household details to a file if needed
         if write_to_folder is not None:
@@ -301,12 +303,13 @@ class Household:
         capacity_max = household[b_cap_max]
         capacity_min = household[b_cap_min]
         power_max = household[b_power]
+        efficiency = household[b_eff]
 
         # schedule the battery
         battery_profile, time_scheduling_battery \
             = household_scheduling.battery_mip(model_file=model, solver=solver, existing_demands=existing_demands,
                                                capacity_max=capacity_max, capacity_min=capacity_min,
-                                               power_max=power_max,
+                                               power_max=power_max, efficiency=efficiency,
                                                prices=prices,
                                                fully_charge_time=fully_charge_time,
                                                num_intervals=num_intervals, timeout=time_out)

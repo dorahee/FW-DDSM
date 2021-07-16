@@ -8,6 +8,7 @@ set of int: INTERVALS = 1..num_intervals;
 float: min_energy_capacity;  % in kwh
 float: max_energy_capacity;  % in kwh
 float: max_power;  % in kw
+float: efficiency;
 int: fully_charge_hour;
 
 % demands
@@ -41,7 +42,7 @@ constraint forall (i in 2..num_intervals) (
 % PAR linearisation constraints
 constraint forall(i in INTERVALS) (max_total_demand >= total_demand[i]);
 constraint sum(total_demand2) = sum(total_demand) * R;
-constraint sum(total_demand2)/ num_intervals = 1;
+constraint sum(total_demand2) = num_intervals;
 constraint forall (i in INTERVALS) (max_total_demand >= total_demand2[i]);
 
 % objectives

@@ -17,7 +17,7 @@ algorithms[m_minizinc][m_after_fw] = f"{m_minizinc}_fw"
 # algorithms[m_ogsa][m_before_fw] = m_ogsa
 # algorithms[m_ogsa][m_after_fw] = f"{m_ogsa}_fw"
 
-num_households_range = [2000]
+num_households_range = [10]
 penalty_weight_range = [10]
 
 num_tasks_dependent_range = [3]
@@ -25,7 +25,7 @@ num_full_flex_tasks = 0
 num_semi_flex_tasks = 6
 num_fixed_tasks = 0
 num_samples = 5
-num_repeat = 5
+num_repeat = 1
 id_job = 0
 
 battery_usages = [True, False]
@@ -35,7 +35,9 @@ battery_fully_charged_hour = 0
 battery_max_capacity_rate = 5000
 battery_min_capacity_rate = 0
 battery_power_rate = 5000
-battery_sizes = [0, 2000, 4000, 6000, 8000, 10000]
+# battery_sizes = [0, 2000, 4000, 6000, 8000, 10000]
+battery_sizes = [2000]
+battery_efficiencies = [1, 0.99, 0.97, 0.95, 0.9, 0.75, 0.5]
 # battery_sizes = [1, 2, 3]
 
 read_from_date_time = None
@@ -59,13 +61,14 @@ email_results = True
 
 
 def main(num_households, num_tasks_dependent, penalty_weight, out, new_data=True, num_cpus=None, job_id=0,
-         use_battery=False, capacity_max=battery_capacity_max, capacity_min=battery_capacity_min, power=battery_power,
+         use_battery=False, capacity_max=battery_capacity_max, capacity_min=battery_capacity_min,
+         power=battery_power, efficiency=battery_efficiency,
          hour_fully_charge=fully_charge_hour, read_from_dt=read_from_date_time):
 
     num_experiment = 0
     print("----------------------------------------")
     param_str = f"{num_households} households, " \
-                f"{capacity_max * int(use_battery)}kWh battery (fully charged at {hour_fully_charge}), " \
+                f"{capacity_max * int(use_battery)}Wh battery (fully charged at {hour_fully_charge}), " \
                 f"{num_tasks_dependent} dependent tasks, " \
                 f"{num_full_flex_tasks} fully flexible tasks, " \
                 f"{num_semi_flex_tasks} semi-flexible tasks, " \
@@ -104,6 +107,7 @@ def main(num_households, num_tasks_dependent, penalty_weight, out, new_data=True
             experiment_tracker[num_experiment][b_cap_max] = capacity_max
             experiment_tracker[num_experiment][b_cap_min] = capacity_min
             experiment_tracker[num_experiment][b_power] = power
+            experiment_tracker[num_experiment][b_eff] = efficiency
 
         # 1. iteration data
         if new_data:
@@ -119,7 +123,8 @@ def main(num_households, num_tasks_dependent, penalty_weight, out, new_data=True
                                   data_folder=output_parent_folder,
                                   backup_data_folder=output_folder,
                                   date_time=this_date_time,
-                                  capacity_max=capacity_max, capacity_min=capacity_min, power=power)
+                                  capacity_max=capacity_max, capacity_min=capacity_min,
+                                  power=power, efficiency=efficiency)
             new_data = False
         else:
             if m_ogsa in alg or new_data is False:
@@ -140,7 +145,8 @@ def main(num_households, num_tasks_dependent, penalty_weight, out, new_data=True
                                    ensure_dependent=ensure_dependent,
                                    read_from_folder=intput_parent_folder,
                                    date_time=input_date_time,
-                                   capacity_max=capacity_max, capacity_min=capacity_min, power=power)
+                                   capacity_max=capacity_max, capacity_min=capacity_min,
+                                   power=power, efficiency=efficiency)
 
         # 2. iteration begins
         start_time_probability, num_iterations = \
@@ -248,20 +254,22 @@ if __name__ == '__main__':
                 for dt in num_tasks_dependent_range:
                     for battery_use in battery_usages:
                         for battery_size in battery_sizes:
-                            main(new_data=new,
-                                 num_households=h,
-                                 num_tasks_dependent=dt,
-                                 penalty_weight=w,
-                                 out=out1,
-                                 num_cpus=cpus_nums,
-                                 job_id=r,
-                                 use_battery=battery_use,
-                                 capacity_max=battery_size,
-                                 capacity_min=battery_min_capacity_rate,
-                                 power=battery_size,
-                                 hour_fully_charge=battery_fully_charged_hour,
-                                 read_from_dt=read_from_date_time)
-                            new = False
+                            for battery_efficiency in battery_efficiencies:
+                                main(new_data=new,
+                                     num_households=h,
+                                     num_tasks_dependent=dt,
+                                     penalty_weight=w,
+                                     out=out1,
+                                     num_cpus=cpus_nums,
+                                     job_id=r,
+                                     use_battery=battery_use,
+                                     capacity_max=battery_size,
+                                     capacity_min=battery_min_capacity_rate,
+                                     power=battery_size,
+                                     efficiency=battery_efficiency,
+                                     hour_fully_charge=battery_fully_charged_hour,
+                                     read_from_dt=read_from_date_time)
+                                new = False
     # except Exception as e:
     #     print(e.args)
     #     print()

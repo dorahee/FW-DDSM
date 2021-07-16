@@ -120,7 +120,7 @@ def new_household(
         inconvenience_cost_weight=care_f_weight, max_care_factor=care_f_max,
         household_id=0,
         capacity_max=battery_capacity_max, capacity_min=battery_capacity_min,
-        power=battery_power
+        power=battery_power, efficiency=battery_efficiency
 ):
 
     pst_probabilities = [int(p) for p in preferred_demand_profile]
@@ -204,6 +204,7 @@ def new_household(
     household[b_cap_min] = capacity_min
     household[b_power] = power
     household[b_profile] = [0] * num_intervals
+    household[b_eff] = efficiency
 
     # return the household details
     return household

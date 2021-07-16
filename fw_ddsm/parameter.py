@@ -23,6 +23,7 @@ battery_capacity_max = 3000  # Wh
 battery_capacity_min = 0
 battery_power = 3000  # 1C battery
 fully_charge_hour = 0
+battery_efficiency = 1
 
 # pricing related parameters
 pricing_table_weight = 1
@@ -93,6 +94,7 @@ b_cap_max = "battery_capacity_max"
 b_cap_min = "battery_capacity_min"
 b_power = "battery_power"
 b_profile = "battery_profile"
+b_eff = "battery_efficiency"
 
 # demand related parameters
 k_household_key = "key"
