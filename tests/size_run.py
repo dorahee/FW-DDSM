@@ -36,7 +36,7 @@ battery_max_capacity_rate = 5000
 battery_min_capacity_rate = 0
 battery_power_rate = 5000
 battery_sizes = [0, 2000, 4000, 6000, 8000, 10000]
-battery_sizes = [2000]
+# battery_sizes = [2000]
 # battery_efficiencies = [1, 0.99, 0.97, 0.95, 0.9, 0.75, 0.5]
 battery_efficiencies = [1]
 
