@@ -28,7 +28,7 @@ num_samples = 5
 num_repeat = 5
 id_job = 0
 
-battery_usages = [True, False]
+# battery_usages = [True, False]
 battery_usages = [True]
 battery_solver_choice = "gurobi"
 battery_fully_charged_hour = 0
