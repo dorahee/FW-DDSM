@@ -245,7 +245,10 @@ def battery_mip(model_file, solver, existing_demands, capacity_max, capacity_min
     # battery_profile2 = result.solution.battery_profile
     # battery_profile = rotate_list(battery_profile2, -fully_charged_intervals)
 
-    battery_charge2 = result.solution.battery_charge
+    try:
+        battery_charge2 = result.solution.battery_charge
+    except AttributeError:
+        True
     battery_charge = rotate_list(battery_charge2, -fully_charged_intervals)
     battery_discharge2 = result.solution.battery_discharge
     battery_discharge = rotate_list(battery_discharge2, -fully_charged_intervals)
