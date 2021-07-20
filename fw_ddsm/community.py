@@ -1,6 +1,6 @@
 from multiprocessing import Pool, cpu_count
 import concurrent.futures
-import pickle
+import pickle5
 from time import time
 from fw_ddsm.household import *
 from fw_ddsm.tracker import *
@@ -307,7 +307,7 @@ class Community:
 
         # read the community details from the file
         with open(file_name, 'rb') as f:
-            community_details = pickle.load(f)
+            community_details = pickle5.load(f)
         f.close()
         preferred_demand_profile = community_details.pop(s_demand)
 

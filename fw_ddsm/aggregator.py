@@ -1,5 +1,5 @@
 from pandas import read_csv
-import pickle
+import pickle5
 from math import ceil
 from more_itertools import grouper
 from time import time
@@ -197,7 +197,7 @@ class Aggregator:
         else:
             file_name = f"{file_folder}data/{date_time}_{file_pricing_table_pkl}"
         with open(file_name, 'rb') as f:
-            pricing_table = pickle.load(f)
+            pricing_table = pickle5.load(f)
         f.close()
 
         return pricing_table
