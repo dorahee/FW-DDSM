@@ -52,6 +52,7 @@ cpus_nums = 128
 ensure_dependent = True
 experiment_tracker = dict()
 timeout = 60
+timeout = 6000
 min_step_size = 0.001
 # roundup_tiny_step = False
 roundup_tiny_step = True
