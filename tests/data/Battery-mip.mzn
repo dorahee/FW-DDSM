@@ -56,10 +56,8 @@ var float: obj = cost + 10 * max_total_demand;
 solve minimize obj;
 
 % output [
-% "obj = " ++ show(obj) ++ "\n" ++
-% "existing_demand = " ++ show(existing_demands) ++ "\n" ++
-% "total_demand = " ++ show(total_demand) ++ "\n" ++
-% "total_demand2 = " ++ show(total_demand2) ++ "\n" ++
-% "R = " ++ show(R) ++ "\n" ++
-% "battery_profile = " ++ show(battery_profile)
+% "obj = " ++ show(obj) ++ "\n"
+% ++ "cost = " ++ show(cost) ++ "\n"
+% ++ "existing_demand = " ++ show(existing_demands) ++ "\n"
+% ++ "total_demand = " ++ show(total_demand) ++ "\n"
 % ];
