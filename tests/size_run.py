@@ -17,7 +17,7 @@ algorithms[m_minizinc][m_after_fw] = f"{m_minizinc}_fw"
 # algorithms[m_ogsa][m_before_fw] = m_ogsa
 # algorithms[m_ogsa][m_after_fw] = f"{m_ogsa}_fw"
 
-num_households_range = [2000]
+num_households_range = [200]
 penalty_weight_range = [10]
 
 num_tasks_dependent_range = [3]
@@ -52,7 +52,7 @@ cpus_nums = 128
 ensure_dependent = True
 experiment_tracker = dict()
 timeout = 6000
-# timeout = 60
+timeout = 60
 min_step_size = 0.001
 # roundup_tiny_step = False
 roundup_tiny_step = True
