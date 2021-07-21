@@ -36,16 +36,17 @@ array[INTERVALS] of var 0..total_demand_limit: total_demand2 = array1d([z * tota
 % constraint battery_soc[1] <= battery_soc[num_intervals];
 
 % only charge or discharge at each time interval
-% constraint sum(i in INTERVALS)(battery_charge[i] * battery_discharge[i]) = 0;
+% constraint sum(i in INTERVALS)(battery_charge[i] * bamttery_discharge[i]) = 0;
+constraint sum(i in INTERVALS)(battery_charge[i] + battery_discharge[i]) = 0;
 
 % soc constraints
-% constraint battery_soc[1] <= max_energy_capacity;
+constraint battery_soc[1] <= battery_soc[num_intervals];
 % constraint battery_soc[num_intervals] <= max_energy_capacity;
 constraint forall (i in 2..num_intervals) (
   battery_soc[i] * num_intervals_hour = battery_soc[i - 1] * num_intervals_hour + battery_charge[i - 1] + battery_discharge[i - 1]
 );
 
-constraint battery_soc[1] * num_intervals_hour = battery_soc[num_intervals] * num_intervals_hour + battery_charge[num_intervals] + battery_discharge[num_intervals];
+% constraint battery_soc[1] * num_intervals_hour = battery_soc[num_intervals] * num_intervals_hour + battery_charge[num_intervals] + battery_discharge[num_intervals];
 
 % PAR linearisation constraints
 constraint forall(i in INTERVALS) (max_total_demand >= total_demand[i]);

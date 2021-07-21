@@ -90,7 +90,7 @@ class Aggregator:
         else:
             file_name = f"{folder}{date_time}_{file_pricing_table_pkl}"
         with open(file_name, 'wb+') as f:
-            pickle.dump(self.pricing_table, f, pickle.HIGHEST_PROTOCOL)
+            pickle5.dump(self.pricing_table, f, pickle5.HIGHEST_PROTOCOL)
         f.close()
 
     def new_aggregator_tracker(self, pricing_method, aggregate_preferred_demand_profile):
