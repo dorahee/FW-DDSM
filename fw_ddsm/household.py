@@ -172,6 +172,7 @@ class Household:
 
         # schedule a battery if needed
         if use_battery:
+            # print("Household", key)
             battery_result = self.schedule_battery(household=household_details,
                                                    existing_demands=tasks_demand_profile,
                                                    prices=prices,

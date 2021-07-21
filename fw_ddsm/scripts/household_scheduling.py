@@ -247,8 +247,10 @@ def battery_mip(model_file, solver, existing_demands, capacity_max, capacity_min
 
     try:
         battery_charge2 = result.solution.battery_charge
-    except AttributeError:
-        True
+        # print(battery_charge2)
+    except:
+        print(result.status)
+        print("no")
     battery_charge = rotate_list(battery_charge2, -fully_charged_intervals)
     battery_discharge2 = result.solution.battery_discharge
     battery_discharge = rotate_list(battery_discharge2, -fully_charged_intervals)
