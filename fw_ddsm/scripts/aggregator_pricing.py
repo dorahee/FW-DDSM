@@ -106,7 +106,7 @@ def find_step_size(num_iteration, pricing_method, pricing_table,
             total_inconvenience_fw = total_inconvenience_fw_temp
             total_obj_fw = total_obj_fw_temp
 
-        if change_of_obj_temp == 0 or step_size_fw_temp == 1:
+        if change_of_obj_temp >= 0 or step_size_fw_temp >= 1:
             break
 
         # search for the smallest step size from all time periods
@@ -152,6 +152,19 @@ def find_step_size(num_iteration, pricing_method, pricing_table,
     aggregate_battery_profile_fw \
         = move_profile(aggregate_battery_profile_fw_pre, aggregate_battery_profile_new, step_size_fw)
 
+    # if total_obj_fw > total_obj_new:
+    #     aggregate_demand_profile_fw = aggregate_demand_profile_new
+    #     aggregate_battery_profile_fw = aggregate_battery_profile_new
+    #     step_size_fw = 1
+    #     price_fw, total_cost_fw = prices_and_cost(aggregate_demand_profile=aggregate_demand_profile_fw,
+    #                                               pricing_table=pricing_table,
+    #                                               cost_function=cost_function_type)
+    #     total_inconvenience_fw = total_inconvenience_new
+    #     print("error")
+
+    # stop the timer
+    time_fw = time() - time_begin
+
     # print the FW outputs for debugging purpose
     print(f"{num_iteration}. "
           f"Step size = {round(step_size_fw, 6)}, "
@@ -163,19 +176,6 @@ def find_step_size(num_iteration, pricing_method, pricing_table,
           f"incon {round(total_inconvenience_fw, 2)}, "
           f"total change of obj {round(total_obj_fw - total_obj_fw_pre, 3)}, "
           f"using {pricing_method}")
-
-    if total_obj_fw > total_obj_new:
-        # print("error")
-        aggregate_demand_profile_fw = aggregate_demand_profile_new
-        aggregate_battery_profile_fw = aggregate_battery_profile_new
-        step_size_fw = 1
-        price_fw, total_cost_fw = prices_and_cost(aggregate_demand_profile=aggregate_demand_profile_fw,
-                                                  pricing_table=pricing_table,
-                                                  cost_function=cost_function_type)
-        total_inconvenience_fw = total_inconvenience_new
-
-    # stop the timer
-    time_fw = time() - time_begin
 
     return aggregate_demand_profile_fw, aggregate_battery_profile_fw, \
            step_size_fw, price_fw, total_cost_fw, total_inconvenience_fw, time_fw

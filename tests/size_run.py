@@ -70,7 +70,8 @@ def main(num_households, num_tasks_dependent, penalty_weight, out, new_data=True
     num_experiment = 0
     print("----------------------------------------")
     param_str = f"{num_households} households, " \
-                f"{capacity_max * int(use_battery)}Wh battery (fully charged at {hour_fully_charge}, {efficiency}), " \
+                f"{capacity_max * int(use_battery)}Wh battery " \
+                f"(fully charged at {hour_fully_charge}, efficiency {efficiency}), " \
                 f"{num_tasks_dependent} dependent tasks, " \
                 f"{num_full_flex_tasks} fully flexible tasks, " \
                 f"{num_semi_flex_tasks} semi-flexible tasks, " \

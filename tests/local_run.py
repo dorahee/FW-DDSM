@@ -44,7 +44,7 @@ read_from_date_time = None
 # read_from_date_time = "2021-06-12_20-14-46"
 # read_from_date_time = "2021-06-13_17-06-35"
 # read_from_date_time = "2021-06-25_03-17-35"
-read_from_date_time = "2021-07-21_11-58-53"
+read_from_date_time = "2021-07-21_15-20-55"
 name_exp = None
 
 cpus_nums = 128
@@ -58,7 +58,7 @@ min_step_size = 0.001
 roundup_tiny_step = True
 print_done = False
 print_steps = False
-# print_steps = True
+print_steps = True
 email_results = True
 
 
@@ -70,7 +70,7 @@ def main(num_households, num_tasks_dependent, penalty_weight, out, new_data=True
     num_experiment = 0
     print("----------------------------------------")
     param_str = f"{num_households} households, " \
-                f"{capacity_max * int(use_battery)}Wh battery (fully charged at {hour_fully_charge}, {efficiency}), " \
+                f"{capacity_max * int(use_battery)}Wh battery (fully charged at {hour_fully_charge}, efficiency {efficiency}), " \
                 f"{num_tasks_dependent} dependent tasks, " \
                 f"{num_full_flex_tasks} fully flexible tasks, " \
                 f"{num_semi_flex_tasks} semi-flexible tasks, " \
