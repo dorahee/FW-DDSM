@@ -52,7 +52,7 @@ constraint battery_soc[1] * num_intervals_hour = battery_soc[num_intervals] * nu
 
 % objectives
 var float: cost = sum (i in INTERVALS) (total_demand[i] * prices[i]);
-var float: obj = cost + 10 * max_total_demand;
+var float: obj = max_total_demand;
 solve minimize obj;
 
 % output [
