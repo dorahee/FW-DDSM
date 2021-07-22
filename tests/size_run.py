@@ -22,8 +22,8 @@ penalty_weight_range = [10]
 
 num_tasks_dependent_range = [3]
 num_full_flex_tasks = 0
-num_semi_flex_tasks = 5
-num_fixed_tasks = 5
+num_semi_flex_tasks = 6
+num_fixed_tasks = 0
 num_samples = 5
 num_repeat = 5
 id_job = 0
