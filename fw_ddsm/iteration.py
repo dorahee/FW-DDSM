@@ -135,6 +135,7 @@ class Iteration:
                                           roundup_tiny_step=roundup_tiny_step, print_steps=print_steps)
             obj_pre = obj_fw
             obj_fw = consumption_cost + inconvenience
+            print(obj_pre - obj_fw)
             num_iteration += 1
 
         print(f"Converged in {num_iteration - 1}")
