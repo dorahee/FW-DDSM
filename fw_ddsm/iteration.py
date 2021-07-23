@@ -111,7 +111,6 @@ class Iteration:
         num_iteration = 1
         step = 0.9
         obj_pre = 0
-        obj_fw = -1
         obj_improve = 1
         while step > 0.0005 and obj_improve > 0.001:
             aggregate_demand_profile, aggregate_battery_profile, \
@@ -125,7 +124,7 @@ class Iteration:
                                           fully_charge_time=fully_charge_time,
                                           print_upon_completion=print_done)
 
-            prices, consumption_cost, inconvenience, step, \
+            prices, consumption_cost, inconvenience, obj, step, \
             new_aggregate_demand_profile, new_aggregate_battery_profile, time_pricing \
                 = self.aggregator.pricing(num_iteration=num_iteration,
                                           aggregate_demand_profile=aggregate_demand_profile,
@@ -135,11 +134,10 @@ class Iteration:
                                           min_step_size=min_step_size,
                                           roundup_tiny_step=roundup_tiny_step, print_steps=print_steps)
 
-            obj_pre = obj_fw
-            obj_fw = consumption_cost + inconvenience
             if num_iteration > 1:
-                obj_improve = obj_pre - obj_fw
+                obj_improve = obj_pre - obj
                 print(obj_improve)
+            obj_pre = obj
             num_iteration += 1
 
         print(f"Converged in {num_iteration - 1}")
@@ -157,7 +155,7 @@ class Iteration:
                 = self.community.finalise_schedule(num_sample=i,
                                                    tasks_scheduling_method=tasks_scheduling_method,
                                                    start_probability_distribution=start_time_probability)
-            prices, consumption_cost, inconvenience, step, \
+            prices, consumption_cost, inconvenience, obj, step, \
             new_aggregate_demand_profile, new_aggregate_battery_profile, time_pricing \
                 = self.aggregator.pricing(num_iteration=i,
                                           aggregate_demand_profile=final_aggregate_demand_profile,

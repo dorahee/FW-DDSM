@@ -71,9 +71,11 @@ def find_step_size(num_iteration, pricing_method, pricing_table,
     time_begin = time()
 
     # by default, the FW outputs are the same as the inputs
-    total_obj_fw_pre = total_cost_fw_pre + total_inconvenience_fw_pre
-    step_size_fw = 0
     aggregate_demand_profile_fw = aggregate_demand_profile_fw_pre[:]
+    max_demand_pre = max(aggregate_demand_profile_fw_pre)
+    par_pre = max_demand_pre / average(aggregate_demand_profile_fw_pre)
+    total_obj_fw_pre = total_cost_fw_pre + total_inconvenience_fw_pre + max_demand_pre + par_pre
+    step_size_fw = 0
     price_fw = price_fw_pre[:]
     total_cost_fw = total_cost_fw_pre
     total_inconvenience_fw = total_inconvenience_fw_pre
@@ -121,6 +123,7 @@ def find_step_size(num_iteration, pricing_method, pricing_table,
 
         # update the temporary PAR
         PAR_fw_temp = max(aggregate_demand_profile_fw_temp) / average(aggregate_demand_profile_fw_temp)
+        max_tmp = max(aggregate_demand_profile_fw_temp)
 
         # update the temporary prices and total cost using the updated aggregated demand profile
         price_fw_temp, total_cost_fw_temp = prices_and_cost(aggregate_demand_profile=aggregate_demand_profile_fw_temp,
@@ -131,7 +134,7 @@ def find_step_size(num_iteration, pricing_method, pricing_table,
         total_inconvenience_fw_temp = total_inconvenience_fw_pre + step_size_fw_temp * change_of_inconvenience
 
         # update the temporary total objective
-        total_obj_fw_temp = total_cost_fw_temp + total_inconvenience_fw_temp
+        total_obj_fw_temp = total_cost_fw_temp + total_inconvenience_fw_temp + PAR_fw_temp + max_tmp
 
         # update the temporary change of obj
         change_of_obj_temp = total_obj_fw_temp - total_obj_fw
@@ -178,7 +181,7 @@ def find_step_size(num_iteration, pricing_method, pricing_table,
           f"using {pricing_method}")
 
     return aggregate_demand_profile_fw, aggregate_battery_profile_fw, \
-           step_size_fw, price_fw, total_cost_fw, total_inconvenience_fw, time_fw
+           step_size_fw, price_fw, total_cost_fw, total_inconvenience_fw, total_obj_fw, time_fw
 
 
 def compute_start_time_probabilities(history_steps):

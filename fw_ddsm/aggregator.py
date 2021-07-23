@@ -70,7 +70,7 @@ class Aggregator:
             self.write_to_file(folder=backup_file_path, date_time=date_time)
         print("0. Aggregator is created. ")
 
-        prices, consumption_cost, inconvenience, step, \
+        prices, consumption_cost, inconvenience, obj, step, \
         new_aggregate_demand_profile, new_aggregate_battery_profile, time_pricing \
             = self.pricing(num_iteration=0,
                            aggregate_demand_profile=aggregate_preferred_demand_profile,
@@ -121,9 +121,11 @@ class Aggregator:
                 = aggregator_pricing.prices_and_cost(pricing_table=self.pricing_table,
                                                      aggregate_demand_profile=aggregate_demand_profile,
                                                      cost_function=self.cost_function_type)
+            max_demand = max(new_aggregate_demand_profile)
+            obj = consumption_cost + max_demand + max_demand/average(new_aggregate_demand_profile)
             if num_iteration == 0:
                 self.init_cost = consumption_cost
-                self.init_demand_max = max(new_aggregate_demand_profile)
+                self.init_demand_max = max_demand
                 print(f"{num_iteration}. "
                       f"Best step size {round(1, 6)}, "
                       f"{0} iterations, "
@@ -143,7 +145,7 @@ class Aggregator:
             price_fw_pre = self.tracker.data[p_prices][num_iteration - 1][:]
             total_cost_fw_pre = self.tracker.data[p_cost][num_iteration - 1]
             new_aggregate_demand_profile, new_aggregate_battery_profile, \
-            step, prices, consumption_cost, inconvenience, time_pricing \
+            step, prices, consumption_cost, inconvenience, obj, time_pricing \
                 = aggregator_pricing.find_step_size(num_iteration=num_iteration,
                                                     pricing_method=self.pricing_method,
                                                     pricing_table=self.pricing_table,
@@ -160,9 +162,7 @@ class Aggregator:
                                                     roundup_tiny_step=roundup_tiny_step,
                                                     print_steps=print_steps)
 
-            obj_fw = consumption_cost + inconvenience
-
-            if total_obj is not None and obj_fw > total_obj:
+            if total_obj is not None and obj > total_obj:
                 print("obj fw > total_obj")
 
         if not finalising:
@@ -173,7 +173,7 @@ class Aggregator:
                                 prices=prices, cost=consumption_cost, init_cost=self.init_cost,
                                 run_time=time_pricing, step=step)
 
-        return prices, consumption_cost, inconvenience, step, \
+        return prices, consumption_cost, inconvenience, obj, step, \
                new_aggregate_demand_profile, new_aggregate_battery_profile, time_pricing
 
     def compute_start_time_probabilities(self):

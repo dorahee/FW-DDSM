@@ -63,7 +63,7 @@ class Output:
                               aggregator_tracker, community_tracker,
                               aggregator_final, community_final=None,
                               params_tracker=None,
-                              obj_par=False, obj_cost=True, obj_inconvenience=True,
+                              obj_par=True, obj_cost=True, obj_inconvenience=True, obj_max=True,
                               print_demands=True, print_batteries=True, print_prices=True,
                               print_summary=True, print_debugger=True):
 
@@ -122,8 +122,7 @@ class Output:
 
             # data table
             df_agg_others[s_obj] = df_agg_others[p_cost] * int(obj_cost) + df_agg_others[s_penalty] * int(
-                obj_inconvenience) + \
-                                   df_agg_others[s_par] * int(obj_par)
+                obj_inconvenience) + df_agg_others[s_par] * int(obj_par) + df_agg_others[s_demand_max] * int(obj_max)
             source = ColumnDataSource(df_agg_others)
             columns = [TableColumn(field=x, title=x.replace("_", " "), formatter=NumberFormatter(format="0.00"))
                        for x in df_agg_others.columns]
