@@ -111,6 +111,7 @@ class Iteration:
         num_iteration = 1
         step = 0.9
         obj_pre = 0
+        obj_fw = -1
         obj_improve = 1
         while step > 0.0005 and obj_improve > 0.001:
             aggregate_demand_profile, aggregate_battery_profile, \
@@ -133,10 +134,11 @@ class Iteration:
                                           aggregate_inconvenience=weighted_total_inconvenience,
                                           min_step_size=min_step_size,
                                           roundup_tiny_step=roundup_tiny_step, print_steps=print_steps)
-            obj_pre = obj_fw
+
+            if num_iteration > 1:
+                obj_pre = obj_fw
             obj_fw = consumption_cost + inconvenience
-            if num_iteration > 0:
-                obj_improve = obj_pre - obj_fw
+            obj_improve = obj_pre - obj_fw
             num_iteration += 1
 
         print(f"Converged in {num_iteration - 1}")
