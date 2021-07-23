@@ -75,9 +75,12 @@ def find_step_size(num_iteration, pricing_method, pricing_table,
     max_demand_pre = max(aggregate_demand_profile_fw_pre)
     par_pre = max_demand_pre / average(aggregate_demand_profile_fw_pre)
     total_obj_fw_pre = total_cost_fw_pre + total_inconvenience_fw_pre + max_demand_pre + par_pre
+
     step_size_fw = 0
     price_fw = price_fw_pre[:]
     total_cost_fw = total_cost_fw_pre
+    max_demand_fw = max_demand_pre
+    par_fw = par_pre
     total_inconvenience_fw = total_inconvenience_fw_pre
     total_obj_fw = total_obj_fw_pre
     change_of_inconvenience = total_inconvenience_new - total_inconvenience_fw_pre
@@ -88,6 +91,8 @@ def find_step_size(num_iteration, pricing_method, pricing_table,
     price_fw_temp = price_fw_pre[:]
     total_cost_fw_temp = total_cost_fw_pre
     total_inconvenience_fw_temp = total_inconvenience_fw_pre
+    max_demand_fw_temp = max_demand_pre
+    par_fw_temp = par_pre
     total_obj_fw_temp = total_obj_fw_pre
     change_of_obj_temp = -999
     # change_of_cost_temp = -9999
@@ -103,6 +108,8 @@ def find_step_size(num_iteration, pricing_method, pricing_table,
         if num_itrs > 0:
             step_size_fw = step_size_fw_temp
             aggregate_demand_profile_fw = aggregate_demand_profile_fw_temp
+            max_demand_fw = max_demand_fw_temp
+            par_fw = par_fw_temp
             price_fw = price_fw_temp
             total_cost_fw = total_cost_fw_temp
             total_inconvenience_fw = total_inconvenience_fw_temp
@@ -172,7 +179,8 @@ def find_step_size(num_iteration, pricing_method, pricing_table,
     print(f"{num_iteration}. "
           f"Step size = {round(step_size_fw, 6)}, "
           f"{num_itrs} iterations, "
-          f"par {round(max(aggregate_demand_profile_fw) / average(aggregate_demand_profile_fw), 3)}, "
+          f"max {max_demand_fw}, "
+          f"par {par_fw}, "
           f"total {round(sum(aggregate_demand_profile_fw), 3)}, "
           f"cost {round(total_cost_fw, 3)}, "
           f"obj {round(total_obj_fw, 3)}, "

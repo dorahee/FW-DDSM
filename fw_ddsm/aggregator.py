@@ -38,7 +38,7 @@ class Aggregator:
                                     aggregate_preferred_demand_profile=aggregate_preferred_demand_profile)
         print("0. Aggregator is read. ")
 
-        prices, consumption_cost, inconvenience, step, \
+        prices, consumption_cost, inconvenience, obj, step, \
         new_aggregate_demand_profile, new_aggregate_battery_profile,time_pricing \
             = self.pricing(num_iteration=0,
                            aggregate_demand_profile=aggregate_preferred_demand_profile,
@@ -122,13 +122,16 @@ class Aggregator:
                                                      aggregate_demand_profile=aggregate_demand_profile,
                                                      cost_function=self.cost_function_type)
             max_demand = max(new_aggregate_demand_profile)
-            obj = consumption_cost + max_demand + max_demand/average(new_aggregate_demand_profile)
+            par = max_demand/average(new_aggregate_demand_profile)
+            obj = consumption_cost + max_demand + par
             if num_iteration == 0:
                 self.init_cost = consumption_cost
                 self.init_demand_max = max_demand
                 print(f"{num_iteration}. "
                       f"Best step size {round(1, 6)}, "
                       f"{0} iterations, "
+                      f"max {max_demand}, "
+                      f"par {par}, "
                       f"obj {consumption_cost}, "
                       f"change of obj {consumption_cost}, "
                       f"using {self.pricing_method}")
