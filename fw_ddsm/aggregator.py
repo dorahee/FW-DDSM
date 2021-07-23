@@ -131,9 +131,8 @@ class Aggregator:
                       f"Best step size {round(1, 6)}, "
                       f"{0} iterations, "
                       f"max {max_demand}, "
-                      f"par {par}, "
-                      f"obj {consumption_cost}, "
-                      f"change of obj {consumption_cost}, "
+                      f"par {round(par, 4)}, "
+                      f"obj/cost {consumption_cost}, "
                       f"using {self.pricing_method}")
 
             self.final.update(num_record=num_iteration, penalty=inconvenience,
