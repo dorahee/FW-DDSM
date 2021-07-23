@@ -179,13 +179,13 @@ def find_step_size(num_iteration, pricing_method, pricing_table,
     print(f"{num_iteration}. "
           f"Step size = {round(step_size_fw, 6)}, "
           f"{num_itrs} iterations, "
-          f"max {max_demand_fw}, "
-          f"par {par_fw}, "
-          f"total {round(sum(aggregate_demand_profile_fw), 3)}, "
-          f"cost {round(total_cost_fw, 3)}, "
+          f"max {round(max_demand_fw, 4)}, "
+          f"par {round(par_fw, 4)}, "
           f"obj {round(total_obj_fw, 3)}, "
+          f"cost {round(total_cost_fw, 3)}, "
           f"incon {round(total_inconvenience_fw, 2)}, "
           f"total change of obj {round(total_obj_fw - total_obj_fw_pre, 3)}, "
+          f"total {round(sum(aggregate_demand_profile_fw), 3)}, "
           f"using {pricing_method}")
 
     return aggregate_demand_profile_fw, aggregate_battery_profile_fw, \
