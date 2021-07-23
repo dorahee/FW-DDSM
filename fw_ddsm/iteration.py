@@ -135,11 +135,11 @@ class Iteration:
                                           min_step_size=min_step_size,
                                           roundup_tiny_step=roundup_tiny_step, print_steps=print_steps)
 
-            if num_iteration > 2:
-                obj_pre = obj_fw
+            obj_pre = obj_fw
             obj_fw = consumption_cost + inconvenience
-            obj_improve = obj_pre - obj_fw
-            print(obj_pre, obj_fw, obj_improve)
+            if num_iteration > 1:
+                obj_improve = obj_pre - obj_fw
+                print(obj_improve)
             num_iteration += 1
 
         print(f"Converged in {num_iteration - 1}")
