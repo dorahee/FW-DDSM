@@ -110,7 +110,7 @@ class Iteration:
 
         num_iteration = 1
         step = 0.9
-        obj_pre = -1
+        obj_pre = 99999999999999999999
         obj_fw = 0
         while step > 0.0005 and obj_pre - obj_fw > 0.001:
             aggregate_demand_profile, aggregate_battery_profile, \
