@@ -110,9 +110,9 @@ class Iteration:
 
         num_iteration = 1
         step = 0.9
-        obj_pre = 99999999999999999999
-        obj_fw = 0
-        while step > 0.0005 and obj_pre - obj_fw > 0.001 and num_iteration > 1:
+        obj_pre = 0
+        obj_improve = 1
+        while step > 0.0005 and obj_improve > 0.001:
             aggregate_demand_profile, aggregate_battery_profile, \
             weighted_total_inconvenience, time_scheduling_iteration, total_obj \
                 = self.community.schedule(num_iteration=num_iteration, prices=prices,
@@ -135,6 +135,8 @@ class Iteration:
                                           roundup_tiny_step=roundup_tiny_step, print_steps=print_steps)
             obj_pre = obj_fw
             obj_fw = consumption_cost + inconvenience
+            if num_iteration > 0:
+                obj_improve = obj_pre - obj_fw
             num_iteration += 1
 
         print(f"Converged in {num_iteration - 1}")
