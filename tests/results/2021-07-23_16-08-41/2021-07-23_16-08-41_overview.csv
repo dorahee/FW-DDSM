@@ -1,0 +1,2 @@
+,PAR,algorithm,battery_capacity_max,battery_capacity_min,battery_efficiency,battery_power,cost,cost_reduction,demand_reduction,id,inconvenient,init_PAR,init_max_demand,max_demand,no_dependent_tasks,no_fixed_tasks_min,no_fully_flexible_tasks_min,no_households,no_iterations,no_semi_flexible_tasks_min,objective,penalty_weight,pricing_time,rescheduling_time,total_demand
+0,2.31,minizinc_fw,4000,0,1,4000,4726575.22,0.09,0.38,0,1523.58,3.71,26107.0,16212.45,3,0,0,20,1,6,4728101.109999999,10,0.0065,26.13,337472.0
