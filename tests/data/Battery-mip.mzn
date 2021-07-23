@@ -21,6 +21,7 @@ array[INTERVALS] of float: prices;
 % decision variables for the battery scheduling problem
 
 % additional variables for PAR minimisation
+var float: max_demand;
 float: minz = 0 ;
 float: maxz = 1 ;
 var float: z;
@@ -77,6 +78,8 @@ forall (i in 2..num_intervals) (battery_soc2[i] * num_intervals_hour - battery_s
 constraint 
 battery_soc2[1] * num_intervals_hour - battery_soc2[num_intervals] * num_intervals_hour = battery_charge2[num_intervals] + battery_discharge2[num_intervals];
 
+constraint forall(i in 1..num_intervals)(max_demand >= demand[i]);
+
 % PAR Definition
 var float: PAR =% max_demand * num_intervals / sum(demand) ;
                              %    max_demand * num_interval * z / sum(demand) * z ;
@@ -84,16 +87,23 @@ var float: PAR =% max_demand * num_intervals / sum(demand) ;
                               max(demand2) * num_intervals ;
 constraint sum(demand2) = 1 ; 
 
+% non-shedding constraint
+% constraint sum(i in INTERVALS)(battery_charge[i] + battery_discharge[i]) = 0;
+constraint sum(i in INTERVALS)(battery_charge2[i] + battery_discharge2[i]) = 0;
+
+% only charge or discharge at each time interval
+constraint sum(i in INTERVALS)(battery_charge2[i] * battery_discharge2[i]) = 0;
+
 % objectives
 var float: cost = sum (i in INTERVALS) (demand[i] * prices[i]);
-var float: obj = cost + 10 * PAR ; %max_total_demand;
+var float: obj = cost + 10 * PAR + max_demand; %max_total_demand;
 solve minimize obj;
 
-% output [ "Cost = ",  show(cost), "\n",
-%                "z = ", show(z), "\n",
-%                "PAR = ", show(PAR), "\n",
-%                "obj = ", show(obj), "\n",
-%                "Max Demand = ", show(max(demand)), "\n",
-%                "All Demand = ", show(demand), "\n",
-%                "All Demand2 = ", show([demand2[i]/z | i in 1..num_intervals])
-%                ] ;
+output [ "Cost = ",  show(cost), "\n",
+               "z = ", show(z), "\n",
+               "PAR = ", show(PAR), "\n",
+               "obj = ", show(obj), "\n",
+               "Max Demand = ", show(max(demand)), "\n",
+               "All Demand = ", show(demand), "\n",
+               "All Demand2 = ", show([demand2[i]/z | i in 1..num_intervals])
+               ] ;
