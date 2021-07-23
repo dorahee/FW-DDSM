@@ -13,51 +13,87 @@ int: fully_charge_hour;
 
 % demands
 array[INTERVALS] of float: existing_demands;
-float: total_demand_limit = 9999999999.9;
+float: demand_limit = 9999999999.9;
 
 % price related
 array[INTERVALS] of float: prices;
 
 % decision variables for the battery scheduling problem
+
+% additional variables for PAR minimisation
+float: minz = 0 ;
+float: maxz = 1 ;
+var float: z;
+%constraint z=1 ;
+constraint z >= minz  /\ z <= maxz ;
+
+array[INTERVALS] of var min_energy_capacity..max_energy_capacity: battery_soc;  % stored energy per interval in wh
 array[INTERVALS] of var 0..max_power: battery_charge;  % charge/discharge per interval in w
 array[INTERVALS] of var -max_power..0: battery_discharge;  % charge/discharge per interval in w
-array[INTERVALS] of var min_energy_capacity..max_energy_capacity: battery_soc;  % stored energy per interval in wh
 
-array[INTERVALS] of var 0..total_demand_limit: total_demand = array1d([existing_demands[i] + battery_charge[i] / efficiency + battery_discharge[i] * efficiency | i in INTERVALS]);  % charge/discharge per interval in kw
-
-% additional variables for PAR linearisation
-var float: max_total_demand; 
-% var float: z;
-% array[INTERVALS] of var 0..total_demand_limit: total_demand2 = array1d([total_demand[i] * z | i in INTERVALS]);  % charge/discharge per interval in kw
-
-
-% PAR linearisation constraints
-constraint forall(i in INTERVALS) (max_total_demand >= total_demand[i]);
-% constraint sum(total_demand2) = num_intervals;
-
-% non-shedding constraint
-constraint sum(i in INTERVALS)(battery_charge[i] + battery_discharge[i]) = 0;
-% constraint sum(i in INTERVALS)(battery_charge2[i] + battery_discharge2[i]) = 0;
-
-% only charge or discharge at each time interval
-constraint sum(i in INTERVALS)(battery_charge[i] * battery_discharge[i]) = 0;
+% array[INTERVALS] of var -max_power..max_power: battery_profile;  % charge/discharge per interval in kw
+array[INTERVALS] of var 0..demand_limit: demand = 
+array1d([existing_demands[i] 
+      + (battery_charge[i]  / efficiency) 
+      + (battery_discharge[i] * efficiency) 
+       | i in INTERVALS]);  % charge/discharge per interval in kw
 
 % soc constraints
-constraint forall (i in 2..num_intervals) (
-  battery_soc[i] * num_intervals_hour = battery_soc[i - 1] * num_intervals_hour 
-  + battery_charge[i - 1] + battery_discharge[i - 1]
-);
+constraint 
+forall(i in 1..num_intervals)(battery_soc[i] <= max_energy_capacity);
 
-constraint battery_soc[1] * num_intervals_hour = battery_soc[num_intervals] * num_intervals_hour + battery_charge[num_intervals] + battery_discharge[num_intervals];
+constraint 
+forall(i in 1..num_intervals)(battery_soc[i] >= min_energy_capacity);
+
+constraint 
+forall (i in 2..num_intervals) (
+battery_soc[i] * num_intervals_hour - battery_soc[i - 1] * num_intervals_hour = 
+battery_charge[i - 1] + battery_discharge[i - 1]);
+
+constraint 
+battery_soc[1] * num_intervals_hour - battery_soc[num_intervals] * num_intervals_hour = battery_charge[num_intervals] + battery_discharge[num_intervals];
+
+array[INTERVALS] of var minz * min_energy_capacity..maxz * max_energy_capacity: battery_soc2;  % stored energy per interval in wh
+array[INTERVALS] of var 0..maxz * max_power: battery_charge2;  % charge/discharge per interval in w
+array[INTERVALS] of var -maxz * max_power..0: battery_discharge2;  % charge/discharge per interval in w
+
+% array[INTERVALS] of var -max_power..max_power: battery_profile;  % charge/discharge per interval in kw
+array[INTERVALS] of var 0..maxz * demand_limit: demand2 = 
+array1d([z * existing_demands[i] 
+      + (battery_charge2[i] / efficiency) 
+      + (battery_discharge2[i] * efficiency) 
+       | i in INTERVALS]);  % charge/discharge per interval in kw
+
+% soc constraints
+constraint 
+forall(i in 1..num_intervals)(battery_soc2[i] <= max_energy_capacity * z);
+
+constraint 
+forall(i in 1..num_intervals)(battery_soc2[i] >= min_energy_capacity * z);
+
+constraint 
+forall (i in 2..num_intervals) (battery_soc2[i] * num_intervals_hour - battery_soc2[i - 1] * num_intervals_hour = battery_charge2[i - 1] + battery_discharge2[i - 1]);
+
+constraint 
+battery_soc2[1] * num_intervals_hour - battery_soc2[num_intervals] * num_intervals_hour = battery_charge2[num_intervals] + battery_discharge2[num_intervals];
+
+% PAR Definition
+var float: PAR =% max_demand * num_intervals / sum(demand) ;
+                             %    max_demand * num_interval * z / sum(demand) * z ;
+                              %    max(demand2) * num_intervals / 1 ;
+                              max(demand2) * num_intervals ;
+constraint sum(demand2) = 1 ; 
 
 % objectives
-var float: cost = sum (i in INTERVALS) (total_demand[i] * prices[i]);
-var float: obj = max_total_demand;
+var float: cost = sum (i in INTERVALS) (demand[i] * prices[i]);
+var float: obj = cost + 10 * PAR ; %max_total_demand;
 solve minimize obj;
 
-% output [
-% "obj = " ++ show(obj) ++ "\n"
-% ++ "cost = " ++ show(cost) ++ "\n"
-% ++ "existing_demand = " ++ show(existing_demands) ++ "\n"
-% ++ "total_demand = " ++ show(total_demand) ++ "\n"
-% ];
+% output [ "Cost = ",  show(cost), "\n",
+%                "z = ", show(z), "\n",
+%                "PAR = ", show(PAR), "\n",
+%                "obj = ", show(obj), "\n",
+%                "Max Demand = ", show(max(demand)), "\n",
+%                "All Demand = ", show(demand), "\n",
+%                "All Demand2 = ", show([demand2[i]/z | i in 1..num_intervals])
+%                ] ;
