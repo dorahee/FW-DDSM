@@ -28,7 +28,7 @@ class Aggregator:
                         read_from_folder="data/", date_time=None):
         self.pricing_table = dict()
         self.pricing_method = pricing_method
-        aggregate_preferred_demand_profile = self.__convert_demand_profile(aggregate_preferred_demand_profile)
+        aggregate_preferred_demand_profile = self.convert_demand_profile(aggregate_preferred_demand_profile)
         self.preferred_demand_profile = aggregate_preferred_demand_profile
 
         read_from_folder = read_from_folder if read_from_folder.endswith("/") \
@@ -53,7 +53,7 @@ class Aggregator:
         self.pricing_table = dict()
         self.pricing_method = pricing_method
 
-        aggregate_preferred_demand_profile = self.__convert_demand_profile(aggregate_preferred_demand_profile)
+        aggregate_preferred_demand_profile = self.convert_demand_profile(aggregate_preferred_demand_profile)
         self.preferred_demand_profile = aggregate_preferred_demand_profile
         maximum_demand_level = max(aggregate_preferred_demand_profile) if max_scale == 0 else max_scale
         self.pricing_table = aggregator_generation.new_pricing_table(
@@ -107,8 +107,8 @@ class Aggregator:
                 aggregate_inconvenience=0, finalising=False,
                 min_step_size=min_step, roundup_tiny_step=False, print_steps=False):
 
-        aggregate_demand_profile = self.__convert_demand_profile(aggregate_demand_profile)
-        aggregate_battery_profile = self.__convert_demand_profile(aggregate_battery_profile)
+        aggregate_demand_profile = self.convert_demand_profile(aggregate_demand_profile)
+        aggregate_battery_profile = self.convert_demand_profile(aggregate_battery_profile)
 
         step = 1
         inconvenience = aggregate_inconvenience
@@ -184,7 +184,7 @@ class Aggregator:
             = aggregator_pricing.compute_start_time_probabilities(history_steps=history_steps)
         return self.start_time_probability
 
-    def __convert_demand_profile(self, aggregate_demand_profile_interval):
+    def convert_demand_profile(self, aggregate_demand_profile_interval):
         num_intervals = len(aggregate_demand_profile_interval)
         num_intervals_periods = int(num_intervals / self.num_periods)
         aggregate_demand_profile_period = aggregate_demand_profile_interval

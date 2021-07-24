@@ -3,6 +3,7 @@ import concurrent.futures
 import pickle5
 from time import time
 from fw_ddsm.household import *
+from fw_ddsm.aggregator import *
 from fw_ddsm.tracker import *
 from fw_ddsm.scripts import household_generation, aggregator_pricing
 
@@ -208,16 +209,19 @@ class Community:
             = self.__retrieve_scheduling_results(results=results, num_iteration=num_iteration)
 
         aggregate_demand_profile = retrieved_results[s_demand]
+        max_demand = max(aggregate_demand_profile)
+        par = max_demand/average(aggregate_demand_profile)
         aggregate_battery_profile = retrieved_results[b_profile]
         weighted_total_inconvenience = retrieved_results[s_penalty]
         time_scheduling_iteration = retrieved_results[t_time]
         debugger_data = retrieved_results[s_debugger]
 
+        aggregate_demand_profile2 = Aggregator.convert_demand_profile(Aggregator(), aggregate_demand_profile)
         prices, total_cost \
-            = aggregator_pricing.prices_and_cost(aggregate_demand_profile=aggregate_demand_profile,
+            = aggregator_pricing.prices_and_cost(aggregate_demand_profile=aggregate_demand_profile2,
                                                  pricing_table=pricing_table,
                                                  cost_function=cost_function_type)
-        obj = total_cost + weighted_total_inconvenience
+        obj = total_cost + weighted_total_inconvenience + max_demand + par
 
         self.tracker.update(num_record=num_iteration,
                             penalty=weighted_total_inconvenience,
@@ -228,8 +232,10 @@ class Community:
                             battery_profile=aggregate_battery_profile)
 
         print(f"{num_iteration}. "
-              f"cost = {round(total_cost, 6)}, "
+              f"max = {round(max_demand, 6)}, "
+              f"par = {round(par, 6)}, "
               f"obj {round(obj, 3)}, "
+              f"cost = {round(total_cost, 6)}, "
               f"incon {round(weighted_total_inconvenience, 2)}, "
               f"using {tasks_scheduling_method}.")
 

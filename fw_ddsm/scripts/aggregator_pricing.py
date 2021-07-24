@@ -39,6 +39,7 @@ def find_step_size(num_iteration, pricing_method, pricing_table,
                    total_obj_new, price_fw_pre, total_cost_fw_pre,
                    min_step_size=min_step, roundup_tiny_step=False, print_steps=False,
                    obj_par=False):
+
     def move_profile(demands_pre, demands_new, alpha):
         return [d_p + (d_n - d_p) * alpha for d_p, d_n in zip(demands_pre, demands_new)]
 
@@ -162,15 +163,20 @@ def find_step_size(num_iteration, pricing_method, pricing_table,
     aggregate_battery_profile_fw \
         = move_profile(aggregate_battery_profile_fw_pre, aggregate_battery_profile_new, step_size_fw)
 
-    # if total_obj_fw > total_obj_new:
-    #     aggregate_demand_profile_fw = aggregate_demand_profile_new
-    #     aggregate_battery_profile_fw = aggregate_battery_profile_new
-    #     step_size_fw = 1
-    #     price_fw, total_cost_fw = prices_and_cost(aggregate_demand_profile=aggregate_demand_profile_fw,
-    #                                               pricing_table=pricing_table,
-    #                                               cost_function=cost_function_type)
-    #     total_inconvenience_fw = total_inconvenience_new
-    #     print("error")
+    if total_obj_fw > total_obj_new:
+        print(aggregate_demand_profile_new)
+        aggregate_demand_profile_fw = aggregate_demand_profile_new
+        aggregate_battery_profile_fw = aggregate_battery_profile_new
+        step_size_fw = 1
+        max_demand_fw = max(aggregate_demand_profile_new)
+        par_fw = max_demand_fw / average(aggregate_demand_profile_new)
+        price_fw, total_cost_fw = prices_and_cost(aggregate_demand_profile=aggregate_demand_profile_new,
+                                                  pricing_table=pricing_table,
+                                                  cost_function=cost_function_type)
+        total_inconvenience_fw = total_inconvenience_new
+        total_obj_fw = total_obj_new
+
+        print("error", "cost", total_cost_fw, "obj", total_obj_fw)
 
     # stop the timer
     time_fw = time() - time_begin

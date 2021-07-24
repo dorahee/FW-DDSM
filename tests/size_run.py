@@ -58,7 +58,7 @@ min_step_size = 0.001
 roundup_tiny_step = True
 print_done = False
 print_steps = False
-# print_steps = True
+print_steps = True
 email_results = True
 
 

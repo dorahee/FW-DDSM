@@ -127,7 +127,7 @@ class Iteration:
             prices, consumption_cost, inconvenience, obj, step, \
             new_aggregate_demand_profile, new_aggregate_battery_profile, time_pricing \
                 = self.aggregator.pricing(num_iteration=num_iteration,
-                                          aggregate_demand_profile=aggregate_demand_profile,
+                                          aggregate_demand_profile=aggregate_demand_profile[:],
                                           aggregate_battery_profile=aggregate_battery_profile,
                                           total_obj=total_obj,
                                           aggregate_inconvenience=weighted_total_inconvenience,
