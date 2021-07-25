@@ -221,7 +221,7 @@ class Community:
             = aggregator_pricing.prices_and_cost(aggregate_demand_profile=aggregate_demand_profile2,
                                                  pricing_table=pricing_table,
                                                  cost_function=cost_function_type)
-        obj = total_cost + weighted_total_inconvenience + max_demand + par
+        obj = total_cost + weighted_total_inconvenience + max_demand + p_par_weight * par
 
         self.tracker.update(num_record=num_iteration,
                             penalty=weighted_total_inconvenience,

@@ -123,7 +123,7 @@ class Aggregator:
                                                      cost_function=self.cost_function_type)
             max_demand = max(new_aggregate_demand_profile)
             par = max_demand/average(new_aggregate_demand_profile)
-            obj = consumption_cost + max_demand + par
+            obj = consumption_cost + max_demand + p_par_weight * par
             if num_iteration == 0:
                 self.init_cost = consumption_cost
                 self.init_demand_max = max_demand

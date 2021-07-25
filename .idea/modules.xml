@@ -3,7 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/FW-DDSM.iml" filepath="$PROJECT_DIR$/.idea/FW-DDSM.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../Projects/single-household-demand-scheduling/.idea/single-scheduling.iml" filepath="$PROJECT_DIR$/../Projects/single-household-demand-scheduling/.idea/single-scheduling.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../Thesis2019/pics/battery/.idea/battery.iml" filepath="$PROJECT_DIR$/../Thesis2019/pics/battery/.idea/battery.iml" />
     </modules>
   </component>
 </project>

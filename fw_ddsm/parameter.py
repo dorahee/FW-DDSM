@@ -121,6 +121,7 @@ p_cost_reduction = "cost_reduction"
 p_prices = "prices"
 p_price_levels = "price_levels"
 p_demand_table = "demand_levels"
+p_par_weight = 100
 
 # run time related
 t_time = "run_time"

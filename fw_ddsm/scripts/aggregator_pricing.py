@@ -77,8 +77,9 @@ def find_step_size(num_iteration, pricing_method, pricing_table,
     # print("pre : ", aggregate_demand_profile_fw)
     max_demand_pre = max(aggregate_demand_profile_fw)
     par_pre = max_demand_pre / average(aggregate_demand_profile_fw)
-    # print("-- pre       :", "max", round(max_demand_pre, 4), "par", round(par_pre, 4))
-    total_obj_fw_pre = total_cost_fw_pre + total_inconvenience_fw_pre + max_demand_pre + par_pre
+    total_obj_fw_pre = total_cost_fw_pre + total_inconvenience_fw_pre + max_demand_pre + p_par_weight * par_pre
+    print("-- pre       :", "max", round(max_demand_pre, 4), "par", round(par_pre, 4),
+          "obj", round(total_obj_fw_pre, 3), "incon", total_inconvenience_fw_pre)
 
     step_size_fw = 0
     price_fw = price_fw_pre[:]
@@ -145,7 +146,8 @@ def find_step_size(num_iteration, pricing_method, pricing_table,
         total_inconvenience_fw_temp = total_inconvenience_fw_pre + step_size_fw_temp * change_of_inconvenience
 
         # update the temporary total objective
-        total_obj_fw_temp = total_cost_fw_temp + total_inconvenience_fw_temp + par_fw_temp + max_demand_fw_temp
+        total_obj_fw_temp = total_cost_fw_temp + total_inconvenience_fw_temp + \
+                            p_par_weight * par_fw_temp + max_demand_fw_temp
 
         # update the temporary change of obj
         change_of_obj_temp = total_obj_fw_temp - total_obj_fw
