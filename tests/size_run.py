@@ -56,6 +56,7 @@ experiment_tracker = dict()
 timeout = 6000
 timeout = 60
 min_step_size = 0.001
+min_obj_improve = 0.01
 # roundup_tiny_step = False
 roundup_tiny_step = True
 print_done = False
@@ -68,7 +69,8 @@ def main(num_households, num_tasks_dependent, penalty_weight, par_weight,
          out, new_data=True, num_cpus=None, job_id=0,
          use_battery=False, capacity_max=battery_capacity_max, capacity_min=battery_capacity_min,
          power=battery_power, efficiency=battery_efficiency,
-         hour_fully_charge=fully_charge_hour, read_from_dt=read_from_date_time):
+         hour_fully_charge=fully_charge_hour, read_from_dt=read_from_date_time,
+         min_obj_incr=min_obj_improve):
 
     num_experiment = 0
     print("----------------------------------------")
@@ -171,7 +173,8 @@ def main(num_households, num_tasks_dependent, penalty_weight, par_weight,
                                           fully_charge_time=hour_fully_charge,
                                           min_step_size=min_step_size,
                                           roundup_tiny_step=roundup_tiny_step,
-                                          print_done=print_done, print_steps=print_steps)
+                                          print_done=print_done, print_steps=print_steps,
+                                          min_obj_incr=min_obj_incr)
         experiment_tracker[num_experiment][k_iteration_no] = num_iterations
 
         # 3. finalising schedules

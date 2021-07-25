@@ -100,7 +100,7 @@ class Iteration:
 
         return preferred_demand_profile, prices
 
-    def begin_iteration(self, starting_prices,
+    def begin_iteration(self, starting_prices, min_obj_incr,
                         use_battery=False, battery_model=None, battery_solver=None,
                         num_cpus=None, timeout=time_out, fully_charge_time=fully_charge_hour,
                         min_step_size=min_step, roundup_tiny_step=False,
@@ -118,7 +118,7 @@ class Iteration:
         step = 0.9
         obj_pre = 0
         obj_improve = 1
-        while step > 0.001 and obj_improve > 0.01:
+        while obj_improve > min_obj_incr:
             aggregate_demand_profile, aggregate_battery_profile, \
             weighted_total_inconvenience, time_scheduling_iteration, total_obj \
                 = self.community.schedule(num_iteration=num_iteration, prices=prices,
