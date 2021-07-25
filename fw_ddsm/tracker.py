@@ -20,7 +20,7 @@ class Tracker:
         self.data = dict()
         self.data = existing_tracker.copy()
 
-    def update(self, num_record, tracker_data=None, demands=None, prices=None, penalty=None,
+    def update(self, num_record, tracker_data=None, demands=None, prices=None, penalty=None, par=None,
                run_time=None, cost=None, step=None, init_demand_max=None, init_cost=None, tasks_starts=None,
                battery_profile=None, obj_par=True, obj_max=True, debugger=None):
         obj = 0
@@ -46,9 +46,13 @@ class Tracker:
             tracker_data[s_demand][num_record] = demands
             tracker_data[s_demand_max][num_record] = demand_max
             tracker_data[s_demand_total][num_record] = round(sum(demands), 2)
-            par = round(demand_max / average(demands), 2)
-            tracker_data[s_par][num_record] = par
-            obj += int(obj_par) * par
+            if par is None:
+                par = round(demand_max / average(demands), 2)
+                tracker_data[s_par][num_record] = par
+                obj += int(obj_par) * par * par_c_weight
+            else:
+                tracker_data[s_par] = par
+                obj += int(obj_par) * par
             if init_demand_max is not None:
                 tracker_data[s_demand_reduction][num_record] \
                     = round((init_demand_max - demand_max) / init_demand_max, 2)

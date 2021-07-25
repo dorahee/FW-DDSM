@@ -37,6 +37,7 @@ class Output:
 
     def new_output_folder(self,
                           num_households=no_households,
+                          par_cost_weight=par_c_weight,
                           inconvenience_cost_weight=care_f_weight,
                           num_dependent_tasks=no_tasks_dependent,
                           num_full_flex_task_min=no_full_flex_tasks_min,
@@ -44,7 +45,7 @@ class Output:
                           battery_size=False, efficiency=0,
                           repeat=None, folder_id=None):
 
-        self.subfolder_name = f"h{num_households}-w{inconvenience_cost_weight}-dt{num_dependent_tasks}" \
+        self.subfolder_name = f"h{num_households}-iw{inconvenience_cost_weight}-pw{par_cost_weight}-dt{num_dependent_tasks}" \
             f"-fft{num_full_flex_task_min}-sft{num_semi_flex_task_min}-b{int(battery_size)}" \
             f"-e{efficiency}"
         if repeat is not None:

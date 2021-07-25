@@ -103,7 +103,7 @@ class Aggregator:
         self.final.update(num_record=0, demands=aggregate_preferred_demand_profile)
 
     def pricing(self, num_iteration, aggregate_demand_profile, aggregate_battery_profile,
-                total_obj=None,
+                total_obj=None, par_cost_weight=par_c_weight,
                 aggregate_inconvenience=0, finalising=False,
                 min_step_size=min_step, roundup_tiny_step=False, print_steps=False):
 
@@ -122,16 +122,16 @@ class Aggregator:
                                                      aggregate_demand_profile=aggregate_demand_profile,
                                                      cost_function=self.cost_function_type)
             max_demand = max(new_aggregate_demand_profile)
-            par = max_demand/average(new_aggregate_demand_profile)
-            obj = consumption_cost + max_demand + p_par_weight * par
+            par = par_cost_weight * max_demand/average(new_aggregate_demand_profile)
+            obj = consumption_cost + max_demand + par
             if num_iteration == 0:
                 self.init_cost = consumption_cost
                 self.init_demand_max = max_demand
                 print(f"{num_iteration}. "
                       f"Initial   : "
                       f"max {max_demand}, "
-                      f"par {round(par, 4)}, "
-                      f"obj/cost {consumption_cost}, "
+                      f"w_par {round(par, 4)}, "
+                      f"obj/cost {obj}, "
                       f"using {self.pricing_method}")
 
             self.final.update(num_record=num_iteration, penalty=inconvenience,
@@ -147,7 +147,7 @@ class Aggregator:
             price_fw_pre = self.tracker.data[p_prices][num_iteration - 1][:]
             total_cost_fw_pre = self.tracker.data[p_cost][num_iteration - 1]
             new_aggregate_demand_profile, new_aggregate_battery_profile, \
-            step, prices, consumption_cost, inconvenience, obj, time_pricing \
+            step, prices, consumption_cost, inconvenience, par, obj, time_pricing \
                 = aggregator_pricing.find_step_size(num_iteration=num_iteration,
                                                     pricing_method=self.pricing_method,
                                                     pricing_table=self.pricing_table,
@@ -162,7 +162,8 @@ class Aggregator:
                                                     total_cost_fw_pre=total_cost_fw_pre,
                                                     min_step_size=min_step_size,
                                                     roundup_tiny_step=roundup_tiny_step,
-                                                    print_steps=print_steps)
+                                                    print_steps=print_steps,
+                                                    par_cost_weight=par_cost_weight)
 
             if total_obj is not None and obj > total_obj:
                 print("obj fw > total_obj")
@@ -171,6 +172,7 @@ class Aggregator:
             # print("new", num_iteration, new_aggregate_demand_profile)
             self.tracker.update(num_record=num_iteration, penalty=inconvenience,
                                 demands=new_aggregate_demand_profile,
+                                par=par,
                                 battery_profile=new_aggregate_battery_profile,
                                 init_demand_max=self.init_demand_max,
                                 prices=prices, cost=consumption_cost, init_cost=self.init_cost,

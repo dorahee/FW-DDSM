@@ -117,7 +117,9 @@ def new_household(
         full_flex_task_min=no_full_flex_tasks_min, full_flex_task_max=0,
         semi_flex_task_min=no_semi_flex_tasks_min, semi_flex_task_max=0,
         fixed_task_min=no_fixed_tasks_min, fixed_task_max=0,
-        inconvenience_cost_weight=care_f_weight, max_care_factor=care_f_max,
+        inconvenience_cost_weight=care_f_weight,
+        par_cost_weight=par_c_weight,
+        max_care_factor=care_f_max,
         household_id=0,
         capacity_max=battery_capacity_max, capacity_min=battery_capacity_min,
         power=battery_power, efficiency=battery_efficiency
@@ -197,6 +199,7 @@ def new_household(
     household[h_succ_delay] = succ_delays
     household[h_demand_limit] = maximum_demand
     household[h_incon_weight] = inconvenience_cost_weight
+    household[p_par_weight] = par_cost_weight
     household[s_demand] = household_demand_profile
 
     # save the battery details
