@@ -2,6 +2,7 @@ from multiprocessing import Pool, cpu_count
 import concurrent.futures
 import pickle5
 from time import time
+from fw_ddsm.parameter import *
 from fw_ddsm.household import *
 from fw_ddsm.aggregator import *
 from fw_ddsm.tracker import *
@@ -25,6 +26,7 @@ class Community:
     def read(self, tasks_scheduling_method,
              read_from_folder="data/",
              inconvenience_cost_weight=None,
+             par_cost_weight=None,
              num_dependent_tasks=None, ensure_dependent=False,
              capacity_max=battery_capacity_max, capacity_min=battery_capacity_min,
              power=battery_power, efficiency=battery_efficiency,
@@ -38,6 +40,7 @@ class Community:
         self.community_details, self.preferred_demand_profile \
             = self.__existing_households(file_path=read_from_folder, date_time=date_time,
                                          inconvenience_cost_weight=inconvenience_cost_weight,
+                                         par_cost_weight=par_cost_weight,
                                          num_dependent_tasks=num_dependent_tasks, ensure_dependent=ensure_dependent,
                                          capacity_max=capacity_max, capacity_min=capacity_min,
                                          power=power, efficiency=efficiency)
@@ -68,7 +71,9 @@ class Community:
             full_flex_task_min=no_full_flex_tasks_min, full_flex_task_max=0,
             semi_flex_task_min=no_semi_flex_tasks_min, semi_flex_task_max=0,
             fixed_task_min=no_fixed_tasks_min, fixed_task_max=0,
-            inconvenience_cost_weight=care_f_weight, max_care_factor=care_f_max,
+            inconvenience_cost_weight=care_f_weight,
+            par_cost_weight=par_c_weight,
+            max_care_factor=care_f_max,
             write_to_file_path=None, backup_file_path=None, date_time=None,
             capacity_max=battery_capacity_max, capacity_min=battery_capacity_min,
             power=battery_power, efficiency=battery_efficiency):
@@ -97,6 +102,7 @@ class Community:
                                                      fixed_task_min=fixed_task_min,
                                                      fixed_task_max=fixed_task_max,
                                                      inconvenience_cost_weight=inconvenience_cost_weight,
+                                                     par_cost_weight=par_cost_weight,
                                                      max_care_factor=max_care_factor,
                                                      household_id=h,
                                                      capacity_max=capacity_max,
@@ -179,7 +185,7 @@ class Community:
                  use_battery=False, battery_model=None, battery_solver=None,
                  num_cpus=None, timeout=time_out,
                  fully_charge_time=fully_charge_hour,
-                 print_upon_completion=False):
+                 print_upon_completion=False, par_cost_weight=par_c_weight):
 
         prices = self.__convert_price(prices)
 
@@ -216,25 +222,26 @@ class Community:
 
         aggregate_demand_profile2 = Aggregator.convert_demand_profile(Aggregator(), aggregate_demand_profile)
         max_demand = max(aggregate_demand_profile2)
-        par = max_demand/average(aggregate_demand_profile2)
+        weighted_par = par_cost_weight * max_demand/average(aggregate_demand_profile2)
         prices, total_cost \
             = aggregator_pricing.prices_and_cost(aggregate_demand_profile=aggregate_demand_profile2,
                                                  pricing_table=pricing_table,
                                                  cost_function=cost_function_type)
-        obj = total_cost + weighted_total_inconvenience + max_demand + p_par_weight * par
+        obj = total_cost + weighted_total_inconvenience + max_demand + weighted_par
 
         self.tracker.update(num_record=num_iteration,
                             penalty=weighted_total_inconvenience,
                             cost=total_cost,
                             run_time=time_scheduling_iteration,
                             demands=aggregate_demand_profile,
+                            par=weighted_par,
                             debugger=debugger_data,
                             battery_profile=aggregate_battery_profile)
 
         print(f"{num_iteration}. "
               f"Scheduling: "
               f"max {round(max_demand, 4)}, "
-              f"par {round(par, 4)}, "
+              f"w_par {round(weighted_par, 4)}, "
               f"obj {round(obj, 2)}, "
               f"cost {round(total_cost, 1)}, "
               f"incon {round(weighted_total_inconvenience, 2)}, "
@@ -301,7 +308,9 @@ class Community:
 
         return prices
 
-    def __existing_households(self, file_path, date_time=None, inconvenience_cost_weight=None,
+    def __existing_households(self, file_path, date_time=None,
+                              inconvenience_cost_weight=None,
+                              par_cost_weight=None,
                               num_dependent_tasks=None, ensure_dependent=False,
                               capacity_max=battery_capacity_max, capacity_min=battery_capacity_min,
                               power=battery_power, efficiency=battery_efficiency):
@@ -333,6 +342,8 @@ class Community:
             # update the inconvenience cost weight if applicable
             if inconvenience_cost_weight is not None:
                 household_details[h_incon_weight] = inconvenience_cost_weight
+            if par_cost_weight is not None:
+                household_details[p_par_weight] = par_cost_weight
 
             # update the battery size
             household_details[b_cap_max] = capacity_max

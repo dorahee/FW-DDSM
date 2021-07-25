@@ -24,7 +24,9 @@ class Iteration:
             full_flex_task_min=no_full_flex_tasks_min, full_flex_task_max=0,
             semi_flex_task_min=no_semi_flex_tasks_min, semi_flex_task_max=0,
             fixed_task_min=no_fixed_tasks_min, fixed_task_max=0,
-            inconvenience_cost_weight=care_f_weight, max_care_factor=care_f_max,
+            inconvenience_cost_weight=care_f_weight,
+            par_cost_weight=par_c_weight,
+            max_care_factor=care_f_max,
             data_folder=None, backup_data_folder=None,
             date_time=None,
             capacity_max=battery_capacity_max, capacity_min=battery_capacity_min,
@@ -53,7 +55,9 @@ class Iteration:
                                  full_flex_task_min=full_flex_task_min, full_flex_task_max=full_flex_task_max,
                                  semi_flex_task_min=semi_flex_task_min, semi_flex_task_max=semi_flex_task_max,
                                  fixed_task_min=fixed_task_min, fixed_task_max=fixed_task_max,
-                                 inconvenience_cost_weight=inconvenience_cost_weight, max_care_factor=max_care_factor,
+                                 inconvenience_cost_weight=inconvenience_cost_weight,
+                                 par_cost_weight=par_cost_weight,
+                                 max_care_factor=max_care_factor,
                                  write_to_file_path=data_folder, backup_file_path=backup_data_folder,
                                  date_time=date_time,
                                  capacity_max=capacity_max, capacity_min=capacity_min,
@@ -69,7 +73,8 @@ class Iteration:
 
         return preferred_demand_profile, prices
 
-    def read(self, algorithm, inconvenience_cost_weight=None, new_dependent_tasks=None, ensure_dependent=False,
+    def read(self, algorithm, inconvenience_cost_weight=None, par_cost_weight=None,
+             new_dependent_tasks=None, ensure_dependent=False,
              capacity_max=battery_capacity_max, capacity_min=battery_capacity_min, power=battery_power,
              efficiency=battery_efficiency,
              read_from_folder="data/", date_time=None):
@@ -83,6 +88,7 @@ class Iteration:
             = self.community.read(read_from_folder=read_from_folder,
                                   tasks_scheduling_method=self.tasks_scheduling_method,
                                   inconvenience_cost_weight=inconvenience_cost_weight,
+                                  par_cost_weight=par_cost_weight,
                                   capacity_max=capacity_max, capacity_min=capacity_min, power=power,
                                   efficiency=efficiency,
                                   num_dependent_tasks=new_dependent_tasks, ensure_dependent=ensure_dependent,
@@ -98,7 +104,7 @@ class Iteration:
                         use_battery=False, battery_model=None, battery_solver=None,
                         num_cpus=None, timeout=time_out, fully_charge_time=fully_charge_hour,
                         min_step_size=min_step, roundup_tiny_step=False,
-                        print_done=False, print_steps=False):
+                        print_done=False, print_steps=False, par_cost_weight=par_c_weight):
 
         scheduling_method = self.tasks_scheduling_method
         pricing_method = self.pricing_method
@@ -122,7 +128,8 @@ class Iteration:
                                           battery_model=battery_model, battery_solver=battery_solver,
                                           num_cpus=num_cpus, timeout=timeout,
                                           fully_charge_time=fully_charge_time,
-                                          print_upon_completion=print_done)
+                                          print_upon_completion=print_done,
+                                          par_cost_weight=par_cost_weight)
 
             prices, consumption_cost, inconvenience, obj, step, \
             new_aggregate_demand_profile, new_aggregate_battery_profile, time_pricing \
@@ -132,7 +139,8 @@ class Iteration:
                                           total_obj=total_obj,
                                           aggregate_inconvenience=weighted_total_inconvenience,
                                           min_step_size=min_step_size,
-                                          roundup_tiny_step=roundup_tiny_step, print_steps=print_steps)
+                                          roundup_tiny_step=roundup_tiny_step, print_steps=print_steps,
+                                          par_cost_weight=par_cost_weight)
 
             if num_iteration > 1:
                 obj_improve = obj_pre - obj

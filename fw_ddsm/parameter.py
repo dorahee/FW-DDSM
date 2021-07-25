@@ -31,6 +31,7 @@ pricing_table_weight = 1
 cost_function_type = "piece-wise"
 min_step = 0.0005
 roundup_step_digits = 1000
+par_c_weight = 100
 
 # tasks solver related parameters
 variable_selection = "smallest"
@@ -121,7 +122,7 @@ p_cost_reduction = "cost_reduction"
 p_prices = "prices"
 p_price_levels = "price_levels"
 p_demand_table = "demand_levels"
-p_par_weight = 100
+p_par_weight = "par_weight"
 
 # run time related
 t_time = "run_time"

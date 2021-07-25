@@ -19,13 +19,14 @@ algorithms[m_minizinc][m_after_fw] = f"{m_minizinc}_fw"
 
 num_households_range = [10]
 penalty_weight_range = [100]
+par_weight_range = [100]
 
 num_tasks_dependent_range = [3]
 num_full_flex_tasks = 0
 num_semi_flex_tasks = 6
 num_fixed_tasks = 0
 num_samples = 5
-num_repeat = 3
+num_repeat = 1
 id_job = 0
 
 # battery_usages = [True, False]
@@ -63,7 +64,8 @@ print_steps = False
 email_results = True
 
 
-def main(num_households, num_tasks_dependent, penalty_weight, out, new_data=True, num_cpus=None, job_id=0,
+def main(num_households, num_tasks_dependent, penalty_weight, par_weight,
+         out, new_data=True, num_cpus=None, job_id=0,
          use_battery=False, capacity_max=battery_capacity_max, capacity_min=battery_capacity_min,
          power=battery_power, efficiency=battery_efficiency,
          hour_fully_charge=fully_charge_hour, read_from_dt=read_from_date_time):
@@ -78,6 +80,7 @@ def main(num_households, num_tasks_dependent, penalty_weight, out, new_data=True
                 f"{num_semi_flex_tasks} semi-flexible tasks, " \
                 f"{num_fixed_tasks} fixed tasks, " \
                 f"{penalty_weight} penalty weight, " \
+                f"{par_weight} par weight, " \
                 f"read from {read_from_dt}. "
     print(param_str)
     print("----------------------------------------")
@@ -88,6 +91,7 @@ def main(num_households, num_tasks_dependent, penalty_weight, out, new_data=True
                                 num_dependent_tasks=num_tasks_dependent,
                                 num_full_flex_task_min=num_full_flex_tasks,
                                 num_semi_flex_task_min=num_semi_flex_tasks,
+                                par_cost_weight=par_weight,
                                 inconvenience_cost_weight=penalty_weight,
                                 folder_id=job_id,
                                 battery_size=int(use_battery)*capacity_max,
@@ -101,6 +105,7 @@ def main(num_households, num_tasks_dependent, penalty_weight, out, new_data=True
         experiment_tracker[num_experiment] = dict()
         experiment_tracker[num_experiment][k_households_no] = num_households
         experiment_tracker[num_experiment][k_penalty_weight] = penalty_weight
+        experiment_tracker[num_experiment][p_par_weight] = par_weight
         experiment_tracker[num_experiment][k_dependent_tasks_no] = num_tasks_dependent
         experiment_tracker[num_experiment][h_tasks_no_ff_min] = num_full_flex_tasks
         experiment_tracker[num_experiment][h_tasks_no_sf_min] = num_semi_flex_tasks
@@ -124,6 +129,7 @@ def main(num_households, num_tasks_dependent, penalty_weight, out, new_data=True
                                   semi_flex_task_min=num_semi_flex_tasks, semi_flex_task_max=0,
                                   fixed_task_min=num_fixed_tasks, fixed_task_max=0,
                                   inconvenience_cost_weight=penalty_weight,
+                                  par_cost_weight=par_weight,
                                   max_care_factor=care_f_max,
                                   data_folder=output_parent_folder,
                                   backup_data_folder=output_folder,
@@ -145,7 +151,9 @@ def main(num_households, num_tasks_dependent, penalty_weight, out, new_data=True
                 input_date_time = this_date_time
                 intput_parent_folder = output_parent_folder
             preferred_demand_profile, prices = \
-                new_iteration.read(algorithm=alg, inconvenience_cost_weight=penalty_weight,
+                new_iteration.read(algorithm=alg,
+                                   inconvenience_cost_weight=penalty_weight,
+                                   par_cost_weight=par_weight,
                                    new_dependent_tasks=num_tasks_dependent,
                                    ensure_dependent=ensure_dependent,
                                    read_from_folder=intput_parent_folder,
@@ -200,7 +208,7 @@ def main(num_households, num_tasks_dependent, penalty_weight, out, new_data=True
 
     print("----------------------------------------")
     print("Experiment is finished. ")
-    print(df_exp[[k_households_no, k_dependent_tasks_no, k_penalty_weight,
+    print(df_exp[[k_households_no, k_dependent_tasks_no, k_penalty_weight, p_par_weight,
                   m_algorithm, k_iteration_no, s_par_init, s_par,
                   s_demand_reduction, p_cost_reduction]])
 
@@ -256,25 +264,27 @@ if __name__ == '__main__':
             if read_from_date_time is not None:
                 new = False
             for w in penalty_weight_range:
-                for dt in num_tasks_dependent_range:
-                    for battery_use in battery_usages:
-                        for battery_size in battery_sizes:
-                            for battery_efficiency in battery_efficiencies:
-                                main(new_data=new,
-                                     num_households=h,
-                                     num_tasks_dependent=dt,
-                                     penalty_weight=w,
-                                     out=out1,
-                                     num_cpus=cpus_nums,
-                                     job_id=r,
-                                     use_battery=battery_use,
-                                     capacity_max=battery_size,
-                                     capacity_min=battery_min_capacity_rate,
-                                     power=battery_size,
-                                     efficiency=battery_efficiency,
-                                     hour_fully_charge=battery_fully_charged_hour,
-                                     read_from_dt=read_from_date_time)
-                                new = False
+                for w2 in par_weight_range:
+                    for dt in num_tasks_dependent_range:
+                        for battery_use in battery_usages:
+                            for battery_size in battery_sizes:
+                                for battery_efficiency in battery_efficiencies:
+                                    main(new_data=new,
+                                         num_households=h,
+                                         num_tasks_dependent=dt,
+                                         penalty_weight=w,
+                                         par_weight=w2,
+                                         out=out1,
+                                         num_cpus=cpus_nums,
+                                         job_id=r,
+                                         use_battery=battery_use,
+                                         capacity_max=battery_size,
+                                         capacity_min=battery_min_capacity_rate,
+                                         power=battery_size,
+                                         efficiency=battery_efficiency,
+                                         hour_fully_charge=battery_fully_charged_hour,
+                                         read_from_dt=read_from_date_time)
+                                    new = False
     # except Exception as e:
     #     print(e.args)
     #     print()

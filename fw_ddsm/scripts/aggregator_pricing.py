@@ -38,7 +38,7 @@ def find_step_size(num_iteration, pricing_method, pricing_table,
                    total_inconvenience_new, total_inconvenience_fw_pre,
                    total_obj_new, price_fw_pre, total_cost_fw_pre,
                    min_step_size=min_step, roundup_tiny_step=False, print_steps=False,
-                   obj_par=True,):
+                   obj_par=True,par_cost_weight=par_c_weight):
 
     def move_profile(demands_pre, demands_new, alpha):
         return [d_p + (d_n - d_p) * alpha for d_p, d_n in zip(demands_pre, demands_new)]
@@ -76,10 +76,10 @@ def find_step_size(num_iteration, pricing_method, pricing_table,
     aggregate_demand_profile_fw = aggregate_demand_profile_fw_pre[:]
     # print("pre : ", aggregate_demand_profile_fw)
     max_demand_pre = max(aggregate_demand_profile_fw)
-    par_pre = max_demand_pre / average(aggregate_demand_profile_fw)
-    total_obj_fw_pre = total_cost_fw_pre + total_inconvenience_fw_pre + max_demand_pre + p_par_weight * par_pre
+    par_pre = par_cost_weight * max_demand_pre / average(aggregate_demand_profile_fw)
+    total_obj_fw_pre = total_cost_fw_pre + total_inconvenience_fw_pre + max_demand_pre + par_pre
     print("-- pre       :", "max", round(max_demand_pre, 4), "par", round(par_pre, 4),
-          "obj", round(total_obj_fw_pre, 3), "incon", total_inconvenience_fw_pre)
+          "obj", round(total_obj_fw_pre, 3), "cost", round(total_cost_fw_pre, 4), "incon", total_inconvenience_fw_pre)
 
     step_size_fw = 0
     price_fw = price_fw_pre[:]
@@ -134,7 +134,8 @@ def find_step_size(num_iteration, pricing_method, pricing_table,
             = move_profile(aggregate_demand_profile_fw_pre, aggregate_demand_profile_new, step_size_fw_temp)
 
         # update the temporary PAR
-        par_fw_temp = max(aggregate_demand_profile_fw_temp) / average(aggregate_demand_profile_fw_temp)
+        par_fw_temp = par_cost_weight * \
+                      max(aggregate_demand_profile_fw_temp) / average(aggregate_demand_profile_fw_temp)
         max_demand_fw_temp = max(aggregate_demand_profile_fw_temp)
 
         # update the temporary prices and total cost using the updated aggregated demand profile
@@ -146,8 +147,7 @@ def find_step_size(num_iteration, pricing_method, pricing_table,
         total_inconvenience_fw_temp = total_inconvenience_fw_pre + step_size_fw_temp * change_of_inconvenience
 
         # update the temporary total objective
-        total_obj_fw_temp = total_cost_fw_temp + total_inconvenience_fw_temp + \
-                            p_par_weight * par_fw_temp + max_demand_fw_temp
+        total_obj_fw_temp = total_cost_fw_temp + total_inconvenience_fw_temp + par_fw_temp + max_demand_fw_temp
 
         # update the temporary change of obj
         change_of_obj_temp = total_obj_fw_temp - total_obj_fw
@@ -161,7 +161,7 @@ def find_step_size(num_iteration, pricing_method, pricing_table,
         if print_steps:
             print(f"--- {num_itrs}: "
                   f"max {round(max_demand_fw_temp)}, "
-                  f"par {round(par_fw_temp, 4)}, "
+                  f"w_par {round(par_fw_temp, 4)}, "
                   f"obj = {round(total_obj_fw_temp, 4)}, "
                   f"step {round(step_size_fw_temp, 4)}, "
                   f"cost = {round(total_cost_fw_temp, 4)}, "
@@ -181,7 +181,7 @@ def find_step_size(num_iteration, pricing_method, pricing_table,
         aggregate_battery_profile_fw = aggregate_battery_profile_new
         step_size_fw = 1
         max_demand_fw = max(aggregate_demand_profile_new)
-        par_fw = max_demand_fw / average(aggregate_demand_profile_new)
+        par_fw = par_cost_weight * max_demand_fw / average(aggregate_demand_profile_new)
         price_fw, total_cost_fw = prices_and_cost(aggregate_demand_profile=aggregate_demand_profile_new,
                                                   pricing_table=pricing_table,
                                                   cost_function=cost_function_type)
@@ -197,7 +197,7 @@ def find_step_size(num_iteration, pricing_method, pricing_table,
     print(f"{num_iteration}. "
           f"Pricing   : "
           f"max {round(max_demand_fw, 4)}, "
-          f"par {round(par_fw, 4)}, "
+          f"w_par {round(par_fw, 4)}, "
           f"obj {round(total_obj_fw, 3)}, "
           f"cost {round(total_cost_fw, 3)}, "
           f"incon {round(total_inconvenience_fw, 2)}, "
@@ -210,7 +210,8 @@ def find_step_size(num_iteration, pricing_method, pricing_table,
     # print(aggregate_demand_profile_fw)
 
     return aggregate_demand_profile_fw, aggregate_battery_profile_fw, \
-           step_size_fw, price_fw, total_cost_fw, total_inconvenience_fw, total_obj_fw, time_fw
+           step_size_fw, price_fw, total_cost_fw, total_inconvenience_fw, \
+           par_fw, total_obj_fw, time_fw
 
 
 def compute_start_time_probabilities(history_steps):
