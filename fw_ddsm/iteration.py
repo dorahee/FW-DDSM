@@ -112,7 +112,7 @@ class Iteration:
         step = 0.9
         obj_pre = 0
         obj_improve = 1
-        while step > 0.0005 and obj_improve > 0.001:
+        while step > 0.001 and obj_improve > 0.01:
             aggregate_demand_profile, aggregate_battery_profile, \
             weighted_total_inconvenience, time_scheduling_iteration, total_obj \
                 = self.community.schedule(num_iteration=num_iteration, prices=prices,
