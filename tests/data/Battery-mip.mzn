@@ -17,6 +17,7 @@ float: demand_limit = 9999999999.9;
 
 % price related
 array[INTERVALS] of float: prices;
+int: par_weight;
 
 % decision variables for the battery scheduling problem
 
@@ -96,14 +97,14 @@ constraint sum(i in INTERVALS)(battery_charge2[i] * battery_discharge2[i]) = 0;
 
 % objectives
 var float: cost = sum (i in INTERVALS) (demand[i] * prices[i]);
-var float: obj = cost + 100 * PAR + max_demand; %max_total_demand;
+var float: obj = cost + par_weight * PAR + max_demand; %max_total_demand;
 solve minimize obj;
 
-output [ "Cost = ",  show(cost), "\n",
-               "z = ", show(z), "\n",
-               "PAR = ", show(PAR), "\n",
-               "obj = ", show(obj), "\n",
-               "Max Demand = ", show(max(demand)), "\n",
-               "All Demand = ", show(demand), "\n",
-               "All Demand2 = ", show([demand2[i]/z | i in 1..num_intervals])
-               ] ;
+% output [ "Cost = ",  show(cost), "\n",
+%                "z = ", show(z), "\n",
+%                "PAR = ", show(PAR), "\n",
+%                "obj = ", show(obj), "\n",
+%                "Max Demand = ", show(max(demand)), "\n",
+%                "All Demand = ", show(demand), "\n",
+%                "All Demand2 = ", show([demand2[i]/z | i in 1..num_intervals])
+%                ] ;

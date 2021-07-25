@@ -204,7 +204,8 @@ def tasks_ogsa(objective_values, big_value, powers, durations, preferred_starts,
 
 
 def battery_mip(model_file, solver, existing_demands, capacity_max, capacity_min, power_max, efficiency,
-                prices, fully_charge_time=fully_charge_hour, num_intervals=no_intervals, timeout=time_out):
+                prices, par_cost_weight,
+                fully_charge_time=fully_charge_hour, num_intervals=no_intervals, timeout=time_out):
 
     def rotate_list(l_original, p):
         if p == 0:
@@ -228,6 +229,7 @@ def battery_mip(model_file, solver, existing_demands, capacity_max, capacity_min
     ins["max_power"] = power_max
     ins["efficiency"] = efficiency
     ins["fully_charge_hour"] = fully_charge_time
+    ins["par_weight"] = par_cost_weight
 
     # demands and prices
     # manipulate existing demands to start from the fully charged time

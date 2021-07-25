@@ -227,6 +227,7 @@ class Household:
         no_precedents = household[h_no_precs]
         max_demand = household[h_demand_limit]
         inconvenience_cost_weight = household[h_incon_weight]
+        par_cost_weight = household[p_par_weight]
 
         # preprocess data
         objective_values, big_value \
@@ -290,7 +291,8 @@ class Household:
                 h_psts: preferred_starts, s_starts: actual_starts,
                 s_penalty: weighted_penalty_household, t_time: time_scheduling_tasks}
 
-    def schedule_battery(self, household, existing_demands, prices, model=None, solver=None,
+    def schedule_battery(self, household, existing_demands, prices,
+                         model=None, solver=None,
                          num_intervals=no_intervals, fully_charge_time=fully_charge_hour,
                          print_upon_completion=False):
 
@@ -305,13 +307,14 @@ class Household:
         capacity_min = household[b_cap_min]
         power_max = household[b_power]
         efficiency = household[b_eff]
+        par_cost_weight = household[p_par_weight]
 
         # schedule the battery
         battery_profile, time_scheduling_battery \
             = household_scheduling.battery_mip(model_file=model, solver=solver, existing_demands=existing_demands,
                                                capacity_max=capacity_max, capacity_min=capacity_min,
                                                power_max=power_max, efficiency=efficiency,
-                                               prices=prices,
+                                               prices=prices, par_cost_weight=par_cost_weight,
                                                fully_charge_time=fully_charge_time,
                                                num_intervals=num_intervals, timeout=time_out)
 

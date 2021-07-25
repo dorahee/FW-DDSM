@@ -26,7 +26,7 @@ num_full_flex_tasks = 0
 num_semi_flex_tasks = 6
 num_fixed_tasks = 0
 num_samples = 5
-num_repeat = 1
+num_repeat = 5
 id_job = 0
 
 # battery_usages = [True, False]
