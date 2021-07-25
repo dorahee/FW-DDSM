@@ -60,6 +60,8 @@ def find_step_size(num_iteration, pricing_method, pricing_table,
                 dd = dn - dp
                 dl = find_ge(d_levels, dp) + 0.01 if dd > 0 else find_le(d_levels, dp) - 0.01
                 step = (dl - dp) / dd
+                if step < min_step_size:
+                    step = 1
             step_profile.append(step)
 
         step_size_incr = min(step_profile)
