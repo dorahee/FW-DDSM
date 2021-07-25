@@ -117,7 +117,7 @@ class Iteration:
         num_iteration = 1
         step = 0.9
         obj_pre = 0
-        obj_improve = 1
+        obj_improve = 1 + min_obj_incr
         while obj_improve > min_obj_incr:
             aggregate_demand_profile, aggregate_battery_profile, \
             weighted_total_inconvenience, time_scheduling_iteration, total_obj \
