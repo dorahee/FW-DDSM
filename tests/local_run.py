@@ -18,14 +18,14 @@ algorithms[m_minizinc][m_after_fw] = f"{m_minizinc}_fw"
 # algorithms[m_ogsa][m_after_fw] = f"{m_ogsa}_fw"
 
 num_households_range = [100]
-penalty_weight_range = [10]
+penalty_weight_range = [100]
 
 num_tasks_dependent_range = [3]
 num_full_flex_tasks = 0
 num_semi_flex_tasks = 6
 num_fixed_tasks = 0
 num_samples = 5
-num_repeat = 1
+num_repeat = 3
 id_job = 0
 
 # battery_usages = [True, False]
@@ -35,8 +35,9 @@ battery_fully_charged_hour = 0
 battery_max_capacity_rate = 5000
 battery_min_capacity_rate = 0
 battery_power_rate = 5000
-# battery_sizes = [2000, 4000, 6000, 8000, 10000, 0]
-battery_sizes = [4000]
+battery_sizes = [0, 2000, 4000, 6000, 8000, 10000]
+# battery_sizes = [6000, 8000, 10000]
+# battery_sizes = [4000]
 # battery_efficiencies = [1, 0.99, 0.97, 0.95, 0.9, 0.75, 0.5]
 battery_efficiencies = [1]
 
@@ -44,7 +45,7 @@ read_from_date_time = None
 # read_from_date_time = "2021-06-12_20-14-46"
 # read_from_date_time = "2021-06-13_17-06-35"
 # read_from_date_time = "2021-06-25_03-17-35"
-read_from_date_time = "2021-07-24_13-22-32"
+# read_from_date_time = "2021-07-24_18-01-32"
 name_exp = None
 
 cpus_nums = 128

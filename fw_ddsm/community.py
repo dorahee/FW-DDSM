@@ -209,14 +209,14 @@ class Community:
             = self.__retrieve_scheduling_results(results=results, num_iteration=num_iteration)
 
         aggregate_demand_profile = retrieved_results[s_demand]
-        max_demand = max(aggregate_demand_profile)
-        par = max_demand/average(aggregate_demand_profile)
         aggregate_battery_profile = retrieved_results[b_profile]
         weighted_total_inconvenience = retrieved_results[s_penalty]
         time_scheduling_iteration = retrieved_results[t_time]
         debugger_data = retrieved_results[s_debugger]
 
         aggregate_demand_profile2 = Aggregator.convert_demand_profile(Aggregator(), aggregate_demand_profile)
+        max_demand = max(aggregate_demand_profile2)
+        par = max_demand/average(aggregate_demand_profile2)
         prices, total_cost \
             = aggregator_pricing.prices_and_cost(aggregate_demand_profile=aggregate_demand_profile2,
                                                  pricing_table=pricing_table,
@@ -232,10 +232,11 @@ class Community:
                             battery_profile=aggregate_battery_profile)
 
         print(f"{num_iteration}. "
-              f"max = {round(max_demand, 6)}, "
-              f"par = {round(par, 6)}, "
-              f"obj {round(obj, 3)}, "
-              f"cost = {round(total_cost, 6)}, "
+              f"Scheduling: "
+              f"max {round(max_demand, 4)}, "
+              f"par {round(par, 4)}, "
+              f"obj {round(obj, 2)}, "
+              f"cost {round(total_cost, 1)}, "
               f"incon {round(weighted_total_inconvenience, 2)}, "
               f"using {tasks_scheduling_method}.")
 

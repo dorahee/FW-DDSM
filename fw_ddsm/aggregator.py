@@ -128,8 +128,7 @@ class Aggregator:
                 self.init_cost = consumption_cost
                 self.init_demand_max = max_demand
                 print(f"{num_iteration}. "
-                      f"Best step size {round(1, 6)}, "
-                      f"{0} iterations, "
+                      f"Initial   : "
                       f"max {max_demand}, "
                       f"par {round(par, 4)}, "
                       f"obj/cost {consumption_cost}, "
@@ -142,6 +141,7 @@ class Aggregator:
                               prices=prices, cost=consumption_cost, init_cost=self.init_cost)
         else:
             aggregate_demand_profile_fw_pre = self.tracker.data[s_demand][num_iteration - 1][:]
+            # print("read", num_iteration-1, aggregate_demand_profile_fw_pre)
             aggregate_battery_profile_fw_pre = self.tracker.data[b_profile][num_iteration - 1][:]
             inconvenience_fw_pre = self.tracker.data[s_penalty][num_iteration - 1]
             price_fw_pre = self.tracker.data[p_prices][num_iteration - 1][:]
@@ -168,12 +168,14 @@ class Aggregator:
                 print("obj fw > total_obj")
 
         if not finalising:
+            # print("new", num_iteration, new_aggregate_demand_profile)
             self.tracker.update(num_record=num_iteration, penalty=inconvenience,
                                 demands=new_aggregate_demand_profile,
                                 battery_profile=new_aggregate_battery_profile,
                                 init_demand_max=self.init_demand_max,
                                 prices=prices, cost=consumption_cost, init_cost=self.init_cost,
                                 run_time=time_pricing, step=step)
+            print("")
 
         return prices, consumption_cost, inconvenience, obj, step, \
                new_aggregate_demand_profile, new_aggregate_battery_profile, time_pricing

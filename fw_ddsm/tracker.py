@@ -22,7 +22,7 @@ class Tracker:
 
     def update(self, num_record, tracker_data=None, demands=None, prices=None, penalty=None,
                run_time=None, cost=None, step=None, init_demand_max=None, init_cost=None, tasks_starts=None,
-               battery_profile=None, obj_par=False, debugger=None):
+               battery_profile=None, obj_par=True, obj_max=True, debugger=None):
         obj = 0
         if tracker_data is None:
             tracker_data = self.data
@@ -42,6 +42,7 @@ class Tracker:
             obj += penalty2
         if demands is not None:
             demand_max = round(max(demands), 2)
+            obj += int(obj_max) * demand_max
             tracker_data[s_demand][num_record] = demands
             tracker_data[s_demand_max][num_record] = demand_max
             tracker_data[s_demand_total][num_record] = round(sum(demands), 2)

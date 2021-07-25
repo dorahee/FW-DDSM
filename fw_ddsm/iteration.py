@@ -136,7 +136,7 @@ class Iteration:
 
             if num_iteration > 1:
                 obj_improve = obj_pre - obj
-                print(obj_improve)
+                # print(obj_improve)
             obj_pre = obj
             num_iteration += 1
 
