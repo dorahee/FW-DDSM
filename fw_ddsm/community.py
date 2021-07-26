@@ -24,10 +24,14 @@ class Community:
         self.pricing_table = dict()
 
     def read(self, tasks_scheduling_method,
+             num_intervals=no_intervals,
              read_from_folder="data/",
              inconvenience_cost_weight=None,
              par_cost_weight=None,
              num_dependent_tasks=None, ensure_dependent=False,
+             use_battery=False, battery_model=file_mip_battery, battery_solver="gurobi",
+             timeout=time_out,
+             fully_charge_time=fully_charge_hour,
              capacity_max=battery_capacity_max, capacity_min=battery_capacity_min,
              power=battery_power, efficiency=battery_efficiency,
              date_time=None):
@@ -39,9 +43,13 @@ class Community:
         self.community_details = dict()
         self.community_details, self.preferred_demand_profile \
             = self.__existing_households(file_path=read_from_folder, date_time=date_time,
+                                         num_intervals=num_intervals,
                                          inconvenience_cost_weight=inconvenience_cost_weight,
                                          par_cost_weight=par_cost_weight,
                                          num_dependent_tasks=num_dependent_tasks, ensure_dependent=ensure_dependent,
+                                         use_battery=use_battery,
+                                         battery_model=battery_model, battery_solver=battery_solver,
+                                         timeout=timeout, fully_charge_time=fully_charge_time,
                                          capacity_max=capacity_max, capacity_min=capacity_min,
                                          power=power, efficiency=efficiency)
 
@@ -75,6 +83,9 @@ class Community:
             par_cost_weight=par_c_weight,
             max_care_factor=care_f_max,
             write_to_file_path=None, backup_file_path=None, date_time=None,
+            use_battery=False, battery_model=file_mip_battery, battery_solver="mip",
+            timeout=time_out,
+            fully_charge_time=fully_charge_hour,
             capacity_max=battery_capacity_max, capacity_min=battery_capacity_min,
             power=battery_power, efficiency=battery_efficiency):
 
@@ -105,6 +116,11 @@ class Community:
                                                      par_cost_weight=par_cost_weight,
                                                      max_care_factor=max_care_factor,
                                                      household_id=h,
+                                                     use_battery=use_battery,
+                                                     battery_model=battery_model,
+                                                     battery_solver=battery_solver,
+                                                     timeout=timeout,
+                                                     fully_charge_time=fully_charge_time,
                                                      capacity_max=capacity_max,
                                                      capacity_min=capacity_min,
                                                      power=power,
@@ -222,7 +238,7 @@ class Community:
 
         aggregate_demand_profile2 = Aggregator.convert_demand_profile(Aggregator(), aggregate_demand_profile)
         max_demand = max(aggregate_demand_profile2)
-        weighted_par = par_cost_weight * max_demand/average(aggregate_demand_profile2)
+        weighted_par = par_cost_weight * max_demand / average(aggregate_demand_profile2)
         prices, total_cost \
             = aggregator_pricing.prices_and_cost(aggregate_demand_profile=aggregate_demand_profile2,
                                                  pricing_table=pricing_table,
@@ -308,10 +324,14 @@ class Community:
 
         return prices
 
-    def __existing_households(self, file_path, date_time=None,
+    def __existing_households(self, file_path, num_intervals,
+                              date_time=None,
                               inconvenience_cost_weight=None,
                               par_cost_weight=None,
                               num_dependent_tasks=None, ensure_dependent=False,
+                              use_battery=False, battery_model=file_mip_battery, battery_solver="mip",
+                              timeout=time_out,
+                              fully_charge_time=fully_charge_hour,
                               capacity_max=battery_capacity_max, capacity_min=battery_capacity_min,
                               power=battery_power, efficiency=battery_efficiency):
         # ---------------------------------------------------------------------- #
@@ -326,18 +346,11 @@ class Community:
             community_details = pickle5.load(f)
         f.close()
         preferred_demand_profile = community_details.pop(s_demand)
+        if use_battery and capacity_max > 0:
+            preferred_demand_profile = [0] * num_intervals
 
         # read the details of each household
         for key, household_details in community_details.items():
-
-            # create a tracker for each household to record the schedule/profile at each iteration
-            household_tracker = Tracker()
-            household_tracker.new()
-            household_tracker.update(num_record=0, tasks_starts=household_details[h_psts],
-                                     demands=household_details[s_demand],
-                                     penalty=0,
-                                     battery_profile=household_details[b_profile])
-            household_details[k_tracker] = household_tracker
 
             # update the inconvenience cost weight if applicable
             if inconvenience_cost_weight is not None:
@@ -351,6 +364,23 @@ class Community:
             household_details[b_power] = power
             household_details[b_eff] = efficiency
 
+            if use_battery and capacity_max > 0:
+                prices = [0] * num_intervals
+                tasks_demand_profile = household_details[s_demand]
+                battery_profile, time = \
+                    household_scheduling.battery_mip(battery_model, battery_solver, tasks_demand_profile,
+                                                     capacity_max,
+                                                     capacity_min, power, efficiency,
+                                                     prices, par_cost_weight,
+                                                     fully_charge_time=fully_charge_time,
+                                                     num_intervals=num_intervals,
+                                                     timeout=timeout)
+                household_details[b_profile] = battery_profile
+                household_demand_profile = [x + y for x, y in zip(tasks_demand_profile, battery_profile)]
+                household_details[s_demand] = household_demand_profile
+                preferred_demand_profile = [x + y for x, y in zip(household_demand_profile, preferred_demand_profile)]
+                # print("Battery rescheduled", capacity_max)
+
             # generate new dependent tasks for this household if applicable
             if num_dependent_tasks is not None:
                 num_intervals = len(household_details[s_demand])
@@ -361,14 +391,23 @@ class Community:
                 latest_ends = household_details[h_lfs]
                 no_precedences, precedors, succ_delays \
                     = household_generation.new_dependent_tasks(
-                        num_intervals=num_intervals, num_tasks_dependent=num_dependent_tasks,
-                        ensure_dependent=ensure_dependent,
-                        num_total_tasks=num_total_tasks,
-                        preferred_starts=preferred_starts, durations=durations, earliest_starts=earliest_starts,
-                        latest_ends=latest_ends)
+                    num_intervals=num_intervals, num_tasks_dependent=num_dependent_tasks,
+                    ensure_dependent=ensure_dependent,
+                    num_total_tasks=num_total_tasks,
+                    preferred_starts=preferred_starts, durations=durations, earliest_starts=earliest_starts,
+                    latest_ends=latest_ends)
                 household_details[h_no_precs] = no_precedences
                 household_details[h_precs] = precedors.copy()
                 household_details[h_succ_delay] = succ_delays.copy()
+
+            # create a tracker for each household to record the schedule/profile at each iteration
+            household_tracker = Tracker()
+            household_tracker.new()
+            household_tracker.update(num_record=0, tasks_starts=household_details[h_psts],
+                                     demands=household_details[s_demand],
+                                     penalty=0,
+                                     battery_profile=household_details[b_profile])
+            household_details[k_tracker] = household_tracker
 
             # save the existing household details
             community_details[key] = household_details.copy()

@@ -100,11 +100,11 @@ var float: cost = sum (i in INTERVALS) (demand[i] * prices[i]);
 var float: obj = cost + par_weight * PAR + max_demand; %max_total_demand;
 solve minimize obj;
 
-% output [ "Cost = ",  show(cost), "\n",
-%                "z = ", show(z), "\n",
-%                "PAR = ", show(PAR), "\n",
-%                "obj = ", show(obj), "\n",
-%                "Max Demand = ", show(max(demand)), "\n",
+output [ "Cost = ",  show(cost), "\n",
+               "z = ", show(z), "\n",
+               "PAR = ", show(PAR), "\n",
+               "obj = ", show(obj), "\n",
+               "Max Demand = ", show(max(demand)), "\n",
 %                "All Demand = ", show(demand), "\n",
 %                "All Demand2 = ", show([demand2[i]/z | i in 1..num_intervals])
-%                ] ;
+               ] ;

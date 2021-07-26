@@ -132,6 +132,7 @@ class Aggregator:
                       f"max {max_demand}, "
                       f"w_par {round(par, 4)}, "
                       f"obj/cost {obj}, "
+                      f"total {sum(new_aggregate_demand_profile)}, "
                       f"using {self.pricing_method}")
 
             self.final.update(num_record=num_iteration, penalty=inconvenience,

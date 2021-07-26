@@ -29,6 +29,11 @@ class Iteration:
             max_care_factor=care_f_max,
             data_folder=None, backup_data_folder=None,
             date_time=None,
+            use_battery=False,
+
+            battery_model=None, battery_solver=None,
+            timeout=time_out,
+            fully_charge_time=fully_charge_hour,
             capacity_max=battery_capacity_max, capacity_min=battery_capacity_min,
             power=battery_power, efficiency=battery_efficiency):
 
@@ -60,6 +65,10 @@ class Iteration:
                                  max_care_factor=max_care_factor,
                                  write_to_file_path=data_folder, backup_file_path=backup_data_folder,
                                  date_time=date_time,
+                                 use_battery=use_battery,
+                                 battery_model=battery_model, battery_solver=battery_solver,
+                                 timeout=timeout,
+                                 fully_charge_time=fully_charge_time,
                                  capacity_max=capacity_max, capacity_min=capacity_min,
                                  power=power, efficiency=efficiency
                                  )
@@ -75,9 +84,13 @@ class Iteration:
 
     def read(self, algorithm, inconvenience_cost_weight=None, par_cost_weight=None,
              new_dependent_tasks=None, ensure_dependent=False,
+             use_battery=False,
+             battery_model=file_mip_battery, battery_solver="gurobi",
+             timeout=time_out,
+             fully_charge_time=fully_charge_hour,
              capacity_max=battery_capacity_max, capacity_min=battery_capacity_min, power=battery_power,
              efficiency=battery_efficiency,
-             read_from_folder="data/", date_time=None):
+             read_from_folder="data/", num_intervals=no_intervals, date_time=None):
 
         if read_from_folder is None:
             read_from_folder = self.data_folder
@@ -86,9 +99,14 @@ class Iteration:
         self.pricing_method = algorithm[m_after_fw]
         preferred_demand_profile \
             = self.community.read(read_from_folder=read_from_folder,
+                                  num_intervals=num_intervals,
                                   tasks_scheduling_method=self.tasks_scheduling_method,
                                   inconvenience_cost_weight=inconvenience_cost_weight,
                                   par_cost_weight=par_cost_weight,
+                                  use_battery=use_battery,
+                                  battery_model=battery_model, battery_solver=battery_solver,
+                                  timeout=timeout,
+                                  fully_charge_time=fully_charge_time,
                                   capacity_max=capacity_max, capacity_min=capacity_min, power=power,
                                   efficiency=efficiency,
                                   num_dependent_tasks=new_dependent_tasks, ensure_dependent=ensure_dependent,

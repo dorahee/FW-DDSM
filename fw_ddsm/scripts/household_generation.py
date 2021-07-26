@@ -1,6 +1,7 @@
 import random as r
 from numpy import sqrt, pi, random
 from fw_ddsm.parameter import *
+from fw_ddsm.scripts import household_scheduling
 
 
 def new_task(
@@ -121,10 +122,13 @@ def new_household(
         par_cost_weight=par_c_weight,
         max_care_factor=care_f_max,
         household_id=0,
+
+        use_battery=False, battery_model=None, battery_solver=None,
+        timeout=time_out,
+        fully_charge_time=fully_charge_hour,
         capacity_max=battery_capacity_max, capacity_min=battery_capacity_min,
         power=battery_power, efficiency=battery_efficiency
 ):
-
     pst_probabilities = [int(p) for p in preferred_demand_profile]
     sum_pst_probabilities = sum(pst_probabilities)
     pst_probabilities = [p / sum_pst_probabilities for p in pst_probabilities]
@@ -140,7 +144,7 @@ def new_household(
     durations = []
     powers = []
     care_factors = []
-    household_demand_profile = [0] * num_intervals
+    tasks_demand_profile = [0] * num_intervals
 
     # new tasks in a household
     def get_new_tasks(num_tasks, scheduling_window_width):
@@ -159,7 +163,7 @@ def new_household(
             care_factors.append(care_f)
             # add this task demand to the household demand
             for d in range(duration):
-                household_demand_profile[(p_start + d) % num_intervals] += demand
+                tasks_demand_profile[(p_start + d) % num_intervals] += demand
 
     fixed_task_max = max(fixed_task_max, fixed_task_min)
     semi_flex_task_max = max(semi_flex_task_max, semi_flex_task_min)
@@ -200,7 +204,7 @@ def new_household(
     household[h_demand_limit] = maximum_demand
     household[h_incon_weight] = inconvenience_cost_weight
     household[p_par_weight] = par_cost_weight
-    household[s_demand] = household_demand_profile
+    household[s_demand] = tasks_demand_profile
 
     # save the battery details
     household[b_cap_max] = capacity_max
@@ -208,6 +212,19 @@ def new_household(
     household[b_power] = power
     household[b_profile] = [0] * num_intervals
     household[b_eff] = efficiency
+
+    if use_battery and capacity_max > 0:
+        prices = [0] * num_intervals
+        battery_profile, time = \
+            household_scheduling.battery_mip(battery_model, battery_solver, tasks_demand_profile, capacity_max,
+                                             capacity_min, power, efficiency,
+                                             prices, par_cost_weight,
+                                             fully_charge_time=fully_charge_time, num_intervals=num_intervals,
+                                             timeout=timeout)
+        household[b_profile] = battery_profile
+        household_demand_profile = [x + y for x, y in zip(tasks_demand_profile, battery_profile)]
+        household[s_demand] = household_demand_profile
+        # print("Battery scheduled", capacity_max)
 
     # return the household details
     return household
