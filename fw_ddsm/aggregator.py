@@ -131,9 +131,9 @@ class Aggregator:
                 self.init_demand_max = max_demand
                 print(f"{num_iteration}. "
                       f"Pricing   : "
-                      f"max {max_demand}, "
-                      f"w_par {round(par, 4)}, "
-                      f"obj {round(obj, 4)}, "
+                      f"max {round(max_demand, 3)}, "
+                      f"w_par {round(par, 3)}, "
+                      f"obj {round(obj, 3)}, "
                       f"cost {consumption_cost}, "
                       f"total {sum(new_aggregate_demand_profile)}, "
                       f"using {self.pricing_method}")
