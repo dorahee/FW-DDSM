@@ -256,11 +256,11 @@ class Community:
 
         print(f"{num_iteration}. "
               f"Scheduling: "
-              f"max {round(max_demand, 4)}, "
-              f"w_par {round(weighted_par, 4)}, "
-              f"obj {round(obj, 2)}, "
+              f"max {round(max_demand, 3)}, "
+              f"w_par {round(weighted_par, 3)}, "
+              f"obj {round(obj, 3)}, "
               f"cost {round(total_cost, 1)}, "
-              f"incon {round(weighted_total_inconvenience, 2)}, "
+              f"incon {round(weighted_total_inconvenience, 3)}, "
               f"using {tasks_scheduling_method}.")
 
         return aggregate_demand_profile, aggregate_battery_profile, \

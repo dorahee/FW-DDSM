@@ -80,8 +80,9 @@ def find_step_size(num_iteration, pricing_method, pricing_table,
     max_demand_pre = max(aggregate_demand_profile_fw)
     par_pre = par_cost_weight * max_demand_pre / average(aggregate_demand_profile_fw)
     total_obj_fw_pre = total_cost_fw_pre + total_inconvenience_fw_pre + max_demand_pre + par_pre
-    print("-- pre       :", "max", round(max_demand_pre, 4), ", w_par", round(par_pre, 4),
-          ", obj", round(total_obj_fw_pre, 3), ", cost", round(total_cost_fw_pre, 4), ", incon", total_inconvenience_fw_pre)
+    print("-- pre       :", "max", round(max_demand_pre, 3), ", w_par", round(par_pre, 3),
+          ", obj", round(total_obj_fw_pre, 3), ", cost", round(total_cost_fw_pre, 3),
+          ", incon", total_inconvenience_fw_pre)
 
     step_size_fw = 0
     price_fw = price_fw_pre[:]
