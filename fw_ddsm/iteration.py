@@ -73,7 +73,8 @@ class Iteration:
                                  power=power, efficiency=efficiency
                                  )
 
-        prices = self.aggregator.new_aggregator(normalised_pricing_table_csv=file_normalised_pricing_table,
+        consumption_cost, prices \
+            = self.aggregator.new_aggregator(normalised_pricing_table_csv=file_normalised_pricing_table,
                                              aggregate_preferred_demand_profile=preferred_demand_profile,
                                              pricing_method=self.pricing_method,
                                              write_to_file_path=data_folder, backup_file_path=backup_data_folder,
@@ -110,6 +111,7 @@ class Iteration:
                                   efficiency=efficiency,
                                   num_dependent_tasks=new_dependent_tasks, ensure_dependent=ensure_dependent,
                                   date_time=date_time)
+        consumption_cost, \
         prices = self.aggregator.read_aggregator(read_from_folder=read_from_folder, date_time=date_time,
                                               pricing_method=self.pricing_method,
                                               aggregate_preferred_demand_profile=preferred_demand_profile)
@@ -130,10 +132,10 @@ class Iteration:
             battery_model = file_mip_battery if battery_model is None else battery_model
             battery_solver = "mip" if battery_solver is None else battery_solver
 
-        num_iteration = 0
+        num_iteration = 1
         obj_pre = 0
         obj_improve = 1 + min_obj_incr
-        while obj_improve > min_obj_incr:
+        while obj_improve > min_obj_incr or num_iteration < 2:
             aggregate_demand_profile, aggregate_battery_profile, \
             weighted_total_inconvenience, time_scheduling_iteration, total_obj \
                 = self.community.schedule(num_iteration=num_iteration, prices=prices,

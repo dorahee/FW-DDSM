@@ -1,0 +1,3 @@
+,no_households,penalty_weight,par_weight,no_dependent_tasks,no_fully_flexible_tasks_min,no_semi_flexible_tasks_min,no_fixed_tasks_min,algorithm,id,battery_capacity_max,battery_capacity_min,battery_power,battery_efficiency,no_iterations,init_PAR,PAR,init_max_demand,max_demand,total_demand,demand_reduction,cost_reduction,inconvenient,cost,objective,pricing_time,rescheduling_time
+0,10,100,10,3,0,5,3,minizinc_fw,0,0,0,0,1,7,262.2847773832076,262.2847773832076,22020.0,15999.7,292806.0,0.27,0.09,4683.7,4113333.29,4134278.9747773837,0.002275,8.065
+1,10,100,10,3,0,5,3,minizinc_fw,0,2000,0,2000,1,7,185.34664150168683,185.34664150168683,22020.0,11306.38,292806.0,0.49,0.09,1352.52,4099284.64,4112128.886641502,0.0022500000000000003,8.4675

@@ -38,15 +38,14 @@ class Aggregator:
                                     aggregate_preferred_demand_profile=aggregate_preferred_demand_profile)
         print("0. Aggregator is read. ")
 
+        prices, consumption_cost, inconvenience, obj, step, \
+        new_aggregate_demand_profile, new_aggregate_battery_profile,time_pricing \
+            = self.pricing(num_iteration=0,
+                           aggregate_demand_profile=aggregate_preferred_demand_profile,
+                           aggregate_battery_profile=[0] * len(aggregate_preferred_demand_profile),
+                           aggregate_inconvenience=0)
         prices = [0] * len(aggregate_preferred_demand_profile)
-
-        # prices, consumption_cost, inconvenience, obj, step, \
-        # new_aggregate_demand_profile, new_aggregate_battery_profile,time_pricing \
-        #     = self.pricing(num_iteration=0,
-        #                    aggregate_demand_profile=aggregate_preferred_demand_profile,
-        #                    aggregate_battery_profile=[0] * len(aggregate_preferred_demand_profile),
-        #                    aggregate_inconvenience=0)
-        return prices
+        return consumption_cost, prices
 
     def new_aggregator(self, normalised_pricing_table_csv, aggregate_preferred_demand_profile, pricing_method,
                        max_scale=0, num_periods=no_periods, weight=pricing_table_weight,
@@ -72,15 +71,14 @@ class Aggregator:
             self.write_to_file(folder=backup_file_path, date_time=date_time)
         print("0. Aggregator is created. ")
 
+        prices, consumption_cost, inconvenience, obj, step, \
+        new_aggregate_demand_profile, new_aggregate_battery_profile, time_pricing \
+            = self.pricing(num_iteration=0,
+                           aggregate_demand_profile=aggregate_preferred_demand_profile,
+                           aggregate_battery_profile=[0] * len(aggregate_preferred_demand_profile),
+                           aggregate_inconvenience=0)
         prices = [0] * num_periods
-
-        # prices, consumption_cost, inconvenience, obj, step, \
-        # new_aggregate_demand_profile, new_aggregate_battery_profile, time_pricing \
-        #     = self.pricing(num_iteration=0,
-        #                    aggregate_demand_profile=aggregate_preferred_demand_profile,
-        #                    aggregate_battery_profile=[0] * len(aggregate_preferred_demand_profile),
-        #                    aggregate_inconvenience=0)
-        return prices
+        return consumption_cost, prices
 
     def write_to_file(self, folder, date_time=None):
         if not folder.endswith("/"):
@@ -120,7 +118,7 @@ class Aggregator:
         new_aggregate_battery_profile = aggregate_battery_profile[:]
         time_pricing = 0
 
-        if num_iteration == 0 or finalising:
+        if num_iteration < 2 or finalising:
             prices, consumption_cost \
                 = aggregator_pricing.prices_and_cost(pricing_table=self.pricing_table,
                                                      aggregate_demand_profile=aggregate_demand_profile,
@@ -128,14 +126,14 @@ class Aggregator:
             max_demand = max(new_aggregate_demand_profile)
             par = par_cost_weight * max_demand/average(new_aggregate_demand_profile)
             obj = consumption_cost + max_demand + par
-            if num_iteration == 0:
+            if num_iteration < 2:
                 self.init_cost = consumption_cost
                 self.init_demand_max = max_demand
                 print(f"{num_iteration}. "
-                      f"Initial   : "
+                      f"Pricing   : "
                       f"max {max_demand}, "
                       f"w_par {round(par, 4)}, "
-                      f"obj {obj}, "
+                      f"obj {round(obj, 4)}, "
                       f"cost {consumption_cost}, "
                       f"total {sum(new_aggregate_demand_profile)}, "
                       f"using {self.pricing_method}")
