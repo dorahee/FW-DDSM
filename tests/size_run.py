@@ -183,6 +183,7 @@ def main(num_households, num_tasks_dependent, penalty_weight, par_weight,
         # 2. iteration begins
         start_time_probability, num_iterations = \
             new_iteration.begin_iteration(starting_prices=prices,
+                                          par_cost_weight=par_weight,
                                           use_battery=use_battery,
                                           battery_solver=battery_solver_choice,
                                           num_cpus=num_cpus,

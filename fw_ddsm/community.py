@@ -72,7 +72,7 @@ class Community:
         return self.preferred_demand_profile
 
     def new(self, file_preferred_demand_profile, file_demand_list,
-            tasks_scheduling_method,
+            tasks_scheduling_method,par_cost_weight,
             num_intervals=no_intervals, num_households=no_households,
             max_demand_multiplier=maximum_demand_multiplier,
             num_tasks_dependent=no_tasks_dependent, ensure_dependent=False,
@@ -80,7 +80,6 @@ class Community:
             semi_flex_task_min=no_semi_flex_tasks_min, semi_flex_task_max=0,
             fixed_task_min=no_fixed_tasks_min, fixed_task_max=0,
             inconvenience_cost_weight=care_f_weight,
-            par_cost_weight=par_c_weight,
             max_care_factor=care_f_max,
             write_to_file_path=None, backup_file_path=None, date_time=None,
             # use_battery=False, battery_model=file_mip_battery, battery_solver="mip",
@@ -196,12 +195,13 @@ class Community:
 
     def schedule(self, num_iteration, prices, pricing_table,
                  tasks_scheduling_method,
+                 par_cost_weight,
                  community_details=None, num_intervals=None,
                  model=None, solver=None, search=None,
                  use_battery=False, battery_model=None, battery_solver=None,
                  num_cpus=None, timeout=time_out,
                  fully_charge_time=fully_charge_hour,
-                 print_upon_completion=False, par_cost_weight=par_c_weight):
+                 print_upon_completion=False):
 
         prices = self.__convert_price(prices)
 

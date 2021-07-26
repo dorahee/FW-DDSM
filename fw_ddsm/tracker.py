@@ -11,6 +11,7 @@ class Tracker:
 
     def new(self, name=""):
         self.name = name
+        # self.par_weight = par_cost_weight
 
         for key in [s_starts, s_demand, s_demand_max, s_demand_total, s_demand_reduction, s_par,
                     s_penalty, s_obj, p_prices, p_cost, p_cost_reduction, p_step, t_time, b_profile, s_debugger]:
@@ -19,6 +20,7 @@ class Tracker:
     def read(self, existing_tracker):
         self.data = dict()
         self.data = existing_tracker.copy()
+        # self.par_weight = par_cost_weight
 
     def update(self, num_record, tracker_data=None, demands=None, prices=None, penalty=None, par=None,
                run_time=None, cost=None, step=None, init_demand_max=None, init_cost=None, tasks_starts=None,
@@ -49,7 +51,7 @@ class Tracker:
             if par is None:
                 par = round(demand_max / average(demands), 2)
                 tracker_data[s_par][num_record] = par
-                obj += int(obj_par) * par * par_c_weight
+                obj += int(obj_par) * par
             else:
                 tracker_data[s_par] = par
                 obj += int(obj_par) * par

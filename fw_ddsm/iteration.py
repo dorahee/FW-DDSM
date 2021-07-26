@@ -16,7 +16,7 @@ class Iteration:
         self.data_folder = "data/"
         self.start_time_probability = [1] * no_periods
 
-    def new(self, algorithm, num_households,
+    def new(self, algorithm, num_households, par_cost_weight,
             num_intervals=no_intervals,
             file_task_power=file_demand_list, max_demand_multiplier=maximum_demand_multiplier,
             file_normalised_pricing_table=file_pricing_table, file_preferred_demand_profile=file_pdp,
@@ -25,7 +25,6 @@ class Iteration:
             semi_flex_task_min=no_semi_flex_tasks_min, semi_flex_task_max=0,
             fixed_task_min=no_fixed_tasks_min, fixed_task_max=0,
             inconvenience_cost_weight=care_f_weight,
-            par_cost_weight=par_c_weight,
             max_care_factor=care_f_max,
             data_folder=None, backup_data_folder=None,
             date_time=None,
@@ -78,11 +77,12 @@ class Iteration:
                                              aggregate_preferred_demand_profile=preferred_demand_profile,
                                              pricing_method=self.pricing_method,
                                              write_to_file_path=data_folder, backup_file_path=backup_data_folder,
-                                             date_time=date_time)
+                                             date_time=date_time,
+                                             par_cost_weight=par_cost_weight)
 
         return preferred_demand_profile, prices
 
-    def read(self, algorithm, inconvenience_cost_weight=None, par_cost_weight=None,
+    def read(self, algorithm, par_cost_weight, inconvenience_cost_weight=None,
              new_dependent_tasks=None, ensure_dependent=False,
              use_battery=False,
              battery_model=file_mip_battery, battery_solver="gurobi",
@@ -112,17 +112,18 @@ class Iteration:
                                   num_dependent_tasks=new_dependent_tasks, ensure_dependent=ensure_dependent,
                                   date_time=date_time)
         consumption_cost, \
-        prices = self.aggregator.read_aggregator(read_from_folder=read_from_folder, date_time=date_time,
+        prices = self.aggregator.read_aggregator(read_from_folder=read_from_folder,
+                                                 par_cost_weight=par_cost_weight, date_time=date_time,
                                               pricing_method=self.pricing_method,
                                               aggregate_preferred_demand_profile=preferred_demand_profile)
 
         return preferred_demand_profile, prices
 
-    def begin_iteration(self, starting_prices, min_obj_incr,
+    def begin_iteration(self, starting_prices, min_obj_incr, par_cost_weight,
                         use_battery=False, battery_model=None, battery_solver=None,
                         num_cpus=None, timeout=time_out, fully_charge_time=fully_charge_hour,
                         min_step_size=min_step, roundup_tiny_step=False,
-                        print_done=False, print_steps=False, par_cost_weight=par_c_weight):
+                        print_done=False, print_steps=False):
 
         scheduling_method = self.tasks_scheduling_method
         pricing_method = self.pricing_method
@@ -170,7 +171,8 @@ class Iteration:
         self.start_time_probability = self.aggregator.compute_start_time_probabilities()
         return self.start_time_probability, num_iteration - 1
 
-    def finalise_schedules(self, start_time_probability=None, tasks_scheduling_method=None, num_samples=1):
+    def finalise_schedules(self, par_cost_weight,
+                           start_time_probability=None, tasks_scheduling_method=None, num_samples=1):
         if tasks_scheduling_method is None:
             tasks_scheduling_method = self.tasks_scheduling_method
         if start_time_probability is None:
@@ -183,6 +185,7 @@ class Iteration:
             prices, consumption_cost, inconvenience, obj, step, \
             new_aggregate_demand_profile, new_aggregate_battery_profile, time_pricing \
                 = self.aggregator.pricing(num_iteration=i,
+                                          par_cost_weight=par_cost_weight,
                                           aggregate_demand_profile=final_aggregate_demand_profile,
                                           aggregate_battery_profile=final_battery_profile,
                                           aggregate_inconvenience=final_total_inconvenience,

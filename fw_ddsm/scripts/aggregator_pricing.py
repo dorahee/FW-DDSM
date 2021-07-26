@@ -32,13 +32,13 @@ def prices_and_cost(aggregate_demand_profile, pricing_table, cost_function=cost_
     return prices, consumption_cost
 
 
-def find_step_size(num_iteration, pricing_method, pricing_table,
+def find_step_size(num_iteration, pricing_method, pricing_table, par_cost_weight,
                    aggregate_demand_profile_new, aggregate_demand_profile_fw_pre,
                    aggregate_battery_profile_new, aggregate_battery_profile_fw_pre,
                    total_inconvenience_new, total_inconvenience_fw_pre,
                    total_obj_new, price_fw_pre, total_cost_fw_pre,
                    min_step_size=min_step, roundup_tiny_step=False, print_steps=False,
-                   obj_par=True,par_cost_weight=par_c_weight):
+                   obj_par=True):
 
     def move_profile(demands_pre, demands_new, alpha):
         return [d_p + (d_n - d_p) * alpha for d_p, d_n in zip(demands_pre, demands_new)]

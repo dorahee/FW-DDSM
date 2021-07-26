@@ -36,8 +36,8 @@ class Output:
             self.output_parent_folder = f"{self.output_root_folder}{self.this_date_time}/"
 
     def new_output_folder(self,
+                          par_cost_weight,
                           num_households=no_households,
-                          par_cost_weight=par_c_weight,
                           inconvenience_cost_weight=care_f_weight,
                           num_dependent_tasks=no_tasks_dependent,
                           num_full_flex_task_min=no_full_flex_tasks_min,

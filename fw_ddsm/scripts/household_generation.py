@@ -111,7 +111,7 @@ def new_dependent_tasks(num_intervals, num_tasks_dependent, num_total_tasks,
 
 
 def new_household(
-        preferred_demand_profile, list_of_devices_power,
+        preferred_demand_profile, list_of_devices_power, par_cost_weight,
         num_intervals=no_intervals, num_periods=no_periods, num_intervals_periods=no_intervals_periods,
         max_demand_multiplier=maximum_demand_multiplier,
         num_tasks_dependent=no_tasks_dependent, ensure_dependent=False,
@@ -119,7 +119,6 @@ def new_household(
         semi_flex_task_min=no_semi_flex_tasks_min, semi_flex_task_max=0,
         fixed_task_min=no_fixed_tasks_min, fixed_task_max=0,
         inconvenience_cost_weight=care_f_weight,
-        par_cost_weight=par_c_weight,
         max_care_factor=care_f_max,
         household_id=0,
 

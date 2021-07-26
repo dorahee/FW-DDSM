@@ -17,9 +17,9 @@ algorithms[m_minizinc][m_after_fw] = f"{m_minizinc}_fw"
 # algorithms[m_ogsa][m_before_fw] = m_ogsa
 # algorithms[m_ogsa][m_after_fw] = f"{m_ogsa}_fw"
 
-num_households_range = [10]
+num_households_range = [5]
 penalty_weight_range = [100]
-par_weight_range = [10]
+par_weight_range = [1]
 
 num_tasks_dependent_range = [3]
 num_full_flex_tasks = 0
@@ -36,8 +36,8 @@ battery_fully_charged_hour = 0
 battery_max_capacity_rate = 5000
 battery_min_capacity_rate = 0
 battery_power_rate = 5000
-battery_sizes = [0, 2000, 4000, 6000, 8000, 10000]
-# battery_sizes = [6000, 8000, 10000]
+# battery_sizes = [0, 2000, 4000, 6000, 8000, 10000]
+battery_sizes = [6000, 8000, 10000]
 # battery_sizes = [4000]
 # battery_efficiencies = [1, 0.99, 0.97, 0.95, 0.9, 0.75, 0.5]
 battery_efficiencies = [1]
@@ -183,6 +183,7 @@ def main(num_households, num_tasks_dependent, penalty_weight, par_weight,
         # 2. iteration begins
         start_time_probability, num_iterations = \
             new_iteration.begin_iteration(starting_prices=prices,
+                                          par_cost_weight=par_weight,
                                           use_battery=use_battery,
                                           battery_solver=battery_solver_choice,
                                           num_cpus=num_cpus,
@@ -196,6 +197,7 @@ def main(num_households, num_tasks_dependent, penalty_weight, par_weight,
 
         # 3. finalising schedules
         new_iteration.finalise_schedules(num_samples=num_samples,
+                                         par_cost_weight=par_weight,
                                          start_time_probability=start_time_probability)
 
         # 4. preparing plots and writing results to CSVs

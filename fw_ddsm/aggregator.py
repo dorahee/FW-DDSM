@@ -24,7 +24,7 @@ class Aggregator:
         self.init_cost = 0
         self.preferred_demand_profile = []
 
-    def read_aggregator(self, pricing_method, aggregate_preferred_demand_profile,
+    def read_aggregator(self, pricing_method, aggregate_preferred_demand_profile, par_cost_weight,
                         read_from_folder="data/", date_time=None):
         self.pricing_table = dict()
         self.pricing_method = pricing_method
@@ -41,6 +41,7 @@ class Aggregator:
         prices, consumption_cost, inconvenience, obj, step, \
         new_aggregate_demand_profile, new_aggregate_battery_profile,time_pricing \
             = self.pricing(num_iteration=0,
+                           par_cost_weight=par_cost_weight,
                            aggregate_demand_profile=aggregate_preferred_demand_profile,
                            aggregate_battery_profile=[0] * len(aggregate_preferred_demand_profile),
                            aggregate_inconvenience=0)
@@ -48,6 +49,7 @@ class Aggregator:
         return consumption_cost, prices
 
     def new_aggregator(self, normalised_pricing_table_csv, aggregate_preferred_demand_profile, pricing_method,
+                       par_cost_weight,
                        max_scale=0, num_periods=no_periods, weight=pricing_table_weight,
                        write_to_file_path=None, backup_file_path=None,
                        date_time=None):
@@ -73,7 +75,7 @@ class Aggregator:
 
         prices, consumption_cost, inconvenience, obj, step, \
         new_aggregate_demand_profile, new_aggregate_battery_profile, time_pricing \
-            = self.pricing(num_iteration=0,
+            = self.pricing(num_iteration=0, par_cost_weight=par_cost_weight,
                            aggregate_demand_profile=aggregate_preferred_demand_profile,
                            aggregate_battery_profile=[0] * len(aggregate_preferred_demand_profile),
                            aggregate_inconvenience=0)
@@ -105,8 +107,8 @@ class Aggregator:
         self.final.update(num_record=0, demands=aggregate_preferred_demand_profile)
 
     def pricing(self, num_iteration, aggregate_demand_profile, aggregate_battery_profile,
-                total_obj=None, par_cost_weight=par_c_weight,
-                aggregate_inconvenience=0, finalising=False,
+                par_cost_weight,
+                total_obj=None, aggregate_inconvenience=0, finalising=False,
                 min_step_size=min_step, roundup_tiny_step=False, print_steps=False):
 
         aggregate_demand_profile = self.convert_demand_profile(aggregate_demand_profile)
