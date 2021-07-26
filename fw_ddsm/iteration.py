@@ -133,7 +133,6 @@ class Iteration:
             battery_solver = "mip" if battery_solver is None else battery_solver
 
         num_iteration = 1
-        step = 0.9
         obj_pre = 0
         obj_improve = 1 + min_obj_incr
         while obj_improve > min_obj_incr:
