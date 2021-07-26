@@ -18,7 +18,7 @@ algorithms[m_minizinc][m_after_fw] = f"{m_minizinc}_fw"
 # algorithms[m_ogsa][m_after_fw] = f"{m_ogsa}_fw"
 
 num_households_range = [1000]
-penalty_weight_range = [100]
+penalty_weight_range = [10]
 par_weight_range = [10]
 
 num_tasks_dependent_range = [3]
@@ -26,7 +26,7 @@ num_full_flex_tasks = 0
 num_semi_flex_tasks = 5
 num_fixed_tasks = 3
 num_samples = 5
-num_repeat = 3
+num_repeat = 1
 id_job = 0
 
 # battery_usages = [True, False]
@@ -57,8 +57,8 @@ timeout = 6000
 timeout = 60
 min_step_size = 0.01
 min_obj_improve = 1
-roundup_tiny_step = False
-# roundup_tiny_step = True
+# roundup_tiny_step = False
+roundup_tiny_step = True
 print_done = False
 print_steps = False
 # print_steps = True
@@ -71,21 +71,25 @@ def main(num_households, num_tasks_dependent, penalty_weight, par_weight,
          power=battery_power, efficiency=battery_efficiency,
          hour_fully_charge=fully_charge_hour, read_from_dt=read_from_date_time,
          min_obj_incr=min_obj_improve):
-
     num_experiment = 0
-    print("----------------------------------------")
-    param_str = f"{num_households} households, " \
-                f"{capacity_max * int(use_battery)}Wh battery " \
-                f"(fully charged at {hour_fully_charge}, efficiency {efficiency}), " \
-                f"{num_tasks_dependent} dependent tasks, " \
-                f"{num_full_flex_tasks} fully flexible tasks, " \
-                f"{num_semi_flex_tasks} semi-flexible tasks, " \
-                f"{num_fixed_tasks} fixed tasks, " \
-                f"{penalty_weight} penalty weight, " \
-                f"{par_weight} par weight, " \
-                f"read from {read_from_dt}. "
-    print(param_str)
-    print("----------------------------------------")
+
+    def print_summary():
+        print("----------------------------------------")
+        params = f"{num_households} households, " \
+                 f"{capacity_max * int(use_battery)}Wh battery " \
+                 f"(fully charged at {hour_fully_charge}, efficiency {efficiency}), " \
+                 f"{num_tasks_dependent} dependent tasks, " \
+                 f"{num_full_flex_tasks} fully flexible tasks, " \
+                 f"{num_semi_flex_tasks} semi-flexible tasks, " \
+                 f"{num_fixed_tasks} fixed tasks, " \
+                 f"{penalty_weight} penalty weight, " \
+                 f"{par_weight} par weight, " \
+                 f"read from {read_from_dt}. "
+        print(params)
+        print("----------------------------------------")
+        return params
+
+    param_str = print_summary()
 
     new_iteration = Iteration()
     output_folder, output_parent_folder, this_date_time \
@@ -96,7 +100,7 @@ def main(num_households, num_tasks_dependent, penalty_weight, par_weight,
                                 par_cost_weight=par_weight,
                                 inconvenience_cost_weight=penalty_weight,
                                 folder_id=job_id,
-                                battery_size=int(use_battery)*capacity_max,
+                                battery_size=int(use_battery) * capacity_max,
                                 efficiency=efficiency)
 
     plots_demand_layout = []
@@ -104,27 +108,32 @@ def main(num_households, num_tasks_dependent, penalty_weight, par_weight,
     for alg in algorithms.values():
         while num_experiment in experiment_tracker:
             num_experiment += 1
-        experiment_tracker[num_experiment] = dict()
-        experiment_tracker[num_experiment][k_households_no] = num_households
-        experiment_tracker[num_experiment][k_penalty_weight] = penalty_weight
-        experiment_tracker[num_experiment][p_par_weight] = par_weight
-        experiment_tracker[num_experiment][k_dependent_tasks_no] = num_tasks_dependent
-        experiment_tracker[num_experiment][h_tasks_no_ff_min] = num_full_flex_tasks
-        experiment_tracker[num_experiment][h_tasks_no_sf_min] = num_semi_flex_tasks
-        experiment_tracker[num_experiment][h_tasks_no_fixed_min] = num_fixed_tasks
-        experiment_tracker[num_experiment][m_algorithm] = alg[m_after_fw]
-        experiment_tracker[num_experiment]["id"] = job_id
 
-        if use_battery:
-            experiment_tracker[num_experiment][b_cap_max] = capacity_max
-            experiment_tracker[num_experiment][b_cap_min] = capacity_min
-            experiment_tracker[num_experiment][b_power] = power
-            experiment_tracker[num_experiment][b_eff] = efficiency
+        def record_experiment_tracker():
+            experiment_tracker[num_experiment] = dict()
+            experiment_tracker[num_experiment][k_households_no] = num_households
+            experiment_tracker[num_experiment][k_penalty_weight] = penalty_weight
+            experiment_tracker[num_experiment][p_par_weight] = par_weight
+            experiment_tracker[num_experiment][k_dependent_tasks_no] = num_tasks_dependent
+            experiment_tracker[num_experiment][h_tasks_no_ff_min] = num_full_flex_tasks
+            experiment_tracker[num_experiment][h_tasks_no_sf_min] = num_semi_flex_tasks
+            experiment_tracker[num_experiment][h_tasks_no_fixed_min] = num_fixed_tasks
+            experiment_tracker[num_experiment][m_algorithm] = alg[m_after_fw]
+            experiment_tracker[num_experiment]["id"] = job_id
+
+            if use_battery:
+                experiment_tracker[num_experiment][b_cap_max] = capacity_max
+                experiment_tracker[num_experiment][b_cap_min] = capacity_min
+                experiment_tracker[num_experiment][b_power] = power
+                experiment_tracker[num_experiment][b_eff] = efficiency
+
+        record_experiment_tracker()
 
         # 1. iteration data
         if new_data:
             preferred_demand_profile, prices = \
                 new_iteration.new(algorithm=alg, num_households=num_households,
+                                  num_intervals=no_intervals,
                                   max_demand_multiplier=maximum_demand_multiplier,
                                   num_tasks_dependent=num_tasks_dependent, ensure_dependent=ensure_dependent,
                                   full_flex_task_min=num_full_flex_tasks, full_flex_task_max=0,
@@ -136,6 +145,10 @@ def main(num_households, num_tasks_dependent, penalty_weight, par_weight,
                                   data_folder=output_parent_folder,
                                   backup_data_folder=output_folder,
                                   date_time=this_date_time,
+                                  use_battery=use_battery,
+                                  battery_model=file_mip_battery, battery_solver="gurobi",
+                                  timeout=time_out,
+                                  fully_charge_time=fully_charge_hour,
                                   capacity_max=capacity_max, capacity_min=capacity_min,
                                   power=power, efficiency=efficiency)
             new_data = False
@@ -145,7 +158,6 @@ def main(num_households, num_tasks_dependent, penalty_weight, par_weight,
                 print("Same dependent tasks. ")
                 print("----------------------------------------")
 
-            # read_from_date_time = read_from_date_time
             if read_from_dt is not None:
                 input_date_time = read_from_dt
                 intput_parent_folder = out1.output_root_folder + input_date_time
@@ -154,12 +166,17 @@ def main(num_households, num_tasks_dependent, penalty_weight, par_weight,
                 intput_parent_folder = output_parent_folder
             preferred_demand_profile, prices = \
                 new_iteration.read(algorithm=alg,
+                                   num_intervals=no_intervals,
                                    inconvenience_cost_weight=penalty_weight,
                                    par_cost_weight=par_weight,
                                    new_dependent_tasks=num_tasks_dependent,
                                    ensure_dependent=ensure_dependent,
                                    read_from_folder=intput_parent_folder,
                                    date_time=input_date_time,
+                                   use_battery=use_battery,
+                                   battery_model=file_mip_battery, battery_solver="gurobi",
+                                   timeout=time_out,
+                                   fully_charge_time=fully_charge_hour,
                                    capacity_max=capacity_max, capacity_min=capacity_min,
                                    power=power, efficiency=efficiency)
 
@@ -203,39 +220,13 @@ def main(num_households, num_tasks_dependent, penalty_weight, par_weight,
 
     # 6. writing experiment overview
     df_exp = DataFrame.from_dict(experiment_tracker).transpose()
-    # df_exp[s_obj] = df_exp[s_penalty] + df_exp[p_cost]
     df_exp.to_csv(r"{}{}_overview.csv".format(output_parent_folder, this_date_time))
-    # with open(f"{out.output_parent_folder}data/{this_date_time}_{file_experiment_pkl}",
-    #           'wb+') as f:
-    #     pickle.dump(experiment_tracker, f, pickle.HIGHEST_PROTOCOL)
 
     print("----------------------------------------")
     print("Experiment is finished. ")
     print(df_exp[[k_households_no, k_dependent_tasks_no, k_penalty_weight, p_par_weight,
                   m_algorithm, k_iteration_no, s_par_init, s_par,
                   s_demand_reduction, p_cost_reduction]])
-
-    # if email_results:
-    #     msg = MIMEMultipart()
-    #     body_part = MIMEText(param_str, 'plain')
-    #     msg['Subject'] = "Experiment@Nectar completed. "
-    #     msg['From'] = "dora.he3@monash.edu"
-    #     msg['To'] = "dora.he3@monash.edu"
-    #     # Add body to email
-    #     msg.attach(body_part)
-    #     # open and read the CSV file in binary
-    #     with open("{}{}_overview.csv".format(output_parent_folder, this_date_time), 'rb') as file:
-    #         # Attach the file with filename to the email
-    #         msg.attach(MIMEApplication(file.read(), Name="overview.csv"))
-
-    # Create SMTP object
-    # smtp_obj = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
-    # # Login to the server
-    # smtp_obj.login(SMTP_USERNAME, SMTP_PASSWORD)
-    #
-    # # Convert the message to a string and send it
-    # smtp_obj.sendmail(msg['From'], msg['To'], msg.as_string())
-    # smtp_obj.quit()
 
 
 if __name__ == '__main__':
