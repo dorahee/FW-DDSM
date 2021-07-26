@@ -29,9 +29,9 @@ class Community:
              inconvenience_cost_weight=None,
              par_cost_weight=None,
              num_dependent_tasks=None, ensure_dependent=False,
-             use_battery=False, battery_model=file_mip_battery, battery_solver="gurobi",
-             timeout=time_out,
-             fully_charge_time=fully_charge_hour,
+             # use_battery=False, battery_model=file_mip_battery, battery_solver="gurobi",
+             # timeout=time_out,
+             # fully_charge_time=fully_charge_hour,
              capacity_max=battery_capacity_max, capacity_min=battery_capacity_min,
              power=battery_power, efficiency=battery_efficiency,
              date_time=None):
@@ -47,9 +47,9 @@ class Community:
                                          inconvenience_cost_weight=inconvenience_cost_weight,
                                          par_cost_weight=par_cost_weight,
                                          num_dependent_tasks=num_dependent_tasks, ensure_dependent=ensure_dependent,
-                                         use_battery=use_battery,
-                                         battery_model=battery_model, battery_solver=battery_solver,
-                                         timeout=timeout, fully_charge_time=fully_charge_time,
+                                         # use_battery=use_battery,
+                                         # battery_model=battery_model, battery_solver=battery_solver,
+                                         # timeout=timeout, fully_charge_time=fully_charge_time,
                                          capacity_max=capacity_max, capacity_min=capacity_min,
                                          power=power, efficiency=efficiency)
 
@@ -83,9 +83,9 @@ class Community:
             par_cost_weight=par_c_weight,
             max_care_factor=care_f_max,
             write_to_file_path=None, backup_file_path=None, date_time=None,
-            use_battery=False, battery_model=file_mip_battery, battery_solver="mip",
-            timeout=time_out,
-            fully_charge_time=fully_charge_hour,
+            # use_battery=False, battery_model=file_mip_battery, battery_solver="mip",
+            # timeout=time_out,
+            # fully_charge_time=fully_charge_hour,
             capacity_max=battery_capacity_max, capacity_min=battery_capacity_min,
             power=battery_power, efficiency=battery_efficiency):
 
@@ -116,11 +116,11 @@ class Community:
                                                      par_cost_weight=par_cost_weight,
                                                      max_care_factor=max_care_factor,
                                                      household_id=h,
-                                                     use_battery=use_battery,
-                                                     battery_model=battery_model,
-                                                     battery_solver=battery_solver,
-                                                     timeout=timeout,
-                                                     fully_charge_time=fully_charge_time,
+                                                     # use_battery=use_battery,
+                                                     # battery_model=battery_model,
+                                                     # battery_solver=battery_solver,
+                                                     # timeout=timeout,
+                                                     # fully_charge_time=fully_charge_time,
                                                      capacity_max=capacity_max,
                                                      capacity_min=capacity_min,
                                                      power=power,
@@ -329,9 +329,9 @@ class Community:
                               inconvenience_cost_weight=None,
                               par_cost_weight=None,
                               num_dependent_tasks=None, ensure_dependent=False,
-                              use_battery=False, battery_model=file_mip_battery, battery_solver="mip",
-                              timeout=time_out,
-                              fully_charge_time=fully_charge_hour,
+                              # use_battery=False, battery_model=file_mip_battery, battery_solver="mip",
+                              # timeout=time_out,
+                              # fully_charge_time=fully_charge_hour,
                               capacity_max=battery_capacity_max, capacity_min=battery_capacity_min,
                               power=battery_power, efficiency=battery_efficiency):
         # ---------------------------------------------------------------------- #
@@ -346,8 +346,8 @@ class Community:
             community_details = pickle5.load(f)
         f.close()
         preferred_demand_profile = community_details.pop(s_demand)
-        if use_battery and capacity_max > 0:
-            preferred_demand_profile = [0] * num_intervals
+        # if use_battery and capacity_max > 0:
+        #     preferred_demand_profile = [0] * num_intervals
 
         # read the details of each household
         for key, household_details in community_details.items():
@@ -364,21 +364,21 @@ class Community:
             household_details[b_power] = power
             household_details[b_eff] = efficiency
 
-            if use_battery and capacity_max > 0:
-                prices = [0] * num_intervals
-                tasks_demand_profile = household_details[s_demand]
-                battery_profile, time = \
-                    household_scheduling.battery_mip(battery_model, battery_solver, tasks_demand_profile,
-                                                     capacity_max,
-                                                     capacity_min, power, efficiency,
-                                                     prices, par_cost_weight,
-                                                     fully_charge_time=fully_charge_time,
-                                                     num_intervals=num_intervals,
-                                                     timeout=timeout)
-                household_details[b_profile] = battery_profile
-                household_demand_profile = [x + y for x, y in zip(tasks_demand_profile, battery_profile)]
-                household_details[s_demand] = household_demand_profile
-                preferred_demand_profile = [x + y for x, y in zip(household_demand_profile, preferred_demand_profile)]
+            # if use_battery and capacity_max > 0:
+            #     prices = [0] * num_intervals
+            #     tasks_demand_profile = household_details[s_demand]
+            #     battery_profile, time = \
+            #         household_scheduling.battery_mip(battery_model, battery_solver, tasks_demand_profile,
+            #                                          capacity_max,
+            #                                          capacity_min, power, efficiency,
+            #                                          prices, par_cost_weight,
+            #                                          fully_charge_time=fully_charge_time,
+            #                                          num_intervals=num_intervals,
+            #                                          timeout=timeout)
+            #     household_details[b_profile] = battery_profile
+            #     household_demand_profile = [x + y for x, y in zip(tasks_demand_profile, battery_profile)]
+            #     household_details[s_demand] = household_demand_profile
+            #     preferred_demand_profile = [x + y for x, y in zip(household_demand_profile, preferred_demand_profile)]
                 # print("Battery rescheduled", capacity_max)
 
             # generate new dependent tasks for this household if applicable

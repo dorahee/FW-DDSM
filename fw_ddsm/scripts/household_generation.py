@@ -123,9 +123,10 @@ def new_household(
         max_care_factor=care_f_max,
         household_id=0,
 
-        use_battery=False, battery_model=None, battery_solver=None,
-        timeout=time_out,
-        fully_charge_time=fully_charge_hour,
+        # use_battery=False, battery_model=None, battery_solver=None,
+        # timeout=time_out,
+        # fully_charge_time=fully_charge_hour,
+
         capacity_max=battery_capacity_max, capacity_min=battery_capacity_min,
         power=battery_power, efficiency=battery_efficiency
 ):
@@ -213,17 +214,17 @@ def new_household(
     household[b_profile] = [0] * num_intervals
     household[b_eff] = efficiency
 
-    if use_battery and capacity_max > 0:
-        prices = [0] * num_intervals
-        battery_profile, time = \
-            household_scheduling.battery_mip(battery_model, battery_solver, tasks_demand_profile, capacity_max,
-                                             capacity_min, power, efficiency,
-                                             prices, par_cost_weight,
-                                             fully_charge_time=fully_charge_time, num_intervals=num_intervals,
-                                             timeout=timeout)
-        household[b_profile] = battery_profile
-        household_demand_profile = [x + y for x, y in zip(tasks_demand_profile, battery_profile)]
-        household[s_demand] = household_demand_profile
+    # if use_battery and capacity_max > 0:
+    #     prices = [0] * num_intervals
+    #     battery_profile, time = \
+    #         household_scheduling.battery_mip(battery_model, battery_solver, tasks_demand_profile, capacity_max,
+    #                                          capacity_min, power, efficiency,
+    #                                          prices, par_cost_weight,
+    #                                          fully_charge_time=fully_charge_time, num_intervals=num_intervals,
+    #                                          timeout=timeout)
+    #     household[b_profile] = battery_profile
+    #     household_demand_profile = [x + y for x, y in zip(tasks_demand_profile, battery_profile)]
+    #     household[s_demand] = household_demand_profile
         # print("Battery scheduled", capacity_max)
 
     # return the household details
