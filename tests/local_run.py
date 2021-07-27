@@ -17,7 +17,7 @@ algorithms[m_minizinc][m_after_fw] = f"{m_minizinc}_fw"
 # algorithms[m_ogsa][m_before_fw] = m_ogsa
 # algorithms[m_ogsa][m_after_fw] = f"{m_ogsa}_fw"
 
-num_households_range = [2000]
+num_households_range = [20]
 penalty_weight_range = [100]
 par_weight_range = [1]
 

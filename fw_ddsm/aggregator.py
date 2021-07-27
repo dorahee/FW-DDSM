@@ -179,6 +179,7 @@ class Aggregator:
             self.tracker.update(num_record=num_iteration, penalty=inconvenience,
                                 demands=new_aggregate_demand_profile,
                                 par=par,
+                                obj=obj,
                                 battery_profile=new_aggregate_battery_profile,
                                 init_demand_max=self.init_demand_max,
                                 prices=prices, cost=consumption_cost, init_cost=self.init_cost,
