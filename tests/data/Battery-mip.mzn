@@ -97,7 +97,7 @@ constraint sum(i in INTERVALS)(battery_charge2[i] * battery_discharge2[i]) = 0;
 
 % objectives
 var float: cost = sum (i in INTERVALS) (demand[i] * prices[i]);
-var float: obj = par_weight * PAR + max_demand; %max_total_demand;
+var float: obj = cost + par_weight * PAR + max_demand; %max_total_demand;
 solve minimize obj;
 
 % output [ "Cost = ",  show(cost), "\n",
