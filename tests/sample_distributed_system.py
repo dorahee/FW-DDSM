@@ -1,5 +1,5 @@
-from fw_ddsm.aggregator import *
-from fw_ddsm.household import *
+from aggregator import *
+from household import *
 
 algorithm = algorithms[m_ogsa]
 scheduling_method = algorithm[m_before_fw]

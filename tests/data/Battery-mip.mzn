@@ -89,7 +89,6 @@ var float: PAR =% max_demand * num_intervals / sum(demand) ;
 constraint sum(demand2) = 1 ; 
 
 % non-shedding constraint
-% constraint sum(i in INTERVALS)(battery_charge[i] + battery_discharge[i]) = 0;
 constraint sum(i in INTERVALS)(battery_charge2[i] + battery_discharge2[i]) = 0;
 
 % only charge or discharge at each time interval

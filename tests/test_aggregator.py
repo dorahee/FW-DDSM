@@ -1,5 +1,5 @@
-from fw_ddsm.aggregator import *
-from fw_ddsm.parameter import *
+from aggregator import *
+from common.parameter import *
 
 test_aggregator = Aggregator()
 test_aggregator.new_aggregator(normalised_pricing_table_csv=file_pricing_table,

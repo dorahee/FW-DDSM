@@ -1,13 +1,7 @@
 from multiprocessing import freeze_support
-import sys
-from fw_ddsm.iteration import *
-from fw_ddsm.output import *
+from iteration import *
+from output import *
 from pandas import DataFrame
-import os
-from email.mime.multipart import MIMEMultipart
-from email.mime.application import MIMEApplication
-from email.mime.text import MIMEText
-import smtplib
 
 algorithms = dict()
 algorithms[m_minizinc] = dict()

@@ -1,5 +1,4 @@
-from fw_ddsm.community import *
-from fw_ddsm.parameter import *
+from common.parameter import *
 
 new_community = Community()
 # new_community.new(file_preferred_demand_profile=file_pdp, file_demand_list=file_demand_list,

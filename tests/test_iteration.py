@@ -1,6 +1,6 @@
 from multiprocessing import freeze_support
-from fw_ddsm.iteration import *
-from fw_ddsm.output import *
+from iteration import *
+from output import *
 from pandas import DataFrame
 
 algorithms = dict()
@@ -54,6 +54,7 @@ def main(output_parent_folder=None, folder_id=1):
                         new_iteration = Iteration()
                         output_folder, output_parent_folder, this_date_time \
                             = out.new_output_folder(
+                                par_cost_weight=1,
                                 num_households=num_households,
                                 num_dependent_tasks=num_tasks_dependent,
                                 num_full_flex_task_min=num_full_flex_tasks,
@@ -85,9 +86,10 @@ def main(output_parent_folder=None, folder_id=1):
                                                       max_care_factor=care_f_max,
                                                       data_folder=out.output_parent_folder,
                                                       date_time=out.this_date_time,
-                                                      capacity_max=battery_capacity_max, capacity_min=battery_capacity_min,
-                                                      power=battery_power
-                                                      )
+                                                      capacity_max=battery_capacity_max,
+                                                      capacity_min=battery_capacity_min,
+                                                      power=battery_power,
+                                                      par_cost_weight=1)
                                 new_data = False
                             else:
                                 preferred_demand_profile, prices = \
@@ -95,14 +97,17 @@ def main(output_parent_folder=None, folder_id=1):
                                                        # num_dependent_tasks=num_tasks_dependent,
                                                        ensure_dependent=ensure_dependent,
                                                        read_from_folder=out.output_parent_folder,
-                                                       date_time=out.this_date_time)
+                                                       par_cost_weight=1, date_time=out.this_date_time)
                             start_time_probability, total_iterations \
                                 = new_iteration.begin_iteration(starting_prices=prices, num_cpus=4,
                                                                 use_battery=use_battery,
                                                                 battery_solver="gurobi",
-                                                                fully_charge_time=5)
+                                                                fully_charge_time=5,
+                                                                par_cost_weight=1,
+                                                                min_obj_incr=1)
                             new_iteration.finalise_schedules(num_samples=num_samples,
-                                                             start_time_probability=start_time_probability)
+                                                             start_time_probability=start_time_probability,
+                                                             par_cost_weight=1)
                             print("----------------------------------------")
 
                             plots, plots_final, overview_dict \

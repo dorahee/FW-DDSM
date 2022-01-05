@@ -1,4 +1,4 @@
-from fw_ddsm.household import *
+from household import *
 
 test_household = Household()
 
