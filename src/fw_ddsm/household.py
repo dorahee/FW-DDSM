@@ -337,7 +337,7 @@ class Household:
         else:
             chosen_battery_profile = [0] * len(chosen_demand_profile)
 
-        if household_final is None:
+        if household_final is not None:
             self.household_final.update(num_record=num_schedule, tasks_starts=chosen_start_times,
                                         demands=chosen_demand_profile, penalty=chosen_penalty,
                                         battery_profile=chosen_battery_profile)
