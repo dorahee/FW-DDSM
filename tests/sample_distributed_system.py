@@ -18,13 +18,13 @@ household1.new(num_intervals=no_intervals,  ## change this to 48
                semi_flex_task_min=num_semi_flex_task_min,  ## set it to 0
                fixed_task_min=num_fixed_task_min,  ## set it to 0
                num_tasks_dependent=num_tasks_dependent,
-               preferred_demand_profile_csv="data/sample_demand_profile.csv",
-               list_of_devices_power_csv="data/demands_list.csv",
+               file_preferred_demand_profile="data/sample_demand_profile.csv",
+               file_list_of_devices_power="data/demands_list.csv",
                write_to_folder="households/", household_id=1)
 # household1.read_household(scheduling_method=scheduling_method,
 #                           read_from_folder="households/",
 #                           household_id=1)
-h1_demand_profile = household1.household_details[s_demand]
+h1_demand_profile = household1.data_dict[s_demand]
 
 # household 2
 household2 = Household()
@@ -34,13 +34,13 @@ household2.new(num_intervals=no_intervals,
                semi_flex_task_min=num_semi_flex_task_min,
                fixed_task_min=num_fixed_task_min,
                num_tasks_dependent=num_tasks_dependent,
-               preferred_demand_profile_csv="data/sample_demand_profile.csv",
-               list_of_devices_power_csv="data/demands_list.csv",
+               file_preferred_demand_profile="data/sample_demand_profile.csv",
+               file_list_of_devices_power="data/demands_list.csv",
                write_to_folder="households/", household_id=2)
 # household2.read_household(scheduling_method=scheduling_method,
 #                           read_from_folder="households/",
 #                           household_id=2)
-h2_demand_profile = household2.household_details[s_demand]
+h2_demand_profile = household2.data_dict[s_demand]
 
 # household 3
 household3 = Household()
@@ -50,13 +50,13 @@ household3.new(num_intervals=no_intervals,
                semi_flex_task_min=num_semi_flex_task_min,
                fixed_task_min=num_fixed_task_min,
                num_tasks_dependent=num_tasks_dependent,
-               preferred_demand_profile_csv="data/sample_demand_profile.csv",
-               list_of_devices_power_csv="data/demands_list.csv",
+               file_preferred_demand_profile="data/sample_demand_profile.csv",
+               file_list_of_devices_power="data/demands_list.csv",
                write_to_folder="households/", household_id=3)
 # household3.read_household(scheduling_method=scheduling_method,
 #                           read_from_folder="households/",
 #                           household_id=3)
-h3_demand_profile = household3.household_details[s_demand]
+h3_demand_profile = household3.data_dict[s_demand]
 
 # aggregator
 aggregate_demand_profile_interval = [0] * no_intervals

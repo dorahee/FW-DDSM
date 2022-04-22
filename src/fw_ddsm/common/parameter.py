@@ -1,29 +1,67 @@
-# time related parameters
+# time parameters
 no_intervals = 144
 no_periods = 48
-no_intervals_periods = int(no_intervals / no_periods)
 time_out = None
 
-# household related parameters
+# time dictionary key names
+k_no_intervals = "no_intervals"
+k_no_periods = "no_periods"
+k_no_intervals_periods = "no_intervals_periods"
+k_time_out = "time_out"
+
+# household task parameters
 # new_households = True
 create_new_households = False
 no_households = 10
-no_full_flex_tasks_min = 5
-no_full_flex_tasks_max = 8
-no_semi_flex_tasks_min = 0
-no_semi_flex_tasks_max = 0
-no_fixed_tasks_min = 0
-no_tasks_dependent = 2
-maximum_demand_multiplier = 1
-care_f_max = 10
-care_f_weight = 1
+min_full_flex_tasks = 5
+max_full_flex_tasks = 8
+min_semi_flex_tasks = 0
+max_semi_flex_tasks = 0
+min_fixed_tasks = 0
+max_fixed_tasks = 0
+no_dependent_tasks = 2
+ensure_dependent = False
 
-# battery related parameters
-battery_capacity_max = 3000  # Wh
-battery_capacity_min = 0
+# household dictionary key name
+k_no_households = "no_households"
+k_min_full_flex_tasks = "min_full_flex_tasks"
+k_max_full_flex_tasks = "max_full_flex_tasks"
+k_min_semi_flex_tasks = "min_semi_flex_tasks"
+k_max_semi_flex_tasks = "max_semi_flex_tasks"
+k_min_fixed_tasks = "min_fixed_tasks"
+k_max_fixed_tasks = "max_fixed_tasks"
+k_no_dependent_tasks = "no_dependent_tasks"
+k_ensure_dependent = "ensure_dependent"
+
+# objective weights
+inconvenience_weight = 1
+par_weight = 1
+
+# objective dictionary key names
+k_inconvenience_weight = "inconvenience_weight"
+k_par_weight = "par_weight"
+
+# multipliers
+maximum_demand_multiplier = 1
+max_care_f = 10
+
+# multiplier dictionary key names
+k_max_demand_multiplier = "max_demand_multiplier"
+k_max_care_f = "max_care_f"
+
+# battery parameters
+max_battery_capacity = 3000  # Wh
+min_battery_capacity = 0
 battery_power = 3000  # 1C battery
 fully_charge_hour = 0
 battery_efficiency = 1
+
+# battery dictionary key names
+k_max_battery_capacity = "max_battery_capacity"
+k_min_battery_capacity = "min_battery_capacity"
+k_battery_power = "battery_power"
+k_fully_charge_hour = "fully_charge_hour"
+k_battery_efficiency = "battery_efficiency"
 
 # pricing related parameters
 pricing_table_weight = 1
@@ -43,7 +81,7 @@ tasks_solver_name = "gecode"
 battery_solver_type = "mip"
 battery_solver_name = "gurobi"
 
-# external file related parameters
+# external file  parameters
 parent_folder = ""
 file_cp_pre = parent_folder + 'data/Household-cp-pre.mzn'
 file_cp_ini = parent_folder + 'data/Household-cp.mzn'
@@ -59,6 +97,12 @@ file_community_meta_pkl = "community_aggregate.pkl"
 file_aggregator_pkl = "aggregator.pkl"
 file_pricing_table_pkl = "pricing_table.pkl"
 file_experiment_pkl = "experiment.pkl"
+
+# external file dictionary key names
+k_file_preferred_demand_profile = "file_preferred_demand_profile"
+k_file_list_of_devices_power = "file_list_of_devices_power"
+k_init_preferred_demand_profile = "init_preferred_demand_profile"
+k_list_of_devices_power = "list_of_devices_power"
 
 # summary related parameters
 k_area = "area"

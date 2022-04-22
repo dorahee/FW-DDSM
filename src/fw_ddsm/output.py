@@ -34,9 +34,9 @@ class Output:
                           par_cost_weight,
                           num_households=no_households,
                           inconvenience_cost_weight=care_f_weight,
-                          num_dependent_tasks=no_tasks_dependent,
-                          num_full_flex_task_min=no_full_flex_tasks_min,
-                          num_semi_flex_task_min=no_semi_flex_tasks_min,
+                          num_dependent_tasks=no_dependent_tasks,
+                          num_full_flex_task_min=min_full_flex_tasks,
+                          num_semi_flex_task_min=min_semi_flex_tasks,
                           battery_size=False, efficiency=0,
                           repeat=None, folder_id=None):
 

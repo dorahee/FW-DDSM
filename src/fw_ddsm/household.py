@@ -5,19 +5,15 @@ from pathlib import Path
 from numpy import genfromtxt
 from src.fw_ddsm.functions import household_scheduling, household_generation
 from src.fw_ddsm.tracker import *
+from src.fw_ddsm.common import entity
 
 
-class Household:
+class Household(entity.Entity):
 
     def __init__(self, num_intervals=no_intervals, num_periods=no_periods):
-        self.num_intervals = num_intervals
-        self.num_periods = num_periods
-        self.num_intervals_periods = int(num_intervals / num_periods)
+        super().__init__(num_intervals, num_periods)
         self.tasks_scheduling_method = ""
-        self.household_details = dict()
         self.household_id = 0
-        self.household_tracker = Tracker()
-        self.household_final = Tracker()
 
     def read_household(self, tasks_scheduling_method, read_from_folder="households", household_id=0):
 
@@ -25,54 +21,52 @@ class Household:
         self.tasks_scheduling_method = tasks_scheduling_method
 
         # read household task details and battery details
-        if not read_from_folder.endswith("/"):
-            read_from_folder += "/"
+
         with open(f"{read_from_folder}h{household_id}.txt", 'r') as f:
             household_details = load(f)
         f.close()
-        self.household_details = household_details
+        self.data_dict = household_details
         self.household_id = household_id
 
         # create a household tracker for results at each iteration
-        self.household_tracker = Tracker()
-        self.household_tracker.new(name=f"h{household_id}")
-        self.household_tracker.update(num_record=0, tasks_starts=self.household_details[h_psts],
-                                      demands=self.household_details[s_demand], penalty=0,
-                                      battery_profile=self.household_details[b_profile])
+        self.tracker = Tracker()
+        self.tracker.new(name=f"h{household_id}")
+        self.tracker.update(num_record=0, tasks_starts=self.data_dict[h_psts],
+                            demands=self.data_dict[s_demand], penalty=0,
+                            battery_profile=self.data_dict[b_profile])
 
         # create a tracker for the final schedules
-        self.household_final = Tracker()
-        self.household_final.new(name=f"h{household_id}_final")
+        self.final = Tracker()
+        self.final.new(name=f"h{household_id}_final")
 
         # write a message when done
         print(f"0. Household{household_details[h_key]} is read.")
-        return self.household_details, self.household_tracker
+        return self.data_dict, self.tracker
 
     def new(self, num_intervals, tasks_scheduling_method,
             preferred_demand_profile=None, list_of_devices_power=None,
-            preferred_demand_profile_csv=None, list_of_devices_power_csv=None,
+            file_preferred_demand_profile=None, file_list_of_devices_power=None,
             max_demand_multiplier=maximum_demand_multiplier,
-            num_tasks_dependent=no_tasks_dependent,
-            full_flex_task_min=no_full_flex_tasks_min, full_flex_task_max=0,
-            semi_flex_task_min=no_semi_flex_tasks_min, semi_flex_task_max=0,
-            fixed_task_min=no_fixed_tasks_min, fixed_task_max=0,
+            num_tasks_dependent=no_dependent_tasks,
+            full_flex_task_min=min_full_flex_tasks, full_flex_task_max=0,
+            semi_flex_task_min=min_semi_flex_tasks, semi_flex_task_max=0,
+            fixed_task_min=min_fixed_tasks, fixed_task_max=0,
             inconvenience_cost_weight=care_f_weight, max_care_factor=care_f_max,
             write_to_folder=None, household_id=0,
             capacity_max=battery_capacity_max, capacity_min=battery_capacity_min,
             power=battery_power, efficiency=battery_efficiency):
 
-        self.tasks_scheduling_method = tasks_scheduling_method
         self.household_id = 0
 
         # read data for generating new household details
-        if preferred_demand_profile is None and preferred_demand_profile_csv is None:
+        if preferred_demand_profile is None and file_preferred_demand_profile is None:
             print("Please provide a preferred demand profile or the csv. ")
-        if list_of_devices_power is None and list_of_devices_power_csv is None:
+        if list_of_devices_power is None and file_list_of_devices_power is None:
             print("Please provide the power rates of the tasks. ")
-        if preferred_demand_profile_csv is not None:
-            preferred_demand_profile = genfromtxt(preferred_demand_profile_csv, delimiter=',', dtype="float")
-        if list_of_devices_power_csv is not None:
-            list_of_devices_power = genfromtxt(list_of_devices_power_csv, delimiter=',', dtype="float")
+        if file_preferred_demand_profile is not None:
+            preferred_demand_profile = genfromtxt(file_preferred_demand_profile, delimiter=',', dtype="float")
+        if file_list_of_devices_power is not None:
+            list_of_devices_power = genfromtxt(file_list_of_devices_power, delimiter=',', dtype="float")
 
         # generate details of a new household
         household_details \
@@ -98,35 +92,35 @@ class Household:
         # write the new household details to a file if needed
         if write_to_folder is not None:
             self.save_to_file(tasks=household_details, folder=write_to_folder, household_id=household_id)
-        self.household_details = household_details.copy()
+        self.data_dict = household_details.copy()
 
         # create a new tracker for the results at each iteration and save the initial details
-        self.household_tracker = Tracker()
-        self.household_tracker.new(name=f"h{household_id}")
-        self.household_tracker.update(num_record=0, tasks_starts=household_details[h_psts],
-                                      demands=household_details[s_demand], penalty=0,
-                                      battery_profile=household_details[b_profile])
+        self.tracker = Tracker()
+        self.tracker.new(name=f"h{household_id}")
+        self.tracker.update(num_record=0, tasks_starts=household_details[h_psts],
+                            demands=household_details[s_demand], penalty=0,
+                            battery_profile=household_details[b_profile])
 
         # create a tracker for the final schedules
-        self.household_final = Tracker()
-        self.household_final.new(name=f"h{household_id}_final")
+        self.final = Tracker()
+        self.final.new(name=f"h{household_id}_final")
 
         # print(f"Household{household_id} is created.")
-        return self.household_details, self.household_tracker
+        return self.data_dict, self.tracker
 
-    def save_to_file(self, tasks, folder, household_id=0):
-        if not folder.endswith("/"):
-            folder += "/"
-        file_name = f"h{household_id}.txt"
-
-        path = Path(folder)
-        if not Path(folder).exists():
-            path.mkdir(mode=0o777, parents=True, exist_ok=False)
-        with open(f"{folder}{file_name}", "w") as f:
-            f.write(dumps(tasks, indent=1))
-        f.close()
-
-        print(f"0. {folder}{file_name} written.")
+    # def save_to_file(self, tasks, folder, household_id=0):
+    #     if not folder.endswith("/"):
+    #         folder += "/"
+    #     file_name = f"h{household_id}.txt"
+    #
+    #     path = Path(folder)
+    #     if not Path(folder).exists():
+    #         path.mkdir(mode=0o777, parents=True, exist_ok=False)
+    #     with open(f"{folder}{file_name}", "w") as f:
+    #         f.write(dumps(tasks, indent=1))
+    #     f.close()
+    #
+    #     print(f"0. {folder}{file_name} written.")
 
     def schedule(self, num_iteration, prices,
                  num_intervals=None,
@@ -142,7 +136,7 @@ class Household:
         if tasks_scheduling_method is None:
             tasks_scheduling_method = self.tasks_scheduling_method
         if household_details is None:
-            household_details = self.household_details
+            household_details = self.data_dict
         if num_intervals is None:
             num_intervals = no_intervals
         if use_battery:
@@ -191,11 +185,11 @@ class Household:
 
         # update household tracker
         if update_tracker:
-            self.household_tracker.update(num_record=num_iteration,
-                                          tasks_starts=tasks_start_times,
-                                          demands=household_demand_profile,
-                                          penalty=tasks_weighted_penalty,
-                                          battery_profile=battery_profile)
+            self.tracker.update(num_record=num_iteration,
+                                tasks_starts=tasks_start_times,
+                                demands=household_demand_profile,
+                                penalty=tasks_weighted_penalty,
+                                battery_profile=battery_profile)
 
         return {h_key: key,
                 s_demand: household_demand_profile,
@@ -208,7 +202,7 @@ class Household:
     def schedule_tasks(self, prices, method, household, num_intervals=no_intervals,
                        model=None, solver=None, search=None, timeout=time_out, print_upon_completion=False):
 
-        prices = self.__convert_price(num_intervals, prices)
+        prices = self.convert_price(num_intervals, prices)
 
         # read details of tasks
         key = household[h_key]
@@ -326,7 +320,7 @@ class Household:
                            household_tracker_data=None, num_schedule=0):
 
         if household_tracker_data is None:
-            household_tracker_data = self.household_tracker.data
+            household_tracker_data = self.tracker.data
 
         chosen_iter = choice(len(probability_distribution), size=1, p=probability_distribution)[0]
         chosen_demand_profile = household_tracker_data[s_demand][chosen_iter].copy()
@@ -338,17 +332,8 @@ class Household:
             chosen_battery_profile = [0] * len(chosen_demand_profile)
 
         if household_tracker_data is None:
-            self.household_final.update(num_record=num_schedule, tasks_starts=chosen_start_times,
-                                        demands=chosen_demand_profile, penalty=chosen_penalty,
-                                        battery_profile=chosen_battery_profile)
+            self.final.update(num_record=num_schedule, tasks_starts=chosen_start_times,
+                              demands=chosen_demand_profile, penalty=chosen_penalty,
+                              battery_profile=chosen_battery_profile)
         return chosen_demand_profile, chosen_penalty, chosen_start_times, chosen_battery_profile
 
-    def __convert_price(self, num_intervals, prices):
-        num_periods = len(prices)
-        num_intervals_period = int(num_intervals / num_periods)
-        if num_periods != num_intervals:
-            prices = [p for p in prices for _ in range(num_intervals_period)]
-        else:
-            prices = [p for p in prices]
-
-        return prices

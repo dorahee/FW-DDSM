@@ -3,7 +3,7 @@ from common.parameter import *
 new_community = Community()
 # new_community.new(file_preferred_demand_profile=file_pdp, file_demand_list=file_demand_list,
 #                   tasks_scheduling_method=m_ogsa, write_to_file_path="community")
-new_community.new(file_preferred_demand_profile=file_pdp, file_demand_list=file_demand_list,
+new_community.new(file_preferred_demand_profile=file_pdp, file_list_of_devices_power=file_demand_list,
                   tasks_scheduling_method=m_minizinc)
 new_community.read(tasks_scheduling_method=m_minizinc)
 

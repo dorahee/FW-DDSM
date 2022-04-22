@@ -4,18 +4,14 @@ from src.fw_ddsm.aggregator import *
 from src.fw_ddsm.tracker import *
 from functions import aggregator_pricing, household_generation
 from src.fw_ddsm.common import entity
-import pickle5 as pickle
 
 
-class Community(entity.Entity):
+class Community(entity.Demand):
 
     def __init__(self, num_intervals=no_intervals, num_periods=no_periods):
-        super().__init__(num_intervals, num_periods)
+        entity.Demand.__init__(num_intervals, num_periods)
         self.num_households = 0
-        self.community_details = dict()
-        self.final = Tracker()
         self.tasks_scheduling_method = ""
-        self.preferred_demand_profile = []
         self.pricing_table = dict()
 
     def read(self, tasks_scheduling_method,
@@ -30,13 +26,14 @@ class Community(entity.Entity):
              capacity_max=battery_capacity_max, capacity_min=battery_capacity_min,
              power=battery_power, efficiency=battery_efficiency,
              date_time=None):
+
         if not read_from_folder.endswith("/"):
             read_from_folder += "/"
         # read_from_folder += "data/"
 
         # read the community details
-        self.community_details = dict()
-        self.community_details, self.preferred_demand_profile \
+        self.data_details = dict()
+        self.data_details, self.preferred_demand_profile \
             = self.__existing_households(file_path=read_from_folder, date_time=date_time,
                                          num_intervals=num_intervals,
                                          inconvenience_cost_weight=inconvenience_cost_weight,
@@ -49,8 +46,8 @@ class Community(entity.Entity):
                                          power=power, efficiency=efficiency)
 
         # read the number of households in this community
-        if s_demand in self.community_details:
-            self.num_households = len(self.community_details) - 1
+        if s_demand in self.data_details:
+            self.num_households = len(self.data_details) - 1
 
         # prices, total_cost \
         #     = aggregator_pricing.prices_and_cost(aggregate_demand_profile=self.preferred_demand_profile,
@@ -66,32 +63,67 @@ class Community(entity.Entity):
 
         return self.preferred_demand_profile
 
-    def new(self, file_preferred_demand_profile, file_demand_list,
-            tasks_scheduling_method,par_cost_weight,
-            num_intervals=no_intervals, num_households=no_households,
-            max_demand_multiplier=maximum_demand_multiplier,
-            num_tasks_dependent=no_tasks_dependent, ensure_dependent=False,
-            full_flex_task_min=no_full_flex_tasks_min, full_flex_task_max=0,
-            semi_flex_task_min=no_semi_flex_tasks_min, semi_flex_task_max=0,
-            fixed_task_min=no_fixed_tasks_min, fixed_task_max=0,
-            inconvenience_cost_weight=care_f_weight,
-            max_care_factor=care_f_max,
-            write_to_file_path=None, backup_file_path=None, date_time=None,
-            # use_battery=False, battery_model=file_mip_battery, battery_solver="mip",
-            # timeout=time_out,
-            # fully_charge_time=fully_charge_hour,
-            capacity_max=battery_capacity_max, capacity_min=battery_capacity_min,
-            power=battery_power, efficiency=battery_efficiency):
+    def new(self,
 
-        self.tasks_scheduling_method = tasks_scheduling_method
-        self.num_intervals = num_intervals
+            # for the parent class
+            num_intervals, tasks_scheduling_method,
+            write_to_folder, date_time,
+
+            # input files
+            preferred_demand_profile, list_of_devices_power,
+            file_preferred_demand_profile, file_list_of_devices_power,
+
+            # task params
+            min_full_flex_task, max_full_flex_task,
+            min_semi_flex_task, max_semi_flex_task,
+            min_fixed_task, max_fixed_task,
+            num_tasks_dependent, ensure_dependent,
+
+            # battery params
+            capacity_max, capacity_min, power, efficiency,
+
+            # objective weights
+            par_weight, inconvenience_cost_weight,
+
+            # multipliers
+            max_care_factor, max_demand_multiplier,
+
+            # for this class
+            num_households=no_households, backup_file_path=None,
+            # use_battery=False, battery_model=file_mip_battery, battery_solver="mip",
+            # timeout=time_out, # fully_charge_time=fully_charge_hour,
+            ):
+
+        entity.Demand.set_parameters(self,
+                                     num_intervals, tasks_scheduling_method,
+                                     write_to_folder, date_time,
+
+                                     # input files
+                                     preferred_demand_profile, list_of_devices_power,
+                                     file_preferred_demand_profile, file_list_of_devices_power,
+
+                                     # task params
+                                     min_full_flex_task, max_full_flex_task,
+                                     min_semi_flex_task, max_semi_flex_task,
+                                     min_fixed_task, max_fixed_task,
+                                     num_tasks_dependent, ensure_dependent,
+
+                                     # battery params
+                                     capacity_max, capacity_min, power, efficiency,
+
+                                     # objective weights
+                                     par_weight, inconvenience_cost_weight,
+
+                                     # multipliers
+                                     max_care_factor, max_demand_multiplier)
+
         self.num_households = num_households
 
         # generate details of households in this community
         community_details = dict()
         aggregate_demand_profile = [0] * num_intervals
         preferred_demand_profile = genfromtxt(file_preferred_demand_profile, delimiter=',', dtype="float")
-        list_of_devices_power = genfromtxt(file_demand_list, delimiter=',', dtype="float")
+        list_of_devices_power = genfromtxt(file_list_of_devices_power, delimiter=',', dtype="float")
         for h in range(num_households):
             household_details \
                 = household_generation.new_household(num_intervals=num_intervals,
@@ -135,7 +167,7 @@ class Community(entity.Entity):
                                                    battery_profile=household_details[b_profile])
 
         # save the initial details
-        self.community_details = community_details
+        self.data_details = community_details
         self.preferred_demand_profile = aggregate_demand_profile
 
         # write the new community details to a file if needed
@@ -169,25 +201,6 @@ class Community(entity.Entity):
         self.final.new(name=f"{tasks_scheduling_method}_community_final")
         self.tracker.update(num_record=0, penalty=0, run_time=0)
 
-    def save_to_file(self, folder="data/", date_time=None):
-
-        if not folder.endswith("/"):
-            folder += "/"
-        folder += "data/"
-        path = Path(folder)
-        if not path.exists():
-            path.mkdir(mode=0o777, parents=True, exist_ok=False)
-
-        self.community_details[s_demand] = self.preferred_demand_profile
-        if date_time is None:
-            file_name = f"{folder}{file_community_pkl}"
-        else:
-            file_name = f"{folder}{date_time}_{file_community_pkl}"
-        with open(file_name, 'wb+') as f:
-            pickle.dump(self.community_details, f, pickle.HIGHEST_PROTOCOL)
-        del self.community_details[s_demand]
-        f.close()
-
     def schedule(self, num_iteration, prices, pricing_table,
                  tasks_scheduling_method,
                  par_cost_weight,
@@ -201,7 +214,7 @@ class Community(entity.Entity):
         prices = self.__convert_price(prices)
 
         if community_details is None:
-            community_details = self.community_details
+            community_details = self.data_details
         if num_intervals is None:
             num_intervals = no_intervals
         if use_battery:
@@ -266,7 +279,7 @@ class Community(entity.Entity):
         final_battery_profile = [0] * self.num_intervals
         final_total_inconvenience = 0
         total_demand = 0
-        for household_id, household_details in self.community_details.items():
+        for household_id, household_details in self.data_details.items():
 
             household = household_details[k_tracker].data
             chosen_iter = choice(len(start_probability_distribution), size=1, p=start_probability_distribution)[0]
@@ -290,14 +303,14 @@ class Community(entity.Entity):
             total_demand += sum(chosen_demand_profile)
 
             # print(f"actual household {household_id}: ", chosen_penalty)
-            if k_tracker_final not in self.community_details[household_id]:
-                self.community_details[household_id][k_tracker_final] = Tracker()
-                self.community_details[household_id][k_tracker_final].new()
-            self.community_details[household_id][k_tracker_final].update(num_record=num_sample,
-                                                                         tasks_starts=chosen_start_times,
-                                                                         demands=chosen_demand_profile,
-                                                                         penalty=chosen_penalty,
-                                                                         battery_profile=chosen_battery_profile)
+            if k_tracker_final not in self.data_details[household_id]:
+                self.data_details[household_id][k_tracker_final] = Tracker()
+                self.data_details[household_id][k_tracker_final].new()
+            self.data_details[household_id][k_tracker_final].update(num_record=num_sample,
+                                                                    tasks_starts=chosen_start_times,
+                                                                    demands=chosen_demand_profile,
+                                                                    penalty=chosen_penalty,
+                                                                    battery_profile=chosen_battery_profile)
             # print(f"actual total2: ",
             # self.community_details[household_id][k_tracker_final].data[s_penalty][num_sample])
 
@@ -374,7 +387,7 @@ class Community(entity.Entity):
             #     household_demand_profile = [x + y for x, y in zip(tasks_demand_profile, battery_profile)]
             #     household_details[s_demand] = household_demand_profile
             #     preferred_demand_profile = [x + y for x, y in zip(household_demand_profile, preferred_demand_profile)]
-                # print("Battery rescheduled", capacity_max)
+            # print("Battery rescheduled", capacity_max)
 
             # generate new dependent tasks for this household if applicable
             if num_dependent_tasks is not None:
@@ -480,11 +493,11 @@ class Community(entity.Entity):
 
             # update each household's tracker
             # print(f"household {key}:", res[s_penalty])
-            self.community_details[key][k_tracker].update(num_record=num_iteration,
-                                                          tasks_starts=start_times_jobs,
-                                                          demands=demands_household,
-                                                          penalty=weighted_penalty_household,
-                                                          battery_profile=battery_profile_household)
+            self.data_details[key][k_tracker].update(num_record=num_iteration,
+                                                     tasks_starts=start_times_jobs,
+                                                     demands=demands_household,
+                                                     penalty=weighted_penalty_household,
+                                                     battery_profile=battery_profile_household)
             # print(self.community_details[key][k_tracker].data[s_penalty][num_iteration])
 
         # return aggregate_demand_profile, aggregate_battery_profile, \

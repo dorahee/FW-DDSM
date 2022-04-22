@@ -1,25 +1,22 @@
 import pickle5
 from more_itertools import grouper
 from pathlib import Path
+from src.fw_ddsm.common import entity
 from src.fw_ddsm.tracker import *
 from src.fw_ddsm.functions import aggregator_generation, aggregator_pricing
 
 
-class Aggregator:
+class Aggregator(entity.Entity):
 
     def __init__(self, num_periods=no_periods, cost_function="piece-wise"):
-        self.num_periods = num_periods
+        super().__init__(0, num_periods)
         self.cost_function_type = cost_function
         self.pricing_table = dict()
         self.pricing_method = ""
 
-        self.tracker = Tracker()
-        self.final = Tracker()
-
         self.start_time_probability = None
         self.init_demand_max = 0
         self.init_cost = 0
-        self.preferred_demand_profile = []
 
     def read_aggregator(self, pricing_method, aggregate_preferred_demand_profile, par_cost_weight,
                         read_from_folder="data/", date_time=None):

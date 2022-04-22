@@ -19,10 +19,10 @@ class Iteration:
             num_intervals=no_intervals,
             file_task_power=file_demand_list, max_demand_multiplier=maximum_demand_multiplier,
             file_normalised_pricing_table=file_pricing_table, file_preferred_demand_profile=file_pdp,
-            num_tasks_dependent=no_tasks_dependent, ensure_dependent=False,
-            full_flex_task_min=no_full_flex_tasks_min, full_flex_task_max=0,
-            semi_flex_task_min=no_semi_flex_tasks_min, semi_flex_task_max=0,
-            fixed_task_min=no_fixed_tasks_min, fixed_task_max=0,
+            num_tasks_dependent=no_dependent_tasks, ensure_dependent=False,
+            full_flex_task_min=min_full_flex_tasks, full_flex_task_max=0,
+            semi_flex_task_min=min_semi_flex_tasks, semi_flex_task_max=0,
+            fixed_task_min=min_fixed_tasks, fixed_task_max=0,
             inconvenience_cost_weight=care_f_weight,
             max_care_factor=care_f_max,
             data_folder=None, backup_data_folder=None,
@@ -49,7 +49,7 @@ class Iteration:
         # 1. generate new households, trackers and a pricing table
         preferred_demand_profile \
             = self.community.new(file_preferred_demand_profile=file_preferred_demand_profile,
-                                 file_demand_list=file_task_power,
+                                 file_list_of_devices_power=file_task_power,
                                  tasks_scheduling_method=self.tasks_scheduling_method,
                                  num_intervals=num_intervals,
                                  num_households=self.num_households,
